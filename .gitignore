@@ -170,3 +170,7 @@ bin/
 src/cache/
 .lprof/
 .vscode/
+src/notebooks
+osmnx-examples/
+etc/
+cache/
