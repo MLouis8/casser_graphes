@@ -158,3 +158,13 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+share/
+lib64
+callkahipfrompython.py
+pyvenv.cfg
+KaHIP/
+include/
+kahip.cpython-311-x86_64-linux-gnu.so
+bin/
+src/cache/
