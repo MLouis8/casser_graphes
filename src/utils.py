@@ -1,17 +1,27 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
-def display_graph(graph):
+def display_graph(G):
     """
     Affichage matplotlib du graphe
     """
-    pos = nx.spring_layout(graph)
-    nx.draw_networkx_nodes(graph, pos)
-    nx.draw_networkx_edges(graph, pos)
-    edge_labels = nx.get_edge_attributes(graph, "weight")
-    nx.draw_networkx_edge_labels(graph, pos, edge_labels)
-    nx.draw_networkx_labels(graph, pos, font_size=10, font_family='sans-serif')
+    pos = nx.spring_layout(G)
+    nx.draw_networkx_nodes(G, pos)
+    nx.draw_networkx_edges(G, pos)
+    edge_labels = nx.get_edge_attributes(G, "weight")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels)
+    nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif')
     plt.show()
+
+def display_results(G, cut):
+    """
+    Affichage des resultats d'une coupe
+    """
+    print(f"Coupe: {cut[0]}")
+    print(f"Differents blocks:")
+    for i, block in enumerate(cut[1]):
+        print(f"Block {i}: {block}")
+    display_graph(G)
 
 def kahip_to_nx(xadj: list[int], adjncy: list[int], vwgt: list[int], adjcwgt: list[int]):
     """
@@ -65,19 +75,17 @@ def replace_parallel_edges(G):
     """
     parallel_edges = [(u,v,k) for u,v,k in G.edges if k !=0]
     
-    G_updated = G.copy()
-    
     edges_weight = nx.get_edge_attributes(G,'weight')
     
     for edge in parallel_edges:
         u, v, k = edge[0], edge[1], edge[2]
-        x_mid = (G_updated.nodes[u]['x'] + G_updated.nodes[v]['x']) / 2
-        y_mid = (G_updated.nodes[u]['y'] + G_updated.nodes[v]['y']) / 2
+        x_mid = (G.nodes[u]['x'] + G.nodes[v]['x']) / 2
+        y_mid = (G.nodes[u]['y'] + G.nodes[v]['y']) / 2
     
-        new_node = max(G_updated.nodes) + 1
-        G_updated.add_node(new_node, x=x_mid, y=y_mid)
-        G_updated.add_edge(u,new_node,0)
-        G_updated.add_edge(new_node,v,0)
+        new_node = max(G.nodes) + 1
+        G.add_node(new_node, x=x_mid, y=y_mid)
+        G.add_edge(u,new_node,0)
+        G.add_edge(new_node,v,0)
 
         # Si les aretes sont values alors les nouvelles en heritent
         if edges_weight:
@@ -85,20 +93,42 @@ def replace_parallel_edges(G):
             edges_weight[(new_node,v,0)] = int(edges_weight[(u,v,k)])
         
         # Pareil pour les attributs
-        G_updated.edges[(u, v, 0)].update(G.edges[(u,v,k)])
-        G_updated.edges[(u, new_node, 0)].update(G.edges[(u,v,0)])
-        G_updated.edges[(new_node, v, 0)].update(G.edges[(u,v,0)])
+        G.edges[(u, v, 0)].update(G.edges[(u,v,k)])
+        G.edges[(u, new_node, 0)].update(G.edges[(u,v,0)])
+        G.edges[(new_node, v, 0)].update(G.edges[(u,v,0)])
         
         # Sauf pour la longueur qui est divisee par deux
-        G_updated.edges[(u, new_node, 0)]['']
-
-        G_updated.remove_edge(u, v,k)
+        # G.edges[(u, new_node, 0)]['']
+        G.remove_edge(u, v,k)
 
     node_weights = {}
-    for node in G_updated.nodes:
+    for node in G.nodes:
         node_weights[node] = 1
 
-    nx.set_node_attributes(G_updated, node_weights, 'weight')
-    nx.set_edge_attributes(G_updated, edges_weight, 'weight')
+    nx.set_node_attributes(G, node_weights, 'weight')
+    nx.set_edge_attributes(G, edges_weight, 'weight')
     
-    return G_updated
+def preprocessing(G):
+    """
+    Does all the required preprocessing and returns the preprocessed graph.
+    """
+    def add_node_weights_and_relabel(G):
+        w_nodes = {}
+        for node in list(G.nodes):
+            w_nodes[node] = 1 
+        nx.set_node_attributes(G, w_nodes, 'weight')
+        sorted_nodes = sorted(G.nodes())
+        mapping = {
+            old_node: new_node for new_node, old_node 
+                in enumerate(sorted_nodes)
+        }
+        G = nx.relabel_nodes(G, mapping)
+    Gcopy = G.copy()
+    Gcopy.remove_edges_from(nx.selfloop_edges(Gcopy))
+    add_node_weights_and_relabel(Gcopy)
+    Gcopy = replace_parallel_edges(Gcopy)
+    Gcopy.remove_nodes_from(list(nx.isolates(Gcopy)))
+    Gcopy.to_undirected()
+
+def rebuilding():
+    return

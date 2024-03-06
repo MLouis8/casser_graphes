@@ -174,3 +174,4 @@ src/notebooks
 osmnx-examples/
 etc/
 cache/
+data/
