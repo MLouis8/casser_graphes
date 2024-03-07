@@ -10,15 +10,17 @@ class Graph:
         self._xadjacency = xadj
         self._adjacency_weight = adjcwgt
         self._adjacency = adjncy
-        self._sizeV = len(vwgt)
-        self._sizeE = len(adjcwgt) // 2
+        
         self._edgecut = 0
         self._blocks = []
-
+        
         if nx:
             self.set_from_nx(nx)
         if json:
             self.import_from_json(json)
+
+        self._sizeV = len(self._vertices_weight)
+        self._sizeE = len(self._adjacency_weight) // 2
 
     def __getitem__(self, key: str) -> list[int]:
         match key:
@@ -143,15 +145,15 @@ class Graph:
             edge_linewidth=1,
         )
 
-    def display_cut_results(self):
+    def display_last_cut_results(self):
         p_cut = self.process_cut()
         print(f"Coupe: C = [{p_cut}] de taille {self._edgecut}")
         print(f"\nAvec la repartition en blocks suivante:")
-        for i in range(self._sizeV):
+        for i in range(self._edgecut):
             block = []
-            for j in self._blocks:
+            for node, j in enumerate(self._blocks):
                 if i == j:
-                    block.append(j)
+                    block.append(node)
             print(f"Dans le block {i} il y a les noeuds: {block}")
 
     def save_graph(self, filepath):

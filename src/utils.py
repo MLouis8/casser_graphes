@@ -115,3 +115,44 @@ def preprocessing(G, val: str = "no valuation"):
     add_node_weights_and_relabel(G)
     replace_parallel_edges(G)
     G.to_undirected()
+
+# Resultats observes lors de l'execution
+# Just after importation, we have : 
+# 94783 edges
+# 70263 nodes
+# After consolidation, we have : 
+# 59060 edges
+# 40547 nodes
+# After projection, we have : 
+# 59060 edges
+# 40547 nodes
+
+def init_city_graph(filepath):
+    G = ox.graph_from_place('Paris, Paris, France', network_type="drive", buffer_dist=350,simplify=False,retain_all=True,clean_periphery=False,truncate_by_edge=False)
+    G_Paris = ox.project_graph(G, to_crs='epsg:2154') ## pour le mettre dans le même référentiel que les données de Paris
+
+    print('Just after importation, we have : ')
+    print(str(len(G.edges())) + ' edges')
+    print(str(len(G.nodes()))+ ' nodes')
+    G2 = ox.consolidate_intersections(G_Paris, rebuild_graph=True, tolerance=4, dead_ends=True)
+    print('After consolidation, we have : ')
+    print(str(len(G2.edges())) + ' edges')
+    print(str(len(G2.nodes()))+ ' nodes')
+    G_out = ox.project_graph(G2, to_crs='epsg:4326')
+    print('After projection, we have : ')
+    print(str(len(G_out.edges())) + ' edges')
+    print(str(len(G_out.nodes()))+ ' nodes')
+    ox.save_graphml(G_out, filepath=filepath)
+
+# init_city_graph("./data/Paris.graphml")
+
+def prepare_instance(filename):
+    filepath_graph = "./data/"+filename+".graphml"
+    filepath_kahip = "./data/"+filename+".json"
+    print(f"Loading instance {filepath_graph}")
+    G_nx = ox.load_graphml(filepath_graph)
+    print(f"preprocessing the graph...")
+    utils.preprocessing(G_nx)
+    print(f"Conversion into KaHIP format...")
+    G_kp = Graph(nx=G_nx)
+    G_kp.save_graph(filepath_kahip)
