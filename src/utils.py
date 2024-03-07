@@ -1,29 +1,31 @@
 import networkx as nx
-import matplotlib.pyplot as plt
+import osmnx as ox
 
-def display_graph(G):
-    """
-    Affichage matplotlib du graphe
-    """
-    pos = nx.spring_layout(G)
-    nx.draw_networkx_nodes(G, pos)
-    nx.draw_networkx_edges(G, pos)
-    edge_labels = nx.get_edge_attributes(G, "weight")
-    nx.draw_networkx_edge_labels(G, pos, edge_labels)
-    nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif')
-    plt.show()
 
-def display_results(G, cut):
+def display_results(G_nx, xadj, adjcwgt, adjncy, cut, display=True):
     """
     Affichage des resultats d'une coupe
     """
-    print(f"Coupe: {cut[0]}")
-    print(f"Differents blocks:")
-    for i, block in enumerate(cut[1]):
-        print(f"Block {i}: {block}")
-    display_graph(G)
+    p_cut = process_cut(xadj, adjcwgt, adjncy, cut[1])
+    # print(f"Coupe: C = [{p_cut}] de taille {cut[0]}")
+    # print(f"\nAvec la repartition en blocks suivante:")
+    # for i in range(len(G_kp[2])):
+    #     block = []
+    #     for j in cut[1]:
+    #         if i == j:
+    #             block.append(j)
+    #     print(f"Dans le block {i} il y a les noeuds: {block}")
+    if display:
+        ec = ["r" if (u,v,k) in p_cut or (v,u,k) in p_cut else "black" for u,v,k in G_nx.edges]
+        nc = ['green' if cut[1][n] == 0 else 'blue' for n in G_nx.nodes]
+    
+        ox.plot_graph(
+        G_nx, node_color=nc, bgcolor='white', node_size=1, edge_color=ec, edge_linewidth=1)
 
-def kahip_to_nx(xadj: list[int], adjncy: list[int], vwgt: list[int], adjcwgt: list[int]):
+
+def kahip_to_nx(
+    xadj: list[int], adjncy: list[int], vwgt: list[int], adjcwgt: list[int]
+):
     """
     Conversion du type KaHIP (adjacency) au type networkx.graph
     """
@@ -33,102 +35,165 @@ def kahip_to_nx(xadj: list[int], adjncy: list[int], vwgt: list[int], adjcwgt: li
         G.add_node(i, weight=vwgt[i])
 
     aretes = []
-    for i in range(1,len(xadj)):
-        for j in range(xadj[i-1],xadj[i]):
-            aretes.append((i-1,adjncy[j],adjcwgt[j]))
+    for i in range(1, len(xadj)):
+        for j in range(xadj[i - 1], xadj[i]):
+            aretes.append((i - 1, adjncy[j], adjcwgt[j]))
     G.add_weighted_edges_from(aretes)
 
     return G
+
 
 def nx_to_kahip(G):
     """
     Conversion du type networkx.graph au type KaHIP (METIS)
     """
-    G_ = G.copy()
-    G_ = G_.to_undirected()
+    G_ = G.copy().to_undirected()
 
-    vwght = []
     adjncy = []
     xadj = [0]
-    for node_id, data in G_.nodes.data():
-        neighbors = [n for n in G_.neighbors(node_id)]
+    node_weights = nx.get_node_attributes(G_, 'weight')
+    vwght = [node_weights[i] for i in range(len(G_.nodes))] 
+    
+    for node in range(len(G_.nodes)):
+        neighbors = [n for n in G_.neighbors(node)]
         neighbors.sort()
         adjncy += neighbors
         xadj.append(xadj[-1] + len(neighbors))
-        vwght.append(data['weight'])
 
     adjcwgt = []
+    dict_edges_attributes = nx.get_edge_attributes(G_,'weight')
     for i in range(1, len(xadj)):
-        for j in range(xadj[i-1],xadj[i]):
-            if (i-1, adjncy[j]) in nx.get_edge_attributes(G_,'weight'):
-                adjcwgt.append(nx.get_edge_attributes(G_,'weight')[(i-1, adjncy[j])])
-            else:
-                adjcwgt.append(nx.get_edge_attributes(G_,'weight')[(adjncy[j], i-1)])
+        for j in range(xadj[i - 1], xadj[i]):
+            try:
+                adjcwgt.append(dict_edges_attributes[(i - 1, adjncy[j], 0)])
+            except:
+                adjcwgt.append(dict_edges_attributes[(adjncy[j], i - 1, 0)])
 
-    
+    # Attention peut etre probleme de type avec adjcwgt
     return vwght, xadj, adjcwgt, adjncy
+
 
 def replace_parallel_edges(G):
     """
     KaHIP ne suppporte pas les aretes paralleles, on les remplace donc
     par un noeud qui sert d'intermediaire pour une nouvelle arete.
     """
-    parallel_edges = [(u,v,k) for u,v,k in G.edges if k !=0]
-    
-    edges_weight = nx.get_edge_attributes(G,'weight')
-    
+    parallel_edges = [(u, v, k) for u, v, k in G.edges if k != 0]
+
+    edges_weight = nx.get_edge_attributes(G, "weight")
+
     for edge in parallel_edges:
         u, v, k = edge[0], edge[1], edge[2]
-        x_mid = (G.nodes[u]['x'] + G.nodes[v]['x']) / 2
-        y_mid = (G.nodes[u]['y'] + G.nodes[v]['y']) / 2
-    
+        x_mid = (G.nodes[u]["x"] + G.nodes[v]["x"]) / 2
+        y_mid = (G.nodes[u]["y"] + G.nodes[v]["y"]) / 2
+
         new_node = max(G.nodes) + 1
         G.add_node(new_node, x=x_mid, y=y_mid)
-        G.add_edge(u,new_node,0)
-        G.add_edge(new_node,v,0)
+        G.add_edge(u, new_node, 0)
+        G.add_edge(new_node, v, 0)
 
-        # Si les aretes sont values alors les nouvelles en heritent
+        # Si les aretes sont valuees alors les nouvelles en heritent
         if edges_weight:
-            edges_weight[(u,new_node,0)] = int(edges_weight[(u,v,k)])
-            edges_weight[(new_node,v,0)] = int(edges_weight[(u,v,k)])
-        
+            edges_weight[(u, new_node, 0)] = int(edges_weight[(u, v, k)])
+            edges_weight[(new_node, v, 0)] = int(edges_weight[(u, v, k)])
+
         # Pareil pour les attributs
-        G.edges[(u, v, 0)].update(G.edges[(u,v,k)])
-        G.edges[(u, new_node, 0)].update(G.edges[(u,v,0)])
-        G.edges[(new_node, v, 0)].update(G.edges[(u,v,0)])
-        
+        G.edges[(u, v, 0)].update(G.edges[(u, v, k)])
+        G.edges[(u, new_node, 0)].update(G.edges[(u, v, 0)])
+        G.edges[(new_node, v, 0)].update(G.edges[(u, v, 0)])
+
         # Sauf pour la longueur qui est divisee par deux
-        # G.edges[(u, new_node, 0)]['']
-        G.remove_edge(u, v,k)
+        G.edges[(u, new_node, 0)]["length"] = G.edges[(u, v, 0)]["length"] / 2
+        G.edges[(new_node, v, 0)]["length"] = G.edges[(u, v, 0)]["length"] / 2
+
+        G.remove_edge(u, v, k)
 
     node_weights = {}
     for node in G.nodes:
         node_weights[node] = 1
 
-    nx.set_node_attributes(G, node_weights, 'weight')
-    nx.set_edge_attributes(G, edges_weight, 'weight')
-    
-def preprocessing(G):
+    nx.set_node_attributes(G, node_weights, "weight")
+    nx.set_edge_attributes(G, edges_weight, "weight")
+
+def preprocessing(G, val: str = "no valuation"):
     """
-    Does all the required preprocessing and returns the preprocessed graph.
+    Does all the required preprocessing in place and returns the preprocessed graph.
     """
+    pp1 = lambda x: x[0] if isinstance(x, list) else x
+    pp2 = lambda x: float(max(x) if isinstance(x, list) else x) if x else 0
     def add_node_weights_and_relabel(G):
         w_nodes = {}
         for node in list(G.nodes):
-            w_nodes[node] = 1 
-        nx.set_node_attributes(G, w_nodes, 'weight')
+            w_nodes[node] = 1
+        nx.set_node_attributes(G, w_nodes, "weight")
         sorted_nodes = sorted(G.nodes())
-        mapping = {
-            old_node: new_node for new_node, old_node 
-                in enumerate(sorted_nodes)
-        }
+        mapping = {old_node: new_node for new_node, old_node in enumerate(sorted_nodes)}
         G = nx.relabel_nodes(G, mapping)
-    Gcopy = G.copy()
-    Gcopy.remove_edges_from(nx.selfloop_edges(Gcopy))
-    add_node_weights_and_relabel(Gcopy)
-    Gcopy = replace_parallel_edges(Gcopy)
-    Gcopy.remove_nodes_from(list(nx.isolates(Gcopy)))
-    Gcopy.to_undirected()
 
-def rebuilding():
-    return
+    def map_type_lanes(G):
+        """Function mapping lanes to their type, used for inferring width attribute."""
+        gdfs = ox.graph_to_gdfs(G)
+        gdf_l_h = gdfs[1].loc[~gdfs[1]["lanes"].isna() & ~gdfs[1]["highway"].isna()]
+        
+        gdf_l_h.loc[:, "lanes"] = gdf_l_h["lanes"].apply(pp2)
+        gdf_l_h.loc[:, "highway"] = gdf_l_h["highway"].apply(pp1)
+        edges = gdf_l_h[["highway", "lanes"]]
+        hist_data = edges.groupby(["highway", "lanes"]).size().reset_index(name="count")
+        max_count_indices = hist_data.groupby("highway")["count"].idxmax()
+        max_count = hist_data.loc[max_count_indices]
+        map = {max_count["highway"][i]: max_count["lanes"][i] for i in max_count.index}
+        # convert highway to 2 lanes
+        gdf_h = gdfs[1]["highway"].apply(pp1)
+        for highway in gdf_h.unique():
+            if highway not in map.keys():
+                map[highway] = 2
+
+        return map
+    match val:
+        case "width":
+            val = lambda x: float(x)
+        case "squared width":
+            val = lambda x: int(float(x) ** 2)
+        case _:
+            val = lambda _: 1
+    t_l_map = map_type_lanes(G)
+    edge_type = nx.get_edge_attributes(G, 'highway')
+    edge_type = dict((k, pp1(v)) for k, v in edge_type.items())
+    
+    edge_width = nx.get_edge_attributes(G, 'width')
+    edge_width = dict((k, pp2(v)) for k, v in edge_width.items())
+
+    edge_lanes = nx.get_edge_attributes(G, 'lanes')
+    edge_lanes = dict((k, pp2(v)) for k, v in edge_lanes.items())
+
+    for edge in G.edges:
+        if not edge in edge_width.keys():
+            if not edge in edge_lanes.keys():
+                # on infere avec le type de voie
+                edge_width[edge] = 4 * t_l_map[edge_type[edge]] # le facteur 4 correspond a la moyenne des largeurs des rues de Paris
+            else:
+                edge_width[edge] = 4 * edge_lanes[edge]
+    nx.set_edge_attributes(G, edge_width,'width')
+    for edge in edge_width.keys():
+        edge_width[edge] = val(edge_width[edge])
+    nx.set_edge_attributes(G, edge_width,'weight')
+
+    G.remove_edges_from(nx.selfloop_edges(G))
+    add_node_weights_and_relabel(G)
+    replace_parallel_edges(G)
+    G.to_undirected()
+
+
+def process_cut(xadj, adjcwgt, adjncy, comp_cnx, weight=False):
+    edges = []
+    for i in range(1, len(xadj)):
+        for j in range(xadj[i - 1], xadj[i]):
+            edges.append((i - 1, adjncy[j], adjcwgt[j] if weight else 0))
+
+    cut_edges = []
+    for edge in edges:
+        if comp_cnx[edge[0]] != comp_cnx[edge[1]]:
+            if not edge in cut_edges:
+                cut_edges.append(edge)
+
+    return cut_edges
