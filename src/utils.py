@@ -1,5 +1,6 @@
 import networkx as nx
 import osmnx as ox
+import Graph
 
 def replace_parallel_edges(G):
     """
@@ -152,7 +153,7 @@ def prepare_instance(filename):
     print(f"Loading instance {filepath_graph}")
     G_nx = ox.load_graphml(filepath_graph)
     print(f"preprocessing the graph...")
-    utils.preprocessing(G_nx)
+    preprocessing(G_nx)
     print(f"Conversion into KaHIP format...")
     G_kp = Graph(nx=G_nx)
     G_kp.save_graph(filepath_kahip)
