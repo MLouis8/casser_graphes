@@ -1,18 +1,28 @@
 import networkx as nx
 import osmnx as ox
+import kahip
+import json
 
 
 class Graph:
-    def __init__(self, vwght=[], xadj=[], adjcwgt=[], adjncy=[]) -> None:
-        self._vertices_weight = vwght
+    def __init__(self, vwgt=[], xadj=[], adjcwgt=[], adjncy=[], nx=None, json=None) -> None:
+        self._vertices_weight = vwgt
         self._xadjacency = xadj
         self._adjacency_weight = adjcwgt
         self._adjacency = adjncy
-        self._vertices = []
+        self._sizeV = len(vwgt)
+        self._sizeE = len(adjcwgt) // 2
+        self._edgecut = 0
+        self._blocks = []
+
+        if nx:
+            self.set_from_nx(nx)
+        if json:
+            self.import_from_json(json)
 
     def __getitem__(self, key: str) -> list[int]:
         match key:
-            case "vwght":
+            case "vwgt":
                 return self._vertices_weight
             case "xadj":
                 return self._xadjacency
@@ -21,7 +31,7 @@ class Graph:
             case "adjncy":
                 return self._adjacency
             case _:
-                raise ValueError("Possible keys are: 'vwght'/'xadj'/'adjcwgt'/'adjncy'")
+                raise ValueError("Possible keys are: 'vwgt'/'xadj'/'adjcwgt'/'adjncy'")
 
     def set_from_nx(self, G):
         """
@@ -59,7 +69,7 @@ class Graph:
         """
         G = nx.Graph()
 
-        for i in range(len(self["vwgt"])):
+        for i in range(self._sizeV):
             G.add_node(i, weight=self["vwgt"][i])
 
         aretes = []
@@ -70,7 +80,37 @@ class Graph:
 
         return G
 
-    def process_cut(self, comp_cnx, weight=False):
+    def kaffpa_cut(self, nblocks, imbalance, suppress_output, seed, mode):
+        """
+        Alias for kaffpa cut
+
+        set mode:
+        - FAST         = 0
+        - ECO          = 1
+        - STRONG       = 2
+        - FASTSOCIAL   = 3
+        - ECOSOCIAL    = 4
+        - STRONGSOCIAL = 5
+
+        Strong should be used if quality is
+        paramount, eco if you need a good tradeoff between partition qual-
+        ity and running time, and fast if partitioning speed is in your focus.
+        Configurations with a social in their name should be used for social
+        networks and web graphs.
+        """
+        self._edgecut, self._blocks = kahip.kaffpa(
+            self["vwgt"],
+            self["xadj"],
+            self["adjcwgt"],
+            self["adjncy"],
+            nblocks,
+            imbalance,
+            suppress_output,
+            seed,
+            mode,
+        )
+
+    def process_cut(self, weight=False):
         edges = []
         for i in range(1, len(self["xadj"])):
             for j in range(self["xadj"][i - 1], self["xadj"][i]):
@@ -80,19 +120,19 @@ class Graph:
 
         cut_edges = []
         for edge in edges:
-            if comp_cnx[edge[0]] != comp_cnx[edge[1]]:
+            if self._blocks[edge[0]] != self._blocks[edge[1]]:
                 if not edge in cut_edges:
                     cut_edges.append(edge)
 
         return cut_edges
 
-    def display_city_cut(self, G_nx, cut):
-        p_cut = self.process_cut(cut[1])
+    def display_city_cut(self, G_nx):
+        p_cut = self.process_cut()
         ec = [
             "r" if (u, v, k) in p_cut or (v, u, k) in p_cut else "black"
             for u, v, k in G_nx.edges
         ]
-        nc = ["green" if cut[1][n] == 0 else "blue" for n in G_nx.nodes]
+        nc = ["green" if self._blocks[n] == 0 else "blue" for n in G_nx.nodes]
 
         ox.plot_graph(
             G_nx,
@@ -103,13 +143,31 @@ class Graph:
             edge_linewidth=1,
         )
 
-    def display_cut_results(self, cut):
-        p_cut = self.process_cut(cut[1])
-        print(f"Coupe: C = [{p_cut}] de taille {cut[0]}")
+    def display_cut_results(self):
+        p_cut = self.process_cut()
+        print(f"Coupe: C = [{p_cut}] de taille {self._edgecut}")
         print(f"\nAvec la repartition en blocks suivante:")
-        for i in range(len(vwght)):
+        for i in range(self._sizeV):
             block = []
-            for j in cut[1]:
+            for j in self._blocks:
                 if i == j:
                     block.append(j)
             print(f"Dans le block {i} il y a les noeuds: {block}")
+
+    def save_graph(self, filepath):
+        data = {
+            "vwgt":    self._vertices_weight,
+            "xadj":    self._xadjacency,
+            "adjcwgt": self._adjacency_weight,
+            "adjncy":  self._adjacency
+        }
+        with open(filepath, "w") as write_file:
+            json.dump(data, write_file, indent=4, separators=(", ", ": "), sort_keys=True)
+
+    def import_from_json(self, filepath):
+        with open(filepath, "r") as read_file:
+            data = json.load(read_file)
+        self._vertices_weight = data["vwgt"]
+        self._xadjacency = data["xadj"]
+        self._adjacency_weight = data["adjcwgt"]
+        self._adjacency = data["adjncy"]

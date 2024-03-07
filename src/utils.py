@@ -1,37 +1,6 @@
 import networkx as nx
 import osmnx as ox
 
-
-def display_results(G_nx, xadj, adjcwgt, vwght, adjncy, cut, display=True):
-    """
-    Affichage des resultats d'une coupe
-    """
-    p_cut = process_cut(xadj, adjcwgt, adjncy, cut[1])
-    print(f"Coupe: C = [{p_cut}] de taille {cut[0]}")
-    print(f"\nAvec la repartition en blocks suivante:")
-    for i in range(len(vwght)):
-        block = []
-        for j in cut[1]:
-            if i == j:
-                block.append(j)
-        print(f"Dans le block {i} il y a les noeuds: {block}")
-    if display:
-        ec = [
-            "r" if (u, v, k) in p_cut or (v, u, k) in p_cut else "black"
-            for u, v, k in G_nx.edges
-        ]
-        nc = ["green" if cut[1][n] == 0 else "blue" for n in G_nx.nodes]
-
-        ox.plot_graph(
-            G_nx,
-            node_color=nc,
-            bgcolor="white",
-            node_size=1,
-            edge_color=ec,
-            edge_linewidth=1,
-        )
-
-
 def replace_parallel_edges(G):
     """
     KaHIP ne suppporte pas les aretes paralleles, on les remplace donc
