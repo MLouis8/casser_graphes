@@ -1,10 +1,7 @@
 import osmnx as ox
 import utils
 import kahip
-import matplotlib.pyplot as plt
 import random as rd
-import mes_modules
-import networkx as nx
 
 def main():
     imbalances = [0.01, 0.03, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
