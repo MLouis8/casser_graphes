@@ -1,6 +1,6 @@
 import networkx as nx
 import osmnx as ox
-import Graph
+from Graph import Graph
 
 def replace_parallel_edges(G):
     """
@@ -83,9 +83,9 @@ def preprocessing(G, val: str = "no valuation"):
 
     match val:
         case "width":
-            val = lambda x: float(x)
+            val = lambda x: int(x)
         case "squared width":
-            val = lambda x: int(float(x) ** 2)
+            val = lambda x: int(x ** 2)
         case _:
             val = lambda _: 1
     t_l_map = map_type_lanes(G)
@@ -153,7 +153,7 @@ def prepare_instance(filename):
     print(f"Loading instance {filepath_graph}")
     G_nx = ox.load_graphml(filepath_graph)
     print(f"preprocessing the graph...")
-    preprocessing(G_nx)
+    preprocessing(G_nx, val="width")
     print(f"Conversion into KaHIP format...")
     G_kp = Graph(nx=G_nx)
     G_kp.save_graph(filepath_kahip)

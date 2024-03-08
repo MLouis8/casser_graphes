@@ -5,15 +5,17 @@ import json
 
 
 class Graph:
-    def __init__(self, vwgt=[], xadj=[], adjcwgt=[], adjncy=[], nx=None, json=None) -> None:
+    def __init__(
+        self, vwgt=[], xadj=[], adjcwgt=[], adjncy=[], nx=None, json=None
+    ) -> None:
         self._vertices_weight = vwgt
         self._xadjacency = xadj
         self._adjacency_weight = adjcwgt
         self._adjacency = adjncy
-        
+
         self._edgecut = 0
         self._blocks = []
-        
+
         if nx:
             self.set_from_nx(nx)
         if json:
@@ -35,6 +37,10 @@ class Graph:
             case _:
                 raise ValueError("Possible keys are: 'vwgt'/'xadj'/'adjcwgt'/'adjncy'")
 
+    @property
+    def get_last_results(self):
+        return (self._edgecut, self._blocks)
+    
     def set_from_nx(self, G):
         """
         Conversion du type networkx.graph au type KaHIP (METIS)
@@ -82,7 +88,14 @@ class Graph:
 
         return G
 
-    def kaffpa_cut(self, nblocks, imbalance, suppress_output, seed, mode):
+    def kaffpa_cut(
+        self,
+        nblocks,
+        imbalance,
+        suppress_output,
+        seed,
+        mode,
+    ):
         """
         Alias for kaffpa cut
 
@@ -109,7 +122,7 @@ class Graph:
             imbalance,
             suppress_output,
             seed,
-            mode,
+            mode
         )
 
     def process_cut(self, weight=False):
@@ -128,21 +141,27 @@ class Graph:
 
         return cut_edges
 
-    def display_city_cut(self, G_nx):
+    def display_city_cut(self, G_nx, savefig=False, filepath=None, show=True, ax=None, figsize=None):
         p_cut = self.process_cut()
         ec = [
             "r" if (u, v, k) in p_cut or (v, u, k) in p_cut else "black"
             for u, v, k in G_nx.edges
         ]
-        nc = ["green" if self._blocks[n] == 0 else "blue" for n in G_nx.nodes]
-
-        ox.plot_graph(
+        nc = ["green" if self._blocks[n] == 0 else "purple" for n in G_nx.nodes]
+        show = False if savefig else show
+        return ox.plot_graph(
             G_nx,
             node_color=nc,
             bgcolor="white",
-            node_size=1,
+            node_size=0.1,
             edge_color=ec,
-            edge_linewidth=1,
+            edge_linewidth=0.1,
+            save=savefig,
+            filepath=filepath,
+            show=show,
+            dpi=500,
+            ax=ax,
+            figsize=figsize
         )
 
     def display_last_cut_results(self):
@@ -158,13 +177,15 @@ class Graph:
 
     def save_graph(self, filepath):
         data = {
-            "vwgt":    self._vertices_weight,
-            "xadj":    self._xadjacency,
+            "vwgt": self._vertices_weight,
+            "xadj": self._xadjacency,
             "adjcwgt": self._adjacency_weight,
-            "adjncy":  self._adjacency
+            "adjncy": self._adjacency,
         }
         with open(filepath, "w") as write_file:
-            json.dump(data, write_file, indent=4, separators=(", ", ": "), sort_keys=True)
+            json.dump(
+                data, write_file, indent=4, separators=(", ", ": "), sort_keys=True
+            )
 
     def import_from_json(self, filepath):
         with open(filepath, "r") as read_file:

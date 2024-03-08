@@ -175,4 +175,7 @@ osmnx-examples/
 etc/
 cache/
 data/*.graphml
+data/images
 src/mes_modules.py
+data/ParisUnweighted.json
+data/1000_cuts_Paris.json
