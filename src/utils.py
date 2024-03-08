@@ -1,6 +1,8 @@
 import networkx as nx
 import osmnx as ox
 from Graph import Graph
+import numpy as np
+from colour import Color
 
 def replace_parallel_edges(G):
     """
@@ -157,3 +159,54 @@ def prepare_instance(filename):
     print(f"Conversion into KaHIP format...")
     G_kp = Graph(nx=G_nx)
     G_kp.save_graph(filepath_kahip)
+
+def basic_stats(dictionary, g_size=46761, nb_cuts=1000):
+    most_cut = max(dictionary, key=dictionary.get)
+    less_cut = min(dictionary, key=dictionary.get)
+    values = list(dictionary.values())
+    mean = np.mean(values)
+    std = np.std(values)
+
+    print("Here some basic stats on this set of cut(s):")
+    print(f"The most cut edge ({most_cut}) has been cut {dictionary[most_cut]} times")
+    print(f"The less cut edge has been cut {dictionary[less_cut]} times")
+    print(f"We have a mean of {mean}")
+    print(f"We have an std of {std}")
+    print(f"With {nb_cuts} cuts we have cut {len(dictionary.keys())} different edges over {g_size}")
+
+def display_freq(G_kp, G_nx, f, savefig=False, filepath=None, show=True, ax=None, figsize=None):
+    # color = list(Color("green").range_to(Color("red"), 52))
+    # colorize = lambda u, v: color[f[(u, v)]//10].hex if (u, v) in f else "black"
+
+    def colorize(u, v):
+        if (u, v) in f:
+            if f[(u,v)] > 400:
+                return 'tab:brown'
+            elif f[(u,v)] > 300:
+                return 'tab:purple'
+            elif f[(u,v)] > 200:
+                return 'tab:red'
+            elif f[(u,v)] > 100:
+                return 'tab:orange'
+            elif f[(u,v)] > 50:
+                return 'y'
+            else:
+                return 'g'
+        else:
+            return 'black'
+    edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
+    show = False if savefig else show
+    return ox.plot_graph(
+        G_nx,
+        bgcolor="white",
+        node_size=15,
+        edge_color=edge_color,
+        edge_linewidth=1,
+        save=savefig,
+        filepath=filepath,
+        show=show,
+        dpi=600,
+        ax=ax,
+        figsize=figsize,
+        node_color="black"
+    )

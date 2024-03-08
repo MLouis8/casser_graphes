@@ -41,6 +41,9 @@ class Graph:
     def get_last_results(self):
         return (self._edgecut, self._blocks)
     
+    def set_last_results(self, edgecut, blocks):
+        self._edgecut, self._blocks = edgecut, blocks
+
     def set_from_nx(self, G):
         """
         Conversion du type networkx.graph au type KaHIP (METIS)
@@ -194,3 +197,23 @@ class Graph:
         self._xadjacency = data["xadj"]
         self._adjacency_weight = data["adjcwgt"]
         self._adjacency = data["adjncy"]
+
+def determine_edge_frequency(G, C):
+    """Function for determining edge frequency in cuts"""
+    frequencies = {}
+    
+    for _, val in C.items():
+        G.set_last_results(*val)
+        p_cut = G.process_cut(weight=True)
+        for edge in p_cut:
+            if edge[:2] in frequencies:
+                frequencies[edge[:2]] += 1
+            else:
+                frequencies[edge[:2]] = 1
+
+    # removing doublons
+    freq = frequencies.copy()
+    for (n1, n2) in freq:
+        if (n2, n1) in frequencies.keys() and (n1, n2) in frequencies.keys():
+            frequencies.pop((n2, n1))
+    return frequencies
