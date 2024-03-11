@@ -16,11 +16,14 @@ class Graph:
         self._edgecut = 0
         self._blocks = []
 
+        self._nx = False
+
         if nx:
             self.set_from_nx(nx)
+            self._nx = nx
         if json:
             self.import_from_json(json)
-
+        
         self._sizeV = len(self._vertices_weight)
         self._sizeE = len(self._adjacency_weight) // 2
 
@@ -198,8 +201,20 @@ class Graph:
         self._adjacency_weight = data["adjcwgt"]
         self._adjacency = data["adjncy"]
 
+    def compute_edge_betweenness(self):
+        """Computes edge betweenness centrality and returns the dict assigning to each edge its betweenness"""
+        if not self._nx:
+            self._nx = self.to_nx()
+        return nx.edge_betweenness_centrality(self._nx)
+
 def determine_edge_frequency(G, C):
-    """Function for determining edge frequency in cuts"""
+    """
+    Function for determining edge frequency in cuts
+    
+    Paramters:
+        G: Graph
+        C: dictionary of cuts indexed by cut name: {'cut_name': (edgecut: int, blocks: list[int])}
+    """
     frequencies = {}
     
     for _, val in C.items():

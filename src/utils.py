@@ -2,7 +2,6 @@ import networkx as nx
 import osmnx as ox
 from Graph import Graph
 import numpy as np
-from colour import Color
 
 def replace_parallel_edges(G):
     """
@@ -175,13 +174,13 @@ def basic_stats_edges(dictionary, g_size=46761, nb_cuts=1000):
     print(f"With {nb_cuts} cuts we have cut {len(dictionary.keys())} different edges over {g_size}")
 
 def basic_stats_cuts(cuts, nb_cuts=1000):
-    nb_edges_cut = cuts.values()[:, 0]
+    nb_edges_cut = [edgecut for edgecut, _ in cuts.values()]
     best_cut = min(nb_edges_cut)
     worst_cut = max(nb_edges_cut)
     mean = np.mean(nb_edges_cut)
     std = np.std(nb_edges_cut)
-    nb_best_cut = nb_cuts.count(best_cut)
-    
+    nb_best_cut = nb_edges_cut.count(best_cut)
+
     print("Here some basic stats on the set of cuts:")
     print(f"The best cut cuts {best_cut} edges")
     print(f"It appears {nb_best_cut} out of {nb_cuts} meaning a frequency of {nb_best_cut/nb_cuts}")
@@ -189,7 +188,6 @@ def basic_stats_cuts(cuts, nb_cuts=1000):
     print(f"For {nb_cuts} cuts we have a mean of {mean} cut edges")
     print(f"And a std of {std}")
 
-    print
 def display_freq(G_kp, G_nx, f, savefig=False, filepath=None, show=True, ax=None, figsize=None):
     def colorize2(u, v):
         if (u, v) in f:
@@ -261,3 +259,15 @@ def display_freq(G_kp, G_nx, f, savefig=False, filepath=None, show=True, ax=None
         node_color="#54545460",
         edge_alpha=None
     )
+
+def analyse_cuts_correlation(edge_count, measure):
+    """
+    Analyses the correlation between the edges cut frequency and an arbitrary measure.
+
+    Parameters:
+        edge_freq: dict(edge (tuple[int, int]): count (int))
+        measure: dict(edge (tuple[int, int]): measure (float|int))
+
+    Warning dicts keys must correspond.
+    """
+    pass

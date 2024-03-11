@@ -1,0 +1,121 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+
+\graphicspath{ {./images/} }
+\setbeamertemplate{navigation symbols}{}
+
+\newcommand{\cntxt}{\ \mathrm{context}}
+\newcommand{\typ}{\ \mathrm{type}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\app}[2]{App_{[x:\sigma]\tau}(#1, #2)}
+\newcommand{\pair}[2]{Pair_{[x:\sigma]\tau}(#1, #2)}
+\newcommand{\R}[2]{\mathbold{R}_{[z:\Sigma x:\sigma.\tau]\rho}^{\Sigma}(#1, #2)}
+\newcommand{\RN}[3]{\mathbold{R}_{[n: \N]\sigma}^{\N}(#1, #2, #3)}
+\newcommand{\C}{Comp}
+\newcommand{\Intro}{Intro}
+\newcommand{\F}{Form}
+\newcommand{\E}{Elim}
+\newcommand\defeq{\stackrel{\mathclap{\normalfont\mbox{def}}}{\ =\ }}
+\newcommand{\soundness}{\stackrel{\mathclap{\normalfont\mbox{$s$}}}{\ \implies\ }}
+\newcommand{\Id}[2]{Id_\sigma(#1,#2)}
+\newcommand{\Refl}[1]{Refl_\sigma(#1)}
+\newcommand{\RID}[4]{\mathbold{R}_{[x:\sigma,y:\sigma,p:Id_\sigma(x,y)]\tau}^{Id}(#1, #2, #3, #4)}
+\newcommand{\bn}{[n:\N,x:\sigma]}
+\newcommand{\bi}{[z:\sigma]}
+\newcommand{\Pich}{\hat{\Pi}}
+\newcommand{\Appch}[2]{\hat{App}_{[x:\sigma]El(T)}(#1,#2)}
+\newcommand{\lambdach}{\hat{\lambda} x:\sigma.M^{El(T)}}
+\newcommand{\Gamdash}{\Gamma\vdash}
+\newcommand{\Fami}{\mathcal{F}am}
+\newcommand{\cate}{\mathcal{C}}
+\newcommand{\types}{Ty_{\cate}}
+\newcommand{\terms}{Tm_{\cate}}
+\newcommand{\defin}[1]{\emph{\underline{#1}}}
+\newcommand{\xsigmas}{x_1:\sigma_1, ..., x_n:\sigma_n}
+\newcommand{\zthetas}{z_1:\theta_1, ..., z_n:\theta_n}
+\newcommand{\pp}{\texttt{p}}
+\newcommand{\qq}{\texttt{q}}
+\newcommand{\vv}{\texttt{v}}
+\newcommand{\extension}{\Gamma.\sigma}
+\newcommand{\textension}{\langle f,M\rangle_\sigma}
+\newcommand{\Mbar}{\overline{M}}
+
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Etudes du déséquilibre et premieres analyses de coupes}
+\subtitle{Stage Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \AtBeginSection[]{
+    \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+        \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+    \end{frame}
+    }
+    % frame 1
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    % frame 2
+    \begin{frame}
+        \frametitle{Outline}
+        \tableofcontents
+    \end{frame}
+
+    % frame 3
+    \section{Déséquilibre}
+    % frame 4
+    \begin{frame}{Impact du déséquilibre: pour différentes tailles de coupe}
+        % TODO: faire les plots des donnees dans le notebook et les mettre ici
+    \end{frame}
+
+    \begin{frame}{Impact du déséquilibre: focus sur la taille 2}
+        % TODO: creer le plot et le mettre
+    \end{frame}
+
+    \begin{frame}{Conclusions sur le déséquilibre}
+        % mettre la visu et conclure
+    \end{frame}
+
+    \section{Etude de 1000 coupes}
+    \begin{frame}
+        \frametitle{1000 coupes, déséquilibre = 0.01}
+        % TODO mettre les 9 images
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{1000 coupes, déséquilibre = 0.01}
+        %TODO : stats    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{1000 coupes, déséquilibre = 0.03}
+        %TODO : stats    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{1000 coupes, déséquilibre = 0.1}
+        %TODO : stats    
+    \end{frame}
+    \section{Corrélation coupe - mesures}
+
+    \begin{frame}{Betweenness}
+    \end{frame}
+
+\end{document}
