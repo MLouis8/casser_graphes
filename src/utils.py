@@ -2,6 +2,7 @@ import networkx as nx
 import osmnx as ox
 from Graph import Graph
 import numpy as np
+from scipy.stats import pearsonr
 
 def replace_parallel_edges(G):
     """
@@ -260,7 +261,7 @@ def display_freq(G_kp, G_nx, f, savefig=False, filepath=None, show=True, ax=None
         edge_alpha=None
     )
 
-def analyse_cuts_correlation(edge_count, measure):
+def cpt_cuts_correlation(edge_count, measure):
     """
     Analyses the correlation between the edges cut frequency and an arbitrary measure.
 
@@ -270,4 +271,9 @@ def analyse_cuts_correlation(edge_count, measure):
 
     Warning dicts keys must correspond.
     """
-    pass
+    x, y, nb_count = [], [], len(edge_count)
+    for edge in edge_count.keys():
+        x.append(edge_count[edge]/nb_count)
+        y.append(measure[edge])
+    return pearsonr(x, y)
+

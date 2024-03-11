@@ -184,3 +184,7 @@ data/frequency_1000_cuts_Paris.json
 package-lock.json
 data/1000_cuts_Paris_003.json
 data/1000_cuts_Paris_01.json
+presentations/pres1.fls
+presentations/pres1.aux
+presentations/pres1.fdb_latexmk
+presentations/images

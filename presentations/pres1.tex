@@ -7,46 +7,12 @@
 \usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{stmaryrd}
+\usepackage{svg}
 
 \graphicspath{ {./images/} }
 \setbeamertemplate{navigation symbols}{}
 
-\newcommand{\cntxt}{\ \mathrm{context}}
-\newcommand{\typ}{\ \mathrm{type}}
 \newcommand{\N}{\mathbb{N}}
-\newcommand{\app}[2]{App_{[x:\sigma]\tau}(#1, #2)}
-\newcommand{\pair}[2]{Pair_{[x:\sigma]\tau}(#1, #2)}
-\newcommand{\R}[2]{\mathbold{R}_{[z:\Sigma x:\sigma.\tau]\rho}^{\Sigma}(#1, #2)}
-\newcommand{\RN}[3]{\mathbold{R}_{[n: \N]\sigma}^{\N}(#1, #2, #3)}
-\newcommand{\C}{Comp}
-\newcommand{\Intro}{Intro}
-\newcommand{\F}{Form}
-\newcommand{\E}{Elim}
-\newcommand\defeq{\stackrel{\mathclap{\normalfont\mbox{def}}}{\ =\ }}
-\newcommand{\soundness}{\stackrel{\mathclap{\normalfont\mbox{$s$}}}{\ \implies\ }}
-\newcommand{\Id}[2]{Id_\sigma(#1,#2)}
-\newcommand{\Refl}[1]{Refl_\sigma(#1)}
-\newcommand{\RID}[4]{\mathbold{R}_{[x:\sigma,y:\sigma,p:Id_\sigma(x,y)]\tau}^{Id}(#1, #2, #3, #4)}
-\newcommand{\bn}{[n:\N,x:\sigma]}
-\newcommand{\bi}{[z:\sigma]}
-\newcommand{\Pich}{\hat{\Pi}}
-\newcommand{\Appch}[2]{\hat{App}_{[x:\sigma]El(T)}(#1,#2)}
-\newcommand{\lambdach}{\hat{\lambda} x:\sigma.M^{El(T)}}
-\newcommand{\Gamdash}{\Gamma\vdash}
-\newcommand{\Fami}{\mathcal{F}am}
-\newcommand{\cate}{\mathcal{C}}
-\newcommand{\types}{Ty_{\cate}}
-\newcommand{\terms}{Tm_{\cate}}
-\newcommand{\defin}[1]{\emph{\underline{#1}}}
-\newcommand{\xsigmas}{x_1:\sigma_1, ..., x_n:\sigma_n}
-\newcommand{\zthetas}{z_1:\theta_1, ..., z_n:\theta_n}
-\newcommand{\pp}{\texttt{p}}
-\newcommand{\qq}{\texttt{q}}
-\newcommand{\vv}{\texttt{v}}
-\newcommand{\extension}{\Gamma.\sigma}
-\newcommand{\textension}{\langle f,M\rangle_\sigma}
-\newcommand{\Mbar}{\overline{M}}
-
 \DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
 
 \title{Etudes du déséquilibre et premieres analyses de coupes}
@@ -80,42 +46,131 @@
 
     % frame 3
     \section{Déséquilibre}
+    
     % frame 4
     \begin{frame}{Impact du déséquilibre: pour différentes tailles de coupe}
-        % TODO: faire les plots des donnees dans le notebook et les mettre ici
+        \begin{center}
+            \includesvg[scale=0.3]{2_desequilibre}
+            \includesvg[scale=0.3]{3_desequilibre}
+        \end{center}
+        \begin{center}
+            \includesvg[scale=0.3]{4_desequilibre}
+        \end{center}
     \end{frame}
 
+    % frame 5
     \begin{frame}{Impact du déséquilibre: focus sur la taille 2}
-        % TODO: creer le plot et le mettre
+       \begin{center}
+           \includesvg[scale=0.6]{1000_desequilibre}
+       \end{center}
     \end{frame}
 
+    % frame 6
     \begin{frame}{Conclusions sur le déséquilibre}
-        % mettre la visu et conclure
+        On observe:
+        \begin{itemize}
+            \item un déséquilibre plus grand diminue la taille de la coupe a priori
+            \item si on répete de nombreuses fois la coupe avec un déséquilibre faible, on atteint de bons résultats
+            \item un resultat par valeur donc dur d'etre sur
+        \end{itemize}
     \end{frame}
 
+    % frame 7
     \section{Etude de 1000 coupes}
+    
+    % frame 8
     \begin{frame}
-        \frametitle{1000 coupes, déséquilibre = 0.01}
-        % TODO mettre les 9 images
+        \frametitle{1000 coupes, déséquilibre = 0.01, convergence}
+        \begin{center}
+            \includegraphics[scale=0.3]{images/convergence_1000_cuts.png}
+        \end{center}
     \end{frame}
 
+    % frame 9
     \begin{frame}
-        \frametitle{1000 coupes, déséquilibre = 0.01}
-        %TODO : stats    
+        \frametitle{1000 coupes, déséquilibre = 0.01, quelques stats}
+        \emph{Stats sur les coupe}
+        \begin{itemize}
+            \item Meilleure coupe: 332m
+            \item Fréquence de la meilleure coupe: 0.044\%
+            \item Pire coupe: 784m
+            \item moyenne: 376.5m
+            \item std: 36.5m
+        \end{itemize}
+        \emph{Stats sur les arêtes}
+        \begin{itemize}
+            \item L'arête la plus coupée (658, 18935) l'a été 517 fois
+            \item moyenne: 12.2
+            \item écart moyen: 29.4
+            \item total de 4374 arêtes coupées sur 46761
+        \end{itemize}
     \end{frame}
 
+    % frame 10
     \begin{frame}
-        \frametitle{1000 coupes, déséquilibre = 0.03}
-        %TODO : stats    
+        \frametitle{1000 coupes, déséquilibre = 0.03, quelques stats}
+        \emph{Stats sur les coupe}
+        \begin{itemize}
+            \item Meilleure coupe: 332m
+            \item Fréquence de la meilleure coupe: 0.0439\%
+            \item Pire coupe: 450m
+            \item moyenne: 348.4m
+            \item std: 21.5m
+        \end{itemize}
+        \emph{Stats sur les arêtes}
+        \begin{itemize}
+            \item L'arête la plus coupée (1273, 1274) l'a été 559 fois
+            \item moyenne: 30.9
+            \item écart moyen: 76.3
+            \item total de 1563 arêtes coupées sur 46761
+        \end{itemize} 
     \end{frame}
 
+    % frame 11
     \begin{frame}
-        \frametitle{1000 coupes, déséquilibre = 0.1}
-        %TODO : stats    
+        \frametitle{1000 coupes, déséquilibre = 0.1, quelques stats}
+        \emph{Stats sur les coupe}
+        \begin{itemize}
+            \item Meilleure coupe: 328m
+            \item Fréquence de la meilleure coupe: 0.438\%
+            \item Pire coupe: 397m
+            \item moyenne: 332.2m
+            \item std: 8.9m
+        \end{itemize}
+        \emph{Stats sur les arêtes}
+        \begin{itemize}
+            \item L'arête la plus coupée (1273, 1274) l'a été 532 fois
+            \item moyenne: 61.8
+            \item écart moyen: 146.3
+            \item total de 747 arêtes coupées sur 46761
+        \end{itemize}
     \end{frame}
+
+    % frame 12
+    \subsection{Visualisation}
+    \begin{frame}{Visualisation des arêtes les plus coupées}
+        \begin{center}
+            \includegraphics[]{images/special_edges.png}
+        \end{center}
+    \end{frame}
+
+    % frame 13
+    \begin{frame}{Visualisation des fréquences}
+    \begin{center}
+        \includegraphics[scale=0.95]{images/Paris_frequency.png}
+    \end{center}
+    (400: marron, 300: violet, 200: rouge, 100: orange, 50: vert)
+    \end{frame}
+
+    % frame 14
     \section{Corrélation coupe - mesures}
 
-    \begin{frame}{Betweenness}
+    % frame 13
+    \begin{frame}{Corrélation coupe - mesures}
+    \emph{Mesure: correlation}
+    \begin{itemize}
+        \item betweenness:  
+    \end{itemize}
     \end{frame}
 
 \end{document}

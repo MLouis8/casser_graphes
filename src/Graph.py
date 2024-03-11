@@ -48,9 +48,8 @@ class Graph:
         self._edgecut, self._blocks = edgecut, blocks
 
     def set_from_nx(self, G):
-        """
-        Conversion du type networkx.graph au type KaHIP (METIS)
-        """
+        """Conversion du type networkx.graph au type KaHIP (METIS)"""
+        
         G_ = G.to_undirected()
 
         self._adjacency = []
