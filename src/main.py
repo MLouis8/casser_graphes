@@ -12,15 +12,21 @@ from colour import Color
     
 def main():
     # a excute a partir du repo Casser_graphe (chemin relatifs)
-    json_path = "./data/1000_cuts_Paris.json"
-    json_path2 = "./data/Paris.json"
-    json_path3 = "./data/frequency_1000_cuts_Paris.json"
+    json_path = "./data/Paris.json"
     grahml_path = "./data/Paris.graphml"
-    print(f"importing graphs...")
-    G_kp = Graph(json=json_path2)
-    G_nx = ox.load_graphml(grahml_path)
-    with open(json_path3, "r") as read_file:
-        freq = json.load(read_file)
-    f = { eval(k): v for k, v in freq.items()}
-    display_freq(G_kp, G_nx, f)
+    C = {}
+    print("import graph...")
+    G_kp = Graph(json=json_path)
+    collision = []
+    for i in range(1000):
+        seed = rd.randint(0,1044642763)
+        while seed in collision:
+            print("collision")
+            seed = rd.randint(0,1044642763)
+        collision.append(seed)
+        print(f"operating cut {i}")
+        G_kp.kaffpa_cut(2, 0.1, 0, seed, 2)
+        C[str(i)] = (G_kp.get_last_results)
+    with open(r"./data/1000_cuts_Paris_01.json", "w") as write_file:
+        json.dump(C, write_file)
 main()

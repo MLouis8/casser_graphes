@@ -181,3 +181,6 @@ data/ParisUnweighted.json
 data/1000_cuts_Paris.json
 data/10_cuts_Paris.json
 data/frequency_1000_cuts_Paris.json
+package-lock.json
+data/1000_cuts_Paris_003.json
+data/1000_cuts_Paris_01.json

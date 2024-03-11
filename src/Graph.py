@@ -48,7 +48,7 @@ class Graph:
         """
         Conversion du type networkx.graph au type KaHIP (METIS)
         """
-        G_ = G.copy().to_undirected()
+        G_ = G.to_undirected()
 
         self._adjacency = []
         self._xadjacency = [0]

@@ -160,7 +160,7 @@ def prepare_instance(filename):
     G_kp = Graph(nx=G_nx)
     G_kp.save_graph(filepath_kahip)
 
-def basic_stats(dictionary, g_size=46761, nb_cuts=1000):
+def basic_stats_edges(dictionary, g_size=46761, nb_cuts=1000):
     most_cut = max(dictionary, key=dictionary.get)
     less_cut = min(dictionary, key=dictionary.get)
     values = list(dictionary.values())
@@ -174,10 +174,59 @@ def basic_stats(dictionary, g_size=46761, nb_cuts=1000):
     print(f"We have an std of {std}")
     print(f"With {nb_cuts} cuts we have cut {len(dictionary.keys())} different edges over {g_size}")
 
-def display_freq(G_kp, G_nx, f, savefig=False, filepath=None, show=True, ax=None, figsize=None):
-    # color = list(Color("green").range_to(Color("red"), 52))
-    # colorize = lambda u, v: color[f[(u, v)]//10].hex if (u, v) in f else "black"
+def basic_stats_cuts(cuts, nb_cuts=1000):
+    nb_edges_cut = cuts.values()[:, 0]
+    best_cut = min(nb_edges_cut)
+    worst_cut = max(nb_edges_cut)
+    mean = np.mean(nb_edges_cut)
+    std = np.std(nb_edges_cut)
+    nb_best_cut = nb_cuts.count(best_cut)
+    
+    print("Here some basic stats on the set of cuts:")
+    print(f"The best cut cuts {best_cut} edges")
+    print(f"It appears {nb_best_cut} out of {nb_cuts} meaning a frequency of {nb_best_cut/nb_cuts}")
+    print(f"The worst cut cuts {worst_cut} edges")
+    print(f"For {nb_cuts} cuts we have a mean of {mean} cut edges")
+    print(f"And a std of {std}")
 
+    print
+def display_freq(G_kp, G_nx, f, savefig=False, filepath=None, show=True, ax=None, figsize=None):
+    def colorize2(u, v):
+        if (u, v) in f:
+            if f[(u,v)] > 500:
+                return "#d80606"
+            if f[(u,v)] > 450:
+                return "#d83200"
+            elif f[(u,v)] > 400:
+                return "#d84a00"
+            elif f[(u,v)] > 350:
+                return "#d65d00"
+            elif f[(u,v)] > 300:
+                return "#d46e00"
+            elif f[(u,v)] > 250:
+                return "#d07d00"
+            elif f[(u,v)] > 200:
+                return "#cc8c00"
+            elif f[(u,v)] > 175:
+                return "#c79a00"
+            elif f[(u,v)] > 150:
+                return "#c1a700"
+            elif f[(u,v)] > 125:
+                return "#bab400"
+            elif f[(u,v)] > 100:
+                return "#b3c100"
+            elif f[(u,v)] > 75:
+                return "#abcd00" 
+            elif f[(u,v)] > 50:
+                return "#a2d928"
+            elif f[(u,v)] > 25:
+                return "#99e442"
+            elif f[(u,v)] > 10:
+                return "#8eef59"
+            elif f[(u,v)] > 0:
+                return "#83fa70"
+        else:
+            return '#54545460'
     def colorize(u, v):
         if (u, v) in f:
             if f[(u,v)] > 400:
@@ -193,20 +242,22 @@ def display_freq(G_kp, G_nx, f, savefig=False, filepath=None, show=True, ax=None
             else:
                 return 'g'
         else:
-            return 'black'
+            return '#54545460'
     edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
+    print("edges colorized, starting display...")
     show = False if savefig else show
     return ox.plot_graph(
         G_nx,
         bgcolor="white",
-        node_size=15,
+        node_size=1,
         edge_color=edge_color,
         edge_linewidth=1,
         save=savefig,
         filepath=filepath,
         show=show,
-        dpi=600,
+        dpi=1024,
         ax=ax,
         figsize=figsize,
-        node_color="black"
+        node_color="#54545460",
+        edge_alpha=None
     )
