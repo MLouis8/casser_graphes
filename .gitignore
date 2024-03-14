@@ -25,6 +25,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.DS_Store
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -159,6 +160,18 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# data
+data/*.graphml
+data/images
+data/ParisUnweighted.json
+data/1000_cuts_Paris.json
+data/10_cuts_Paris.json
+data/frequency_1000_cuts_Paris.json
+data/1000_cuts_Paris_003.json
+data/1000_cuts_Paris_01.json
+data/betweenness_Paris.json
+data/.DS_Store
+
 share/
 lib64
 callkahipfrompython.py
@@ -174,16 +187,8 @@ src/notebooks
 osmnx-examples/
 etc/
 cache/
-data/*.graphml
-data/images
 src/mes_modules.py
-data/ParisUnweighted.json
-data/1000_cuts_Paris.json
-data/10_cuts_Paris.json
-data/frequency_1000_cuts_Paris.json
 package-lock.json
-data/1000_cuts_Paris_003.json
-data/1000_cuts_Paris_01.json
 presentations/pres1.fls
 presentations/pres1.aux
 presentations/pres1.fdb_latexmk

@@ -1,6 +1,6 @@
 import networkx as nx
 import osmnx as ox
-import kahip
+# import kahip
 import json
 
 
@@ -118,6 +118,7 @@ class Graph:
         Configurations with a social in their name should be used for social
         networks and web graphs.
         """
+        return
         self._edgecut, self._blocks = kahip.kaffpa(
             self["vwgt"],
             self["xadj"],

@@ -274,6 +274,11 @@ def cpt_cuts_correlation(edge_count, measure):
     x, y, nb_count = [], [], len(edge_count)
     for edge in edge_count.keys():
         x.append(edge_count[edge]/nb_count)
-        y.append(measure[edge])
+        edge_converted = str((edge[0], edge[1], 0))
+        edge_converted_r = str((edge[1], edge[0], 0))
+        try:
+            y.append(measure[edge_converted])
+        except:
+            y.append(measure[edge_converted_r])
     return pearsonr(x, y)
 

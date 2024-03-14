@@ -3,33 +3,42 @@ from Graph import Graph, determine_edge_frequency
 import matplotlib.pyplot as plt
 from utils import cpt_cuts_correlation, preprocessing
 import json
-import geopandas
+import networkx as nx
+import numpy as np
+import random as rd
+
+def imbalances(G_nx, G_kp):
+    imbalances = np.linspace(0, 3, 30)
+    used_seed = []
+    mean, minimum, maximum = [], [], []
+    for epsilon in imbalances:
+        res = []
+        for i in range(25):
+            seed = rd.randint(0,1044642763)
+            while seed in used_seed:
+                seed = rd.randint(0,1044642763)
+            used_seed.append(seed)
+            G_kp.kaffpa_cut(2, epsilon, 0, seed, 2)
+            res.append(G_kp.edgecut)
+        mean.append(np.mean(res))
+        minimum.append(np.min(res))
+        maximum.append(np.max(res))
+    return imbalances, mean, minimum, maximum
 
 def main():
     # a excute a partir du repo Casser_graphe (chemin relatifs)
     kp_path = "./data/Paris.json"
-    json_path = "./data/1000_cuts_Paris.json"
     grahml_path = "./data/Paris.graphml"
-    filepath = "./presentations/images/special_edges.png"
-    save_path = "./data/betweenness_Paris.json"
     print("import graphs...")
     G_nx = ox.load_graphml(grahml_path)
-    preprocessing(G_nx)
-    gdf_edges, gdf_vertices = ox.graph_to_gdfs(G_nx)
-    gdf_edges.loc[gdf_edges.index.get_level_values('key') == 0]
-    # print(f"preprocessing the graph...")
-    # preprocessing(G_nx, val="width")
-    # print(f"Conversion into KaHIP format...")
-    # G_kp = Graph(nx=G_nx)
-    # print("compute betweenness...")
-    # betweenness = G_kp.compute_edge_betweenness()
-    # with open(save_path, "w") as save_file:
-    #     json.dump(betweenness, save_file)
-    # print("import cuts...")
-    # with open(json_path, "r") as read_file:
-    #     cuts = json.load(read_file)
-    # print("compute frequency...")
-    # freq = determine_edge_frequency(G_kp, cuts)
-    # print(cpt_cuts_correlation(freq, betweenness))
-
+    G_kp = Graph(json=kp_path)
+    imb, mean, minimum, maximum = imbalances(G_nx, G_kp)
+    ax = plt.subplot(111)
+    ax.plot(imb, mean)
+    ax.plot(imb, maximum)
+    ax.plot(imb, minimum)
+    ax.set_title("Graph of 25 runs statistics over different imbalances values")
+    ax.legend()
+    ax.show()
+#PearsonRResult(statistic=0.10247828319260989, pvalue=1.094598985130352e-11)
 main()
