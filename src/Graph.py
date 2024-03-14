@@ -147,6 +147,15 @@ class Graph:
 
         return cut_edges
 
+    def cpt_connex_components(self):
+        if not self._blocks:
+            raise ValueError("You must first cut then compute the connex components")
+        for node, total in enumerate(self["xadj"]):
+            nb_neighbors = self["xadj"][node+1] - total
+            for neighbor in self["adjncy"][node:node+nb_neighbors]:
+                if self._blocks[node] == self._blocks[neighbor]:
+                    pass
+
     def display_city_cut(self, G_nx, savefig=False, filepath=None, show=True, ax=None, figsize=None):
         p_cut = self.process_cut()
         ec = [
