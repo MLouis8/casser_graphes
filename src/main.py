@@ -7,6 +7,12 @@ import networkx as nx
 import numpy as np
 import random as rd
 
+from matplotlib import colors
+from matplotlib.ticker import PercentFormatter
+
+# Create a random number generator with a fixed seed for reproducibility
+rng = np.random.default_rng(19680801)
+
 def imbalances(G_nx, G_kp):
     imbalances = np.linspace(0, 0.1, 30)
     used_seed = []
@@ -25,6 +31,23 @@ def imbalances(G_nx, G_kp):
         minimum.append(min(res))
         maximum.append(max(res))
     return imbalances, mean, minimum, maximum
+
+def freq_distributions(freq):
+    N_points = 100000
+    n_bins = 25
+
+    # Generate two normal distributions
+    dist1 = rng.standard_normal(N_points)
+    dist2 = 0.4 * rng.standard_normal(N_points) + 5
+
+    _, axs = plt.subplots(1, 2, sharey=True, tight_layout=True)
+
+    # We can set the number of bins with the *bins* keyword argument.
+    axs[0].hist(dist1, bins=n_bins)
+    axs[1].hist(dist2, bins=n_bins)
+
+    # Now we format the y-axis to display percentage
+    axs[1].yaxis.set_major_formatter(PercentFormatter(xmax=1))
 
 def main():
     # a excute a partir du repo Casser_graphe (chemin relatifs)
