@@ -232,29 +232,3 @@ class Graph:
         if not self._nx:
             self._nx = self.to_nx()
         return nx.edge_betweenness_centrality(self._nx)
-
-def determine_edge_frequency(G, C):
-    """
-    Function for determining edge frequency in cuts
-    
-    Paramters:
-        G: Graph
-        C: dictionary of cuts indexed by cut name: {'cut_name': (edgecut: int, blocks: list[int])}
-    """
-    frequencies = {}
-    
-    for _, val in C.items():
-        G.set_last_results(*val)
-        p_cut = G.process_cut(weight=True)
-        for edge in p_cut:
-            if edge[:2] in frequencies:
-                frequencies[edge[:2]] += 1
-            else:
-                frequencies[edge[:2]] = 1
-
-    # removing doublons
-    freq = frequencies.copy()
-    for (n1, n2) in freq:
-        if (n2, n1) in frequencies.keys() and (n1, n2) in frequencies.keys():
-            frequencies.pop((n2, n1))
-    return frequencies
