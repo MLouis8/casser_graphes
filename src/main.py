@@ -37,16 +37,16 @@ def main():
         "./data/1000_cuts_Paris_003.json",
         "./data/1000_cuts_Paris.json",
     ]
-    print("import stuff...")
-    G_nx = ox.load_graphml(grahml_path)
+    # print("import stuff...")
+    # G_nx = ox.load_graphml(grahml_path)
     G_kp = Graph(json=kp_path)
-    freqs = []
-    with open(freq_paths[0], "r") as read_file:
-        freqs.append(json.load(read_file))
-    with open(freq_paths[1], "r") as read_file:
-        freqs.append(json.load(read_file))
-    with open(freq_paths[2], "r") as read_file:
-        freqs.append(json.load(read_file))
-    freq_distributions(freqs[0])
+    # freqs = []
+    # with open(freq_paths[0], "r") as read_file:
+    #     freqs.append(json.load(read_file))
+    # with open(freq_paths[1], "r") as read_file:
+    #     freqs.append(json.load(read_file))
+    # with open(freq_paths[2], "r") as read_file:
+    #     freqs.append(json.load(read_file))
+    # freq_distributions(freqs[0])
 #PearsonRResult(statistic=0.10247828319260989, pvalue=1.094598985130352e-11)
 main()

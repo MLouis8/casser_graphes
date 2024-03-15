@@ -13,8 +13,8 @@ class Graph:
         self._adjacency_weight = adjcwgt
         self._adjacency = adjncy
 
-        self._edgecut = 0
-        self._blocks = []
+        self._edgecut = 0 #2
+        self._blocks = [] #[0, 0, 1, 1, 0]
 
         self._nx = False
 
@@ -147,14 +147,31 @@ class Graph:
 
         return cut_edges
 
+
     def cpt_connex_components(self):
+        def explore_component(node, seen):
+            print(f"exploring node {node}")
+            nb_neighbors = self["xadj"][node+1] - self["xadj"][node]
+            cpnt = [node]
+            seen.append(node)
+            for neighbor in self["adjncy"][self["xadj"][node]:self["xadj"][node]+nb_neighbors]:
+                print(f"{neighbor} is a neighbor of {node}")
+                if self._blocks[node] == self._blocks[neighbor] and not neighbor in seen:
+                    seen.append(neighbor)
+                    cpnt += explore_component(neighbor, seen)
+            print(f"result for {node} is {cpnt}")
+            return cpnt
+
         if not self._blocks:
             raise ValueError("You must first cut then compute the connex components")
-        for node, total in enumerate(self["xadj"]):
-            nb_neighbors = self["xadj"][node+1] - total
-            for neighbor in self["adjncy"][node:node+nb_neighbors]:
-                if self._blocks[node] == self._blocks[neighbor]:
-                    pass
+        components, components_flat = [], []
+        for node in range(len(self["xadj"])):
+            if node in components_flat or node+1 == len(self["xadj"]):
+                continue
+            else:
+                components.append(explore_component(node, components_flat))
+        return components
+            
 
     def display_city_cut(self, G_nx, savefig=False, filepath=None, show=True, ax=None, figsize=None):
         p_cut = self.process_cut()
