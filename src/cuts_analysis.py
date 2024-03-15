@@ -71,3 +71,32 @@ def to_Cut(xadj, adjncy, blocks):
 def intersection_criterion(c1: set[int], c2: set[int], eps=0.5):
     """Takes as parameters Cut objects and return whether their intersection is big enough according to epsilon"""
     return len(c1.intersection(c2)) >= eps * len(c1)
+
+def neighbor_criterion(c: set[int], c2: set[int], k=8):
+    """Takes as paramerters Cut objects and return wheter their local closeness is big enough"""
+    for edge2 in c2:
+        for edge in c:
+            if neighbor_of_rank_k(edge, edge2, k):
+                continue
+            else:
+                return False
+    return True
+
+def representant_method(cuts, p=None, criterion="intersection"):
+    """
+    Takes as parameter a list of Cut objects, returns a list of list of Cut objects
+    corresponding to the cuts after classification according to the representant method and 
+    the criterion.
+
+    Available criteria:
+        intersection (default): classify according to the number of same moment
+        neighbor: classify according to the edge closeness
+    """
+    match criterion:
+        case "intersection": 
+            criterion = intersection_criterion
+        case "neighbor": 
+            criterion = neighbor_criterion 
+    for cut in cuts:
+
+

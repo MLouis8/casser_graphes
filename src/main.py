@@ -33,7 +33,5 @@ def main():
         freqs.append(json.load(read_file))
     with open(freq_paths[2], "r") as read_file:
         freqs.append(json.load(read_file))
-    
-
-    
+ 
 main()
