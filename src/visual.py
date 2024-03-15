@@ -5,7 +5,7 @@ import numpy as np
 import random as rd
 import osmnx as ox
 import pandas as pd
-from cuts_analysis import get_n_biggest_freq
+from cuts_analysis import get_n_biggest_freq, representant_method
 
 def imbalances(G_kp):
     imbalances = np.linspace(0, 0.1, 30)
@@ -196,3 +196,53 @@ def display_best_n_freq(G_nx, f, n=10, savefig=False, filepath=None, show=True, 
         node_color="#54545460",
         edge_alpha=None
     )
+
+def visualize_class(cls, G_nx, cuts, savefig=False, filepath=None, show=True, ax=None, figsize=None):
+    edges_to_color = set()
+    for cut_id, edges in cuts.items():
+        if cut_id in cls:
+            edges_to_color |= set(edges)
+    def colorize(u, v):
+        if (u, v) in edges_to_color:
+            return "r"
+        else:
+            return '#54545460'
+    edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
+    print("edges colorized, starting display...")
+    show = False if savefig else show
+    return ox.plot_graph(
+        G_nx,
+        bgcolor="white",
+        node_size=1,
+        edge_color=edge_color,
+        save=savefig,
+        filepath=filepath,
+        show=show,
+        dpi=1024,
+        ax=ax,
+        figsize=figsize,
+        node_color="#54545460",
+        edge_alpha=None
+    )
+
+def nbclass_maxclass_plot(cuts):
+    epsilons = np.linspace(0, 1, 10)
+    y1, y2 = [], []
+    for eps in epsilons:
+        classes = representant_method(cuts, p=eps)
+        biggest_cls = 0
+        for cls in classes:
+            if len(cls) > biggest_cls:
+                biggest_cls = len(cls)
+        y1.append(len(classes))
+        y2.append(biggest_cls)
+    fig = plt.figure()
+    axes = fig.subplots(1, 2)
+    axes[0].plot(epsilons, y1)
+    axes[0].set_ylabel("nb classes")
+    axes[1].plot(epsilons, y2)
+    axes[0].set_ylabel("biggest class size")
+    axes[0].set_xlabel("epsilon")
+    axes[1].set_xlabel("epsilon")
+    fig.suptitle("Classification results: representant method + intersection criterion")
+    plt.savefig("./presentations/images/inter_rpz_plots_001.pdf")

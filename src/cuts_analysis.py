@@ -1,4 +1,5 @@
 from scipy.stats import pearsonr
+import networkx as nx
 
 def determine_edge_frequency(G, C):
     """
@@ -61,28 +62,48 @@ def to_Cut(xadj, adjncy, blocks):
     for i in range(1, len(xadj)):
         for j in range(xadj[i - 1], xadj[i]):
             edges.append((i - 1, adjncy[j]))
-    cut_edges = set()
+    cut_edges = []
     for edge in edges:
         if blocks[edge[0]] != blocks[edge[1]]:
             if not edge in cut_edges:
-                cut_edges.add(edge)
-        return cut_edges
+                cut_edges.append(edge)
+    return cut_edges
 
-def intersection_criterion(c1: set[int], c2: set[int], eps=0.5):
+def intersection_criterion(c1: set[int], c2: set[int], eps):
     """Takes as parameters Cut objects and return whether their intersection is big enough according to epsilon"""
-    return len(c1.intersection(c2)) >= eps * len(c1)
+    obj, cpt = len(c1)*eps if eps else len(c1)*0.5, 0
+    for ele in c1:
+        if ele in c2:
+            cpt += 1
+        if cpt > obj:
+            return True
+    return cpt > obj
 
-def neighbor_criterion(c: set[int], c2: set[int], k=8):
-    """Takes as paramerters Cut objects and return wheter their local closeness is big enough"""
-    for edge2 in c2:
-        for edge in c:
-            if neighbor_of_rank_k(edge, edge2, k):
-                continue
-            else:
-                return False
+def closer_than_k(e1, e2, k, G_nx):
+    """Return whether d(e1, e2) <= k"""
+    c1 = len(nx.shortest_path(G_nx, e1[0], e2[0])) <= k
+    c2 = len(nx.shortest_path(G_nx, e1[0], e2[1])) <= k
+    c3 = len(nx.shortest_path(G_nx, e1[1], e2[0])) <= k
+    c4 = len(nx.shortest_path(G_nx, e1[1], e2[1])) <= k
+    return c1 or c2 or c3 or c4
+
+def neighbor_criterion(c1: set[int], c2: set[int], G_nx, k=8):
+    """
+    Takes as paramerters Cut objects and return wheter their local closeness is big enough
+    
+    In the representant method, c1 is the representant
+    """
+    for edge2 in c1:
+        flag = False
+        for edge1 in c2:
+            if edge1 == edge2:#closer_than_k(edge1, edge2, k, G_nx):
+                flag = True
+                break
+        if not flag:
+            return False
     return True
 
-def representant_method(cuts, p=None, criterion="intersection"):
+def representant_method(cuts, p=None, criterion="intersection", G_nx=None):
     """
     Takes as parameter a list of Cut objects, returns a list of list of Cut objects
     corresponding to the cuts after classification according to the representant method and 
@@ -94,9 +115,19 @@ def representant_method(cuts, p=None, criterion="intersection"):
     """
     match criterion:
         case "intersection": 
-            criterion = intersection_criterion
-        case "neighbor": 
-            criterion = neighbor_criterion 
-    for cut in cuts:
-
-
+            criterion = lambda u, v: intersection_criterion(u, v, p)
+        case "neighbor":
+            if not G_nx:
+                raise ValueError("For the neighbor criterion, the nx graph is needed")
+            criterion = lambda u, v: neighbor_criterion(u, v, G_nx, p)
+    classes = []
+    for k, cut in cuts.items():
+        classified = False
+        for cls in classes:
+            if criterion(cuts[cls[0]], cut):
+                cls.append(k)
+                classified = True
+                break
+        if not classified:
+            classes.append([k])
+    return classes
