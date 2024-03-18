@@ -1,5 +1,6 @@
 from scipy.stats import pearsonr
 import networkx as nx
+from Graph import Graph
 
 def determine_edge_frequency(G, C):
     """
@@ -79,15 +80,7 @@ def intersection_criterion(c1: set[int], c2: set[int], eps):
             return True
     return cpt > obj
 
-def closer_than_k(e1, e2, k, G_nx):
-    """Return whether d(e1, e2) <= k"""
-    c1 = len(nx.shortest_path(G_nx, e1[0], e2[0])) <= k
-    c2 = len(nx.shortest_path(G_nx, e1[0], e2[1])) <= k
-    c3 = len(nx.shortest_path(G_nx, e1[1], e2[0])) <= k
-    c4 = len(nx.shortest_path(G_nx, e1[1], e2[1])) <= k
-    return c1 or c2 or c3 or c4
-
-def neighbor_criterion(c1: set[int], c2: set[int], G_nx, k=8):
+def neighbor_criterion(c1: set[int], c2: set[int], G_kp, k=2):
     """
     Takes as paramerters Cut objects and return wheter their local closeness is big enough
     
@@ -96,14 +89,14 @@ def neighbor_criterion(c1: set[int], c2: set[int], G_nx, k=8):
     for edge2 in c1:
         flag = False
         for edge1 in c2:
-            if edge1 == edge2:#closer_than_k(edge1, edge2, k, G_nx):
+            if G_kp.closer_than_k_edges(edge1, edge2, k):
                 flag = True
                 break
         if not flag:
             return False
     return True
 
-def representant_method(cuts, p=None, criterion="intersection", G_nx=None):
+def representant_method(cuts, p=None, criterion="intersection", G_kp=None):
     """
     Takes as parameter a list of Cut objects, returns a list of list of Cut objects
     corresponding to the cuts after classification according to the representant method and 
@@ -117,9 +110,7 @@ def representant_method(cuts, p=None, criterion="intersection", G_nx=None):
         case "intersection": 
             criterion = lambda u, v: intersection_criterion(u, v, p)
         case "neighbor":
-            if not G_nx:
-                raise ValueError("For the neighbor criterion, the nx graph is needed")
-            criterion = lambda u, v: neighbor_criterion(u, v, G_nx, p)
+            criterion = lambda u, v: neighbor_criterion(u, v, G_kp, p)
     classes = []
     for k, cut in cuts.items():
         classified = False
@@ -131,3 +122,12 @@ def representant_method(cuts, p=None, criterion="intersection", G_nx=None):
         if not classified:
             classes.append([k])
     return classes
+
+def measure_balance_artefacts(G_kp, treshold=5):
+    cmpnts = G_kp.cpt_connex_components()
+    artefacts = []
+    for cmpnt in cmpnts:
+        if len(cmpnt) < treshold:
+            artefacts.append(cmpnt)
+    print(f"there are {len(artefacts)} balancing artefacts smaller than {treshold}")
+    return artefacts

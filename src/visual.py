@@ -206,27 +206,33 @@ def visualize_class(cls, G_nx, cuts, savefig=False, filepath=None, show=True, ax
         if (u, v) in edges_to_color:
             return "r"
         else:
-            return '#54545460'
+            return '#54545430'
+    def thicken(u, v):
+        if (u, v) in edges_to_color:
+            return 4
+        else:
+            return 0.5
     edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
+    edge_width = [thicken(u, v) for u, v, _ in G_nx.edges]
     print("edges colorized, starting display...")
     show = False if savefig else show
     return ox.plot_graph(
         G_nx,
         bgcolor="white",
-        node_size=1,
+        node_size=0.5,
         edge_color=edge_color,
+        edge_linewidth=edge_width,
         save=savefig,
         filepath=filepath,
         show=show,
-        dpi=1024,
         ax=ax,
         figsize=figsize,
-        node_color="#54545460",
+        node_color="#54545420",
         edge_alpha=None
     )
 
 def nbclass_maxclass_plot(cuts):
-    epsilons = np.linspace(0, 1, 10)
+    epsilons = np.linspace(0.1, 1, 10)
     y1, y2 = [], []
     for eps in epsilons:
         classes = representant_method(cuts, p=eps)
@@ -241,7 +247,7 @@ def nbclass_maxclass_plot(cuts):
     axes[0].plot(epsilons, y1)
     axes[0].set_ylabel("nb classes")
     axes[1].plot(epsilons, y2)
-    axes[0].set_ylabel("biggest class size")
+    axes[1].set_ylabel("biggest class size")
     axes[0].set_xlabel("epsilon")
     axes[1].set_xlabel("epsilon")
     fig.suptitle("Classification results: representant method + intersection criterion")

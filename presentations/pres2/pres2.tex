@@ -1,0 +1,156 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+\usepackage{pdfpages}
+
+\graphicspath{ {./images/} }
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Classification des coupes, premier regard sur la betweenness}
+\subtitle{Stage Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \AtBeginSection[]{
+    \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+        \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+    \end{frame}
+    }
+    % frame 1
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    % frame 2
+    \begin{frame}
+        \frametitle{Outline}
+        \tableofcontents
+    \end{frame}
+
+    % frame 3
+    \section{Classification des coupes}
+
+    \subsection{analyse des fréquences}
+    \begin{frame}{20 arêtes les plus coupées avec $\epsilon = 0.01$}
+        \includepdf[pages=-]{../images/20_most_frequent001.pdf}
+    \end{frame}
+
+    \begin{frame}{20 arêtes les plus coupées avec $\epsilon = 0.03$}
+        \includepdf[pages=-]{../images/20_most_frequent003.pdf}
+    \end{frame}
+
+    \begin{frame}{20 arêtes les plus coupées avec $\epsilon = 0.1$}
+        \includepdf[pages=-]{../images/20_most_frequent01.pdf}
+    \end{frame}
+
+    \subsection{Classification: critères}
+    \begin{frame}{critère d'intersection}
+        Soit $c_1$ et $c_2$ deux coupes, $c_1 \sim_\epsilon c_2$ lorsque:
+        $$|c_1 \cap c_2| \geq \epsilon \cdot |c_1|\quad\epsilon\in [0, 1]$$
+    \end{frame}
+    \begin{frame}{critère de voisinage}
+        Soit $c_1$ et $c_2$ deux coupes, $c_1 \sim_k c_2$ lorsque:
+        $$\forall e_1\in c_1\ \exists e_2\in c_2,\ d(e_1, e_2)\leq k\quad k\in\N$$
+    \end{frame}
+
+    \subsection{Classification: méthode}
+    \begin{frame}{méthode du représentant}
+        Une coupe tirée au hasard est la représentante d'une classe, le critère est appliqué par rapport a elle.\\
+        \emph{Avantages:}
+        \begin{itemize}
+            \item classe réelle (faite à partir de caractéristiques observées)
+            \item simple a appliqué
+        \end{itemize}
+        \emph{Inconvénient:}
+        \begin{itemize}
+            \item on ne prend pas le meilleur représentant
+            \item trop restrictif ?
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{méthodes prédéfinies}
+        On défini à l'avance les classes, on classe en fonction des critères prédéfinis.\\
+        \emph{Avantages:}
+        \begin{itemize}
+            \item On paramétrize le niveau de contrainte et précision des classes
+        \end{itemize}
+        \emph{Inconvénients:}
+        \begin{itemize}
+            \item On peut masquer / oublier une classe
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{méthode du meilleur représentant}
+        Méthode du représentant mais on itère récursivement dans la classe pour prendre le meilleur représentant.
+
+        \emph{Avantage:}
+        \begin{itemize}
+            \item Prend a priori le meilleur représentant
+            \item produit des classses plus générales ?
+        \end{itemize}
+        \emph{Inconvénients:}
+        \begin{itemize}
+            \item Trop grosses classes ?
+        \end{itemize}
+    \end{frame}
+
+    \section{Betweenness vs fréquence}
+
+    \begin{frame}{Corrélation des deux mesures}
+    \begin{itemize}
+        \item $\epsilon = 0.01$: Correlation: $0.1$
+        \item $\epsilon = 0.03$: Correlation: $0.06$
+        \item $\epsilon = 0.1$:  Correlation: $0.03$
+    \end{itemize}
+    \end{frame}
+
+% 0 443
+% 1 22
+% 2 130
+% 3 10
+% 4 193
+% 5 8
+% 6 52
+% 7 36
+% 8 44
+% 9 3
+% 10 14
+% 11 2
+% 12 3
+% 13 2
+% 14 19
+% 15 3
+% 16 1
+% 17 2
+% 18 1
+% 19 1
+% 20 2
+% 21 1
+% 22 2
+% 23 1
+% 24 1
+% 25 1
+% 26 1
+% 27 1
+% 28 1
+\end{document}
+

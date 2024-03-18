@@ -180,7 +180,12 @@ etc/
 cache/
 src/mes_modules.py
 package-lock.json
-presentations/pres1.fls
-presentations/pres1.aux
-presentations/pres1.fdb_latexmk
+*.fls
+*.aux
+*.fdb_latexmk
+*.nav
+*.out
+*.snm
+*.toc
+*.synctex.gz
 presentations/images

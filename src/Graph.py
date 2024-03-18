@@ -1,5 +1,6 @@
 import networkx as nx
 import osmnx as ox
+
 # import kahip
 import json
 
@@ -13,8 +14,8 @@ class Graph:
         self._adjacency_weight = adjcwgt
         self._adjacency = adjncy
 
-        self._edgecut = 0 #2
-        self._blocks = [] #[0, 0, 1, 1, 0]
+        self._edgecut = 0  # 2
+        self._blocks = []  # [0, 0, 1, 1, 0]
 
         self._nx = False
 
@@ -23,7 +24,7 @@ class Graph:
             self._nx = nx
         if json:
             self.import_from_json(json)
-        
+
         self._sizeV = len(self._vertices_weight)
         self._sizeE = len(self._adjacency_weight) // 2
 
@@ -43,13 +44,18 @@ class Graph:
     @property
     def get_last_results(self):
         return (self._edgecut, self._blocks)
-    
+
     def set_last_results(self, edgecut, blocks):
         self._edgecut, self._blocks = edgecut, blocks
 
+    def get_neighbors(self, x):
+        return [
+           self["adjncy"][n] for n in range(self["xadj"][x+1]-self["xadj"][x])
+        ]
+    
     def set_from_nx(self, G):
         """Conversion du type networkx.graph au type KaHIP (METIS)"""
-        
+
         G_ = G.to_undirected()
 
         self._adjacency = []
@@ -93,6 +99,30 @@ class Graph:
 
         return G
 
+    def closer_than_k_edges(self, e1, e2, k):
+        """Return whether d(e1, e2) <= k"""
+        return (
+            self.closer_k_nodes(e1[0], e2[0], k-1)
+            or self.closer_k_nodes(e1[0], e2[1], k-1)
+            or self.closer_k_nodes(e1[1], e2[0], k-1)
+            or self.closer_k_nodes(e1[1], e2[1], k-1)
+        )
+
+    def closer_k_nodes(self, n1, n2, k):
+        if k == 0:
+            return n1 == n2
+        neighbors = self.get_neighbors(n1)
+        # print(f"neighors of node {n1}: {neighbors}, k = {k}")
+        for neighbor in neighbors:
+            if neighbor == n2 or self.closer_k_nodes(neighbor, n2, k-1):
+                return True
+        return False
+
+    def isolating_cut(
+        self,
+    ):
+        pass
+
     def kaffpa_cut(
         self,
         nblocks,
@@ -128,7 +158,7 @@ class Graph:
             imbalance,
             suppress_output,
             seed,
-            mode
+            mode,
         )
 
     def process_cut(self, weight=False):
@@ -147,16 +177,25 @@ class Graph:
 
         return cut_edges
 
-
     def cpt_connex_components(self):
+        """
+        Computes the connected components after a cut.
+
+        Returns a list of list of connected nodes in the same block
+        """
         def explore_component(node, seen):
             print(f"exploring node {node}")
-            nb_neighbors = self["xadj"][node+1] - self["xadj"][node]
+            nb_neighbors = self["xadj"][node + 1] - self["xadj"][node]
             cpnt = [node]
             seen.append(node)
-            for neighbor in self["adjncy"][self["xadj"][node]:self["xadj"][node]+nb_neighbors]:
+            for neighbor in self["adjncy"][
+                self["xadj"][node] : self["xadj"][node] + nb_neighbors
+            ]:
                 print(f"{neighbor} is a neighbor of {node}")
-                if self._blocks[node] == self._blocks[neighbor] and not neighbor in seen:
+                if (
+                    self._blocks[node] == self._blocks[neighbor]
+                    and not neighbor in seen
+                ):
                     seen.append(neighbor)
                     cpnt += explore_component(neighbor, seen)
             print(f"result for {node} is {cpnt}")
@@ -166,14 +205,15 @@ class Graph:
             raise ValueError("You must first cut then compute the connex components")
         components, components_flat = [], []
         for node in range(len(self["xadj"])):
-            if node in components_flat or node+1 == len(self["xadj"]):
+            if node in components_flat or node + 1 == len(self["xadj"]):
                 continue
             else:
                 components.append(explore_component(node, components_flat))
         return components
-            
 
-    def display_city_cut(self, G_nx, savefig=False, filepath=None, show=True, ax=None, figsize=None):
+    def display_city_cut(
+        self, G_nx, savefig=False, filepath=None, show=True, ax=None, figsize=None
+    ):
         p_cut = self.process_cut()
         ec = [
             "r" if (u, v, k) in p_cut or (v, u, k) in p_cut else "black"
@@ -193,7 +233,7 @@ class Graph:
             show=show,
             dpi=500,
             ax=ax,
-            figsize=figsize
+            figsize=figsize,
         )
 
     def display_last_cut_results(self):
