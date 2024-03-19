@@ -102,26 +102,42 @@ class Graph:
     def closer_than_k_edges(self, e1, e2, k):
         """Return whether d(e1, e2) <= k"""
         return (
-            self.closer_k_nodes(e1[0], e2[0], k-1)
-            or self.closer_k_nodes(e1[0], e2[1], k-1)
-            or self.closer_k_nodes(e1[1], e2[0], k-1)
-            or self.closer_k_nodes(e1[1], e2[1], k-1)
+            self.closer_k_nodes(e1[0], e2[0], k-1) or
+            self.closer_k_nodes(e1[0], e2[1], k-1) or
+            self.closer_k_nodes(e1[1], e2[0], k-1) or
+            self.closer_k_nodes(e1[1], e2[1], k-1)
         )
 
     def closer_k_nodes(self, n1, n2, k):
+        if n1 == n2:
+            return True
         if k == 0:
-            return n1 == n2
+            return False
         neighbors = self.get_neighbors(n1)
-        # print(f"neighors of node {n1}: {neighbors}, k = {k}")
         for neighbor in neighbors:
-            if neighbor == n2 or self.closer_k_nodes(neighbor, n2, k-1):
+            if self.closer_k_nodes(neighbor, n2, k-1):
                 return True
         return False
 
     def isolating_cut(
-        self,
+        self, nodes, seed, imb=0.03
     ):
-        pass
+        new_weight = (self._sizeV-len(nodes)) / len(nodes)
+        rest = self._sizeV - new_weight
+        for node in nodes:
+            self["vwght"][node] = new_weight
+        self["vwght"][-1] += rest
+        self.kaffpa_cut(2, imb, 0, seed, 2)
+
+    def zone_cut(self, nodes, seed, imb=0.03):
+        # first we verify that the nodes define a zone
+        # then we update the nodes weight
+        for node in nodes:
+            pass
+        edges = []
+        # then we update links weight
+        for edge in edges:
+            pass
 
     def kaffpa_cut(
         self,

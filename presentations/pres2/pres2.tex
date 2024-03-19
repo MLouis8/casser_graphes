@@ -9,8 +9,10 @@
 \usepackage{stmaryrd}
 \usepackage{svg}
 \usepackage{pdfpages}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
 
-\graphicspath{ {./images/} }
+\graphicspath{ {../images/} }
 \setbeamertemplate{navigation symbols}{}
 \setbeamercolor{background canvas}{bg=}
 
@@ -51,15 +53,15 @@
 
     \subsection{analyse des fréquences}
     \begin{frame}{20 arêtes les plus coupées avec $\epsilon = 0.01$}
-        \includepdf[pages=-]{../images/20_most_frequent001.pdf}
+        \includegraphics{20_most_frequent001.pdf}
     \end{frame}
 
     \begin{frame}{20 arêtes les plus coupées avec $\epsilon = 0.03$}
-        \includepdf[pages=-]{../images/20_most_frequent003.pdf}
+        \includegraphics{20_most_frequent003.pdf}
     \end{frame}
 
     \begin{frame}{20 arêtes les plus coupées avec $\epsilon = 0.1$}
-        \includepdf[pages=-]{../images/20_most_frequent01.pdf}
+        \includegraphics{20_most_frequent01.pdf}
     \end{frame}
 
     \subsection{Classification: critères}
@@ -71,10 +73,19 @@
         Soit $c_1$ et $c_2$ deux coupes, $c_1 \sim_k c_2$ lorsque:
         $$\forall e_1\in c_1\ \exists e_2\in c_2,\ d(e_1, e_2)\leq k\quad k\in\N$$
     \end{frame}
+    \begin{frame}
+        \frametitle{ce qui a été testé}
+        \begin{itemize}
+            \item intersection fonctionne rapidement, problème de précision
+            \item voisinage trop lent (python)
+            \item critères mixes toujours trop lent et peu d'améliorations
+        \end{itemize}
+    \end{frame}
 
     \subsection{Classification: méthode}
     \begin{frame}{méthode du représentant}
-        Une coupe tirée au hasard est la représentante d'une classe, le critère est appliqué par rapport a elle.\\
+        Une coupe arbitraire est la représentante d'une classe, le critère est appliqué par rapport a elle.\\
+        \vspace*{5pt}
         \emph{Avantages:}
         \begin{itemize}
             \item classe réelle (faite à partir de caractéristiques observées)
@@ -87,6 +98,24 @@
         \end{itemize}
     \end{frame}
 
+    \begin{frame}
+        \frametitle{méthode du représentant avec critère d'instersection, choix du $\epsilon$}
+        \includegraphics[scale=0.42]{inter_rpz_plots_01.pdf}
+        \includegraphics[scale=0.42]{inter_rpz_plots_001.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{méthode du représentant avec critère d'instersection, choix du $\epsilon$}
+        \begin{center}
+            \includegraphics[scale=0.6]{inter_rpz_plots_003.pdf}
+        \end{center}
+    \end{frame}
+    \begin{frame}
+        \frametitle{méthode du représentant avec critère d'intersection, visualisation}
+    
+        % \includegraphics[scale=0.75]{visual_inter_rpz.pdf}
+    
+    \end{frame}
     \begin{frame}{méthodes prédéfinies}
         On défini à l'avance les classes, on classe en fonction des critères prédéfinis.\\
         \emph{Avantages:}
@@ -97,22 +126,54 @@
         \begin{itemize}
             \item On peut masquer / oublier une classe
         \end{itemize}
+
+        Pas essayé car besoin de données géométriques (pour l'instant tout est fait sur le graphe KaHIP)
     \end{frame}
 
     \begin{frame}{méthode du meilleur représentant}
-        Méthode du représentant mais on itère récursivement dans la classe pour prendre le meilleur représentant.
-
+        Méthode du représentant mais on itère récursivement dans la classe pour prendre le meilleur représentant.\\
+        \vspace*{5pt}
         \emph{Avantage:}
         \begin{itemize}
-            \item Prend a priori le meilleur représentant
-            \item produit des classses plus générales ?
+            \item Prend un bon représentant
+            \item n'oublie aucun éléments
         \end{itemize}
         \emph{Inconvénients:}
         \begin{itemize}
-            \item Trop grosses classes ?
+            \item Unique classe ou aucune classe (inutile)
         \end{itemize}
     \end{frame}
 
+    \begin{frame}
+        \frametitle{méthode de division itérative}
+        On choisi $k$ représentants différents d'au moins $t$.\\
+        On classe les éléments restants par rapport à leur proximité avec le représentant
+        \begin{itemize}
+            \item[+] rapide $O(2kn)$ (linéaire)
+            \item[+] toutes les coupes sont classées
+            \item[+] les représentants sont forcéments différents 
+            \item[-] peut être pas les meilleurs représentants 
+            \item[-] classé à la proximité (le meilleur n'est pas forcément bon) 
+        \end{itemize}
+    \end{frame} 
+
+    \begin{frame}
+        \frametitle{Résultats avec proximité intersection, 4 classes}
+    
+        \includegraphics[scale=0.7]{visual_iterative9-08.pdf}
+    
+    \end{frame}
+
+    \begin{frame}
+        
+    \end{frame}
+    % \begin{frame}
+    %     \frametitle{Conclusion sur la classification}
+    %     \begin{itemize}
+    %         \item intersection fonctionne car pas de chemins parallèles
+    %         \item on observe plusieurs types de coupes, mais une revient plus souvent
+    %     \end{itemize}
+    % \end{frame}
     \section{Betweenness vs fréquence}
 
     \begin{frame}{Corrélation des deux mesures}
@@ -123,34 +184,5 @@
     \end{itemize}
     \end{frame}
 
-% 0 443
-% 1 22
-% 2 130
-% 3 10
-% 4 193
-% 5 8
-% 6 52
-% 7 36
-% 8 44
-% 9 3
-% 10 14
-% 11 2
-% 12 3
-% 13 2
-% 14 19
-% 15 3
-% 16 1
-% 17 2
-% 18 1
-% 19 1
-% 20 2
-% 21 1
-% 22 2
-% 23 1
-% 24 1
-% 25 1
-% 26 1
-% 27 1
-% 28 1
 \end{document}
 
