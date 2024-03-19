@@ -1,11 +1,13 @@
-from cuts_analysis import cpt_cuts_correlation
+from cuts_analysis import measure_balance_artefacts
 from Graph import Graph
 from visual import visualize_class, nbclass_maxclass_plot
 import osmnx as ox
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+from sys import setrecursionlimit
 
+setrecursionlimit(100000)
 # f = {}
 # for k, v in freq.items():
 #     f[eval(k)] = v
@@ -35,8 +37,12 @@ def main():
     #     freqs.append(json.load(read_file))
     # with open(freq_paths[2], "r") as read_file:
     #     freqs.append(json.load(read_file))
-    # with open(cut_paths[1], "r") as read_file:
-    #     kcuts = json.load(read_file)
+    print("counting the artefacts...")
+    with open(cut_paths[2], "r") as read_file:
+        kcuts = json.load(read_file)
+    for _, cut in kcuts.items():
+        G_kp.set_last_results(*cut)
+        measure_balance_artefacts(G_kp, 5)
     
 
 main()

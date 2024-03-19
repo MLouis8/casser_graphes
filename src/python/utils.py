@@ -45,7 +45,7 @@ def replace_parallel_edges(G):
     nx.set_edge_attributes(G, edges_weight, "weight")
 
 
-def preprocessing(G, val: str = "no valuation"):
+def preprocessing(G, val_name: str = "no valuation"):
     """
     Does all the required preprocessing in place and returns the preprocessed graph.
     """
@@ -81,7 +81,7 @@ def preprocessing(G, val: str = "no valuation"):
 
         return map
 
-    match val:
+    match val_name:
         case "width":
             val = lambda x: int(x)
         case "squared width":

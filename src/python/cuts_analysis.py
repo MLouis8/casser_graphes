@@ -2,9 +2,19 @@ from scipy.stats import pearsonr
 import networkx as nx
 from Graph import Graph
 import random as rd
+from typing import Optional
+
+## Type Aliases ##
+KCuts = tuple[int, list[int]]  # cuts under KaHIP format
+EdgeDict = dict[tuple[int, int], int]  # common edge dict
+EdgeDictStr = dict[str, int]  # edge dict after json import
+Cuts = dict[
+    str, list[tuple[int, int]]
+]  # cuts after post processing, the name of the cut maps to the list of edges cut
+Classes = list[list[str]]  # list of list of names of cuts
 
 
-def determine_edge_frequency(G, C):
+def determine_edge_frequency(G: Graph, C: dict[str, KCuts]) -> EdgeDict:
     """
     Function for determining edge frequency in cuts
 
@@ -12,7 +22,7 @@ def determine_edge_frequency(G, C):
         G: Graph
         C: dictionary of cuts indexed by cut name: {'cut_name': (edgecut: int, blocks: list[int])}
     """
-    frequencies = {}
+    frequencies: EdgeDict = {}
 
     for _, val in C.items():
         G.set_last_results(*val)
@@ -31,13 +41,13 @@ def determine_edge_frequency(G, C):
     return frequencies
 
 
-def cpt_cuts_correlation(edge_count, measure):
+def cpt_cuts_correlation(edge_count: EdgeDict, measure: EdgeDictStr):
     """
     Analyses the correlation between the edges cut frequency and an arbitrary measure.
 
     Parameters:
-        edge_count: dict(edge (tuple[int, int]): count (int)) (frequency)
-        measure: dict(edge (tuple[int, int]): measure (float|int))
+        edge_count: dict(edge (tuple[int, int]): measure (float|int))
+        measure: dict(edge str(tuple[int, int]): measure (float|int))
 
     Warning dicts keys must correspond.
     """
@@ -53,7 +63,7 @@ def cpt_cuts_correlation(edge_count, measure):
     return pearsonr(x, y)
 
 
-def get_n_biggest_freq(freq, n):
+def get_n_biggest_freq(freq: EdgeDict, n: int) -> EdgeDict:
     """Return dict of edges: count of the n most frequent edges"""
     chosen = {}
     for k, v in freq.items():
@@ -63,7 +73,7 @@ def get_n_biggest_freq(freq, n):
     return chosen
 
 
-def to_Cut(xadj, adjncy, blocks):
+def to_Cut(xadj: list[int], adjncy: list[int], blocks: list[int]):
     edges = []
     for i in range(1, len(xadj)):
         for j in range(xadj[i - 1], xadj[i]):
@@ -76,7 +86,7 @@ def to_Cut(xadj, adjncy, blocks):
     return cut_edges
 
 
-def intersection_criterion(c1: set[int], c2: set[int], eps):
+def intersection_criterion(c1: list[tuple[int, int]], c2: list[tuple[int, int]], eps: float) -> bool:
     """Takes as parameters Cut objects and return whether their intersection is big enough according to epsilon"""
     obj, cpt = len(c2) * eps, 0
     for ele in c2:
@@ -87,7 +97,7 @@ def intersection_criterion(c1: set[int], c2: set[int], eps):
     return cpt > obj
 
 
-def neighbor_criterion(c1: set[int], c2: set[int], G_kp, k):
+def neighbor_criterion(c1: list[tuple[int, int]], c2: list[tuple[int, int]], G_kp: Graph, k: int) -> bool:
     """
     Takes as paramerters Cut objects and return wheter their local closeness is big enough
 
@@ -104,7 +114,9 @@ def neighbor_criterion(c1: set[int], c2: set[int], G_kp, k):
     return True
 
 
-def mixed_criterion(c1: set[int], c2: set[int], G_kp, p, k):
+def mixed_criterion(
+    c1: list[tuple[int, int]], c2: list[tuple[int, int]], G_kp: Graph, p: float, k: int
+) -> bool:
     obj, cpt = len(c2) * p, 0
     for edge2 in c2:
         for edge1 in c1:
@@ -116,7 +128,7 @@ def mixed_criterion(c1: set[int], c2: set[int], G_kp, p, k):
     return cpt > obj
 
 
-def proximity(c1: set[int], c2: set[int]):
+def proximity(c1: list[tuple[int, int]], c2: list[tuple[int, int]]) -> float:
     """proximity criterion based on intersection"""
     inter = 0
     for ele in c2:
@@ -125,7 +137,13 @@ def proximity(c1: set[int], c2: set[int]):
     return inter / (len(c1) + len(c2))
 
 
-def representant_method(cuts, p=0.5, n=3, criterion="intersection", G_kp=None):
+def representant_method(
+    cuts: Cuts,
+    p: float = 0.5,
+    n: int = 3,
+    criterion_name: str = "intersection",
+    G_kp: Optional[Graph] = None,
+) -> Classes:
     """
     Takes as parameter a list of Cut objects, returns a list of list of Cut objects
     corresponding to the cuts after classification according to the representant method and
@@ -134,16 +152,25 @@ def representant_method(cuts, p=0.5, n=3, criterion="intersection", G_kp=None):
     Available criteria:
         intersection (default): classify according to the number of same moment
         neighbor: classify according to the edge closeness
+        mixed: a mix of the two above
     """
-    match criterion:
+    match criterion_name:
         case "intersection":
             criterion = lambda u, v: intersection_criterion(u, v, p)
         case "neighbor":
+            if not G_kp:
+                raise TypeError(
+                    "A Graph should be passed as argument for the neighbor criterion"
+                )
             criterion = lambda u, v: neighbor_criterion(u, v, G_kp, n)
         case "mixed":
+            if not G_kp:
+                raise TypeError(
+                    "A Graph should be passed as argument for the mixed criterion"
+                )
             criterion = lambda u, v: mixed_criterion(u, v, G_kp, p, n)
 
-    classes = []
+    classes: Classes = []
     for k, cut in cuts.items():
         classified = False
         for cls in classes:
@@ -156,7 +183,7 @@ def representant_method(cuts, p=0.5, n=3, criterion="intersection", G_kp=None):
     return classes
 
 
-def best_representant(cuts, p=None, criterion="intersection", G_kp=None):
+def best_representant(cuts, p=None, criterion_name="intersection", G_kp=None):
     """
     Takes as parameter a list of Cut objects, returns a list of list of Cut objects
     corresponding to the cuts after classification according to the best representant method and
@@ -168,7 +195,7 @@ def best_representant(cuts, p=None, criterion="intersection", G_kp=None):
         intersection (default): classify according to the number of same moment
         neighbor: classify according to the edge closeness
     """
-    match criterion:
+    match criterion_name:
         case "intersection":
             criterion = lambda u, v: intersection_criterion(u, v, p)
         case "neighbor":
@@ -207,7 +234,7 @@ def best_representant(cuts, p=None, criterion="intersection", G_kp=None):
     return classes
 
 
-def iterative_division(cuts, n, treshold):
+def iterative_division(cuts: Cuts, n: int, treshold: float) -> Classes:
     potential_rpz, rpz, to_classify = list(cuts.keys()), [], list(cuts.keys())
     for _ in range(n):
         rpz.append(potential_rpz.pop(rd.randint(0, len(potential_rpz) - 1)))
@@ -221,13 +248,11 @@ def iterative_division(cuts, n, treshold):
     for elem in to_classify:
         classes[
             max(range(len(rpz)), key=(lambda k: proximity(cuts[rpz[k]], cuts[elem])))
-        ].append(
-            elem
-        )
+        ].append(elem)
     return classes
 
 
-def measure_balance_artefacts(G_kp, treshold=5):
+def measure_balance_artefacts(G_kp: Graph, treshold: int = 5) -> list[int]:
     cmpnts = G_kp.cpt_connex_components()
     artefacts = []
     for cmpnt in cmpnts:

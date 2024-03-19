@@ -3,11 +3,18 @@ import osmnx as ox
 
 # import kahip
 import json
+from typing import Optional
 
 
 class Graph:
     def __init__(
-        self, vwgt=[], xadj=[], adjcwgt=[], adjncy=[], nx=None, json=None
+        self,
+        vwgt: list[int] = [],
+        xadj: list[int] = [],
+        adjcwgt: list[int] = [],
+        adjncy: list[int] = [],
+        nx: Optional[nx.Graph] = None,
+        json: Optional[str] = None,
     ) -> None:
         self._vertices_weight = vwgt
         self._xadjacency = xadj
@@ -15,7 +22,7 @@ class Graph:
         self._adjacency = adjncy
 
         self._edgecut = 0  # 2
-        self._blocks = []  # [0, 0, 1, 1, 0]
+        self._blocks: list[int] = []  # [0, 0, 1, 1, 0]
 
         self._nx = False
 
@@ -42,18 +49,16 @@ class Graph:
                 raise ValueError("Possible keys are: 'vwgt'/'xadj'/'adjcwgt'/'adjncy'")
 
     @property
-    def get_last_results(self):
+    def get_last_results(self) -> tuple[int, list[int]]:
         return (self._edgecut, self._blocks)
 
-    def set_last_results(self, edgecut, blocks):
+    def set_last_results(self, edgecut: int, blocks: list[int]) -> None:
         self._edgecut, self._blocks = edgecut, blocks
 
-    def get_neighbors(self, x):
-        return [
-           self["adjncy"][n] for n in range(self["xadj"][x+1]-self["xadj"][x])
-        ]
-    
-    def set_from_nx(self, G):
+    def get_neighbors(self, x: int) -> list[int]:
+        return [self["adjncy"][n] for n in range(self["xadj"][x + 1] - self["xadj"][x])]
+
+    def set_from_nx(self, G: nx.Graph) -> None:
         """Conversion du type networkx.graph au type KaHIP (METIS)"""
 
         G_ = G.to_undirected()
@@ -99,30 +104,30 @@ class Graph:
 
         return G
 
-    def closer_than_k_edges(self, e1, e2, k):
+    def closer_than_k_edges(
+        self, e1: tuple[int, int], e2: tuple[int, int], k: int
+    ) -> bool:
         """Return whether d(e1, e2) <= k"""
         return (
-            self.closer_k_nodes(e1[0], e2[0], k-1) or
-            self.closer_k_nodes(e1[0], e2[1], k-1) or
-            self.closer_k_nodes(e1[1], e2[0], k-1) or
-            self.closer_k_nodes(e1[1], e2[1], k-1)
+            self.closer_k_nodes(e1[0], e2[0], k - 1)
+            or self.closer_k_nodes(e1[0], e2[1], k - 1)
+            or self.closer_k_nodes(e1[1], e2[0], k - 1)
+            or self.closer_k_nodes(e1[1], e2[1], k - 1)
         )
 
-    def closer_k_nodes(self, n1, n2, k):
+    def closer_k_nodes(self, n1: int, n2: int, k: int) -> bool:
         if n1 == n2:
             return True
         if k == 0:
             return False
         neighbors = self.get_neighbors(n1)
         for neighbor in neighbors:
-            if self.closer_k_nodes(neighbor, n2, k-1):
+            if self.closer_k_nodes(neighbor, n2, k - 1):
                 return True
         return False
 
-    def isolating_cut(
-        self, nodes, seed, imb=0.03
-    ):
-        new_weight = (self._sizeV-len(nodes)) / len(nodes)
+    def isolating_cut(self, nodes, seed, imb=0.03):
+        new_weight = (self._sizeV - len(nodes)) / len(nodes)
         rest = self._sizeV - new_weight
         for node in nodes:
             self["vwght"][node] = new_weight
@@ -141,11 +146,11 @@ class Graph:
 
     def kaffpa_cut(
         self,
-        nblocks,
-        imbalance,
-        suppress_output,
-        seed,
-        mode,
+        nblocks: int,
+        imbalance: float,
+        suppress_output: int,
+        seed: int,
+        mode: int,
     ):
         """
         Alias for kaffpa cut
@@ -177,7 +182,7 @@ class Graph:
             mode,
         )
 
-    def process_cut(self, weight=False):
+    def process_cut(self, weight: bool = False) -> list[tuple[int, int, int]]:
         edges = []
         for i in range(1, len(self["xadj"])):
             for j in range(self["xadj"][i - 1], self["xadj"][i]):
@@ -193,33 +198,32 @@ class Graph:
 
         return cut_edges
 
-    def cpt_connex_components(self):
+    def cpt_connex_components(self) -> list[list[int]]:
         """
         Computes the connected components after a cut.
 
         Returns a list of list of connected nodes in the same block
         """
+
         def explore_component(node, seen):
-            print(f"exploring node {node}")
             nb_neighbors = self["xadj"][node + 1] - self["xadj"][node]
             cpnt = [node]
             seen.append(node)
             for neighbor in self["adjncy"][
                 self["xadj"][node] : self["xadj"][node] + nb_neighbors
             ]:
-                print(f"{neighbor} is a neighbor of {node}")
                 if (
                     self._blocks[node] == self._blocks[neighbor]
                     and not neighbor in seen
                 ):
                     seen.append(neighbor)
                     cpnt += explore_component(neighbor, seen)
-            print(f"result for {node} is {cpnt}")
             return cpnt
 
         if not self._blocks:
             raise ValueError("You must first cut then compute the connex components")
-        components, components_flat = [], []
+        components = []
+        components_flat: list[int] = []
         for node in range(len(self["xadj"])):
             if node in components_flat or node + 1 == len(self["xadj"]):
                 continue
@@ -228,7 +232,13 @@ class Graph:
         return components
 
     def display_city_cut(
-        self, G_nx, savefig=False, filepath=None, show=True, ax=None, figsize=None
+        self,
+        G_nx: nx.Graph,
+        savefig: bool = False,
+        filepath: Optional[str] = None,
+        show: bool = True,
+        ax=None,
+        figsize: Optional[tuple[int, int]] = None,
     ):
         p_cut = self.process_cut()
         ec = [
@@ -263,7 +273,7 @@ class Graph:
                     block.append(node)
             print(f"Dans le block {i} il y a les noeuds: {block}")
 
-    def save_graph(self, filepath):
+    def save_graph(self, filepath: str) -> None:
         data = {
             "vwgt": self._vertices_weight,
             "xadj": self._xadjacency,
@@ -275,7 +285,7 @@ class Graph:
                 data, write_file, indent=4, separators=(", ", ": "), sort_keys=True
             )
 
-    def import_from_json(self, filepath):
+    def import_from_json(self, filepath: str) -> None:
         with open(filepath, "r") as read_file:
             data = json.load(read_file)
         self._vertices_weight = data["vwgt"]
