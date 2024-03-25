@@ -1,0 +1,146 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+\usepackage{pdfpages}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{multicol}
+
+\graphicspath{ {../images/} }
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{L'outil de classification, relation betweenness et coupe, composantes connexes, étude des coûts}
+\subtitle{Stage Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \AtBeginSection[]{
+    \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+        \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+    \end{frame}
+    }
+    % frame 1
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    % frame 2
+    \begin{frame}
+        \frametitle{Outline}
+        \tableofcontents
+    \end{frame}
+    \section{L'outil de classification}
+    \begin{frame}
+        \frametitle{Description}
+        \emph{On veut pouvoir distinguer les coupes vraiment différentes visuellement}\\
+        Plusieurs niveaux d'approche:
+        \begin{itemize}
+            \item les critères (notion de distance entre deux coupes)
+            \begin{itemize}
+                \item[-] intersection
+                \item[-] distance dans le graphe
+                \item[-] distance géographique
+                \item[-] distance géométrique    
+            \end{itemize}
+            \item la méthode (comment ensuite trier en fonction des critères)
+            \begin{itemize}
+                \item[-] méthodes maisons (représentant, division)
+                \item[-] clustering du graphe des distances
+            \end{itemize}
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Résultats}
+    
+        
+    
+    \end{frame}
+    \section{Relation Betweenness et Coupe}
+    \begin{frame}
+        \frametitle{Betweenness distribution entire graph vs 100 most cut edges (1)}
+    
+        \includegraphics[scale=0.65]{betweenness_distr.pdf}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Betweenness distribution entire graph vs 100 most cut edges (2)}
+    
+        \includegraphics[scale=0.65]{betweenness_distrbis.pdf}
+    
+    \end{frame}
+
+    \section{Composantes Connexes}
+    \begin{frame}
+        \frametitle{Les étranges composantes connexes}
+        \begin{itemize}
+            \item quasiment toutes de taille 28
+            \item si on les compare en enlevant les deux plus grandes composantes:
+        \end{itemize}
+        \includegraphics[width=0.9\paperwidth]{compcon.png}
+    \end{frame}
+
+    \section{étude des coûts}
+    \begin{frame}
+        \frametitle{Différents attributs et leur présence}
+        \begin{multicols}{2}
+            \begin{itemize}
+                \item \textcolor{green}{$(n_1, n_2)$} $\qquad 100\%$
+                \item \textcolor{green}{width} $\qquad\quad 3\%$ 
+                \item \textcolor{green}{maxspeed} $\ 95\%$
+                \item \textcolor{green}{oneway} $\quad\ 100\%$
+                \item \textcolor{green}{lanes} $\qquad\ 51\%$
+                \item \textcolor{green}{bridge} $\qquad\ 2\%$
+                \item \textcolor{green}{tunnel} $\qquad\ 1\%$
+                \item \textcolor{yellow}{highway} $\quad 100\%$
+                \item \textcolor{yellow}{access}  $\qquad\ 7\%$
+            \end{itemize}
+            \vfill\null
+            \columnbreak
+            \begin{itemize}
+                \item \textcolor{yellow}{reversed} $\qquad 1\%$
+                \item \textcolor{yellow}{ref} $\qquad\qquad\ 6\%$
+                \item \textcolor{yellow}{junction} $\qquad 0.5\%$
+                \item \textcolor{yellow}{service} $\qquad\ 0.01\%$
+                \item \textcolor{red}{length}
+                \item \textcolor{red}{name}
+                \item \textcolor{red}{v\_original}
+                \item \textcolor{red}{u\_original}
+                \item \textcolor{red}{osmid}
+            \end{itemize}
+            \vfill\null
+        \end{multicols}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Quelques idées de coûts}
+        \begin{itemize}
+            \item width
+            \item width$^2$
+            \item width avec maxspeed 50
+            \item width sans bridge
+            \item width sans tunnel
+            \item random(min, max)
+            \item random distribution
+        \end{itemize}
+    \end{frame}
+\end{document}

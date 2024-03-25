@@ -194,7 +194,6 @@ def display_best_n_freq(G_nx, f, n=10, savefig=False, filepath=None, show=True, 
         ax=ax,
         figsize=figsize,
         node_color="#54545460",
-        edge_alpha=None
     )
 
 def visualize_class(cls, G_nx, cuts, savefig=False, filepath=None, show=True, ax=None, figsize=None):
@@ -268,3 +267,53 @@ def mosaic_of_classes(kcuts, G_kp, G_nx):
         visualize_class(classes[k], G_nx, cuts, figsize=(3, 3), ax=axes[i//3, i%3], show=False)
         axes[i//3, i%3].set_title("classe de taille " + str(len(classes[k])))
     fig.savefig("./presentations/images/visual_rpz_inter05.pdf")
+
+
+
+
+    # for k, v in G_nx.nodes(data=True):
+        # print(k, v)
+    # cpt_w, cpt_maxs, cpt_oneway, cpt_lanes, cpt_bridges, cpt_tunnel = 0, 0, 0, 0, 0, 0
+    # cpt_rev, cpt_high, cpt_access, cpt_ref, cpt_junction, cpt_service = 0, 0, 0, 0, 0, 0
+    # cpt_edges = 0
+    # for e in G_nx.edges(data=True):
+    #     cpt_edges += 1
+    #     for attribute in e[2].keys():
+    #         if attribute == 'oneway':
+    #             cpt_oneway += 1
+    #         if attribute == 'maxspeed':
+    #             cpt_maxs += 1
+    #         if attribute == 'reversed':
+    #             cpt_rev += 1
+    #         if attribute == 'highway':
+    #             cpt_high += 1
+    #         if attribute == 'lanes':
+    #             cpt_lanes += 1
+    #         if attribute == 'tunnel':
+    #             cpt_tunnel += 1
+    #         if attribute == 'ref':
+    #             cpt_ref += 1
+    #         if attribute == 'width':
+    #             cpt_w += 1
+    #         if attribute == 'access':
+    #             cpt_access += 1
+    #         if attribute == 'bridge':
+    #             cpt_bridges += 1
+    #         if attribute == 'junction':
+    #             cpt_junction += 1 
+    #         if attribute == 'service':
+    #             cpt_service += 1
+    # print(f"nb edges: {cpt_edges}")
+    # print(f"nb oneway: {cpt_oneway} -> {cpt_oneway/cpt_edges}")
+    # print(f"nb access: {cpt_access} -> {cpt_access/cpt_edges}")
+    # print(f"nb bridges: {cpt_bridges} -> {cpt_bridges/cpt_edges}")
+    # print(f"nb highway: {cpt_high} -> {cpt_high/cpt_edges}")
+    # print(f"nb junction: {cpt_junction} -> {cpt_junction/cpt_edges}")
+    # print(f"nb service: {cpt_service} -> {cpt_service/cpt_edges}")
+    # print(f"nb width: {cpt_w} -> {cpt_w/cpt_edges}")
+    # print(f"nb reversed: {cpt_rev} -> {cpt_rev/cpt_edges}")
+    # print(f"nb lanes: {cpt_lanes} -> {cpt_lanes/cpt_edges}")
+    # print(f"nb bridge: {cpt_bridges} -> {cpt_bridges/cpt_edges}")
+    # print(f"nb ref: {cpt_ref} -> {cpt_ref/cpt_edges}")
+    # print(f"nb tunnel: {cpt_tunnel} -> {cpt_tunnel/cpt_edges}")
+    # print(f"nb max speed: {cpt_maxs} -> {cpt_maxs/cpt_edges}")

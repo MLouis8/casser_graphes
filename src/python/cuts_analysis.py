@@ -2,17 +2,10 @@ from scipy.stats import pearsonr
 import networkx as nx
 from Graph import Graph
 import random as rd
-from typing import Optional
-
-## Type Aliases ##
-KCuts = tuple[int, list[int]]  # cuts under KaHIP format
-EdgeDict = dict[tuple[int, int], int]  # common edge dict
-EdgeDictStr = dict[str, int]  # edge dict after json import
-Cuts = dict[
-    str, list[tuple[int, int]]
-]  # cuts after post processing, the name of the cut maps to the list of edges cut
-Classes = list[list[str]]  # list of list of names of cuts
-
+from typing import Optional, Any
+from numpy import mean
+from math import inf
+from typ import KCuts, EdgeDict, EdgeDictStr, Cuts, Classes
 
 def determine_edge_frequency(G: Graph, C: dict[str, KCuts]) -> EdgeDict:
     """
@@ -81,7 +74,7 @@ def to_Cut(xadj: list[int], adjncy: list[int], blocks: list[int]):
     cut_edges = []
     for edge in edges:
         if blocks[edge[0]] != blocks[edge[1]]:
-            if not edge in cut_edges:
+            if not edge in cut_edges and not (edge[1], edge[0]) in cut_edges:
                 cut_edges.append(edge)
     return cut_edges
 
@@ -127,6 +120,33 @@ def mixed_criterion(
             return True
     return cpt > obj
 
+def geographical_criterion(
+    c1: list[tuple[int, int]], c2: list[tuple[int, int]], G_kp: Graph, G_nx: Any, t: float
+) -> bool:
+    """
+    Looks at the (lon, lat) values to determine wheter the edges are close enough
+    Since only 2/3 of the nodes are located, it skips the non labelled nodes
+
+    k is the geographical treshold
+    """
+    for edge2 in c2:
+        flag = False
+        try:
+            lon1 = G_nx.nodes(data=True)[edge2[0]]["lon"] + G_nx.nodes(data=True)[edge2[1]]["lon"] / 2
+            lat1 = G_nx.nodes(data=True)[edge2[0]]["lat"] + G_nx.nodes(data=True)[edge2[1]]["lat"] / 2
+            for edge1 in c1:
+                try:
+                    lon2 = G_nx.nodes(data=True)[edge1[0]]["lon"] + G_nx.nodes(data=True)[edge1[1]]["lon"] / 2
+                    lat2 = G_nx.nodes(data=True)[edge1[0]]["lat"] + G_nx.nodes(data=True)[edge1[1]]["lat"] / 2
+                    if abs(lon1-lon2) < t and abs(lat1-lat2) < t:
+                        flag = True
+                except:
+                    continue
+        except:
+            continue
+        if not flag:
+            return False
+    return True            
 
 def proximity(c1: list[tuple[int, int]], c2: list[tuple[int, int]]) -> float:
     """proximity criterion based on intersection"""
@@ -136,13 +156,78 @@ def proximity(c1: list[tuple[int, int]], c2: list[tuple[int, int]]) -> float:
             inter += 1
     return inter / (len(c1) + len(c2))
 
+def distance(c1: list[tuple[int, int]], c2: list[tuple[int, int]], G_nx: nx.Graph, distance: str="max") -> float:
+    """
+    Distance between two cuts based on geographical proximity.
+    Since it's not always defined, skips not defined edges.
+    First for each edge of c1 we find the closest corresponding edge in c2.
+    Then distance is defined as:
+        - max: the largest value found
+        - mean: the mean of the values
+    Too much skipped edges, geometrical distance should be preferred
+    """
+    match distance:
+        case "max": d_cut = lambda l: max(l)
+        case "mean": d_cut = lambda l: mean(l)
+        case _: raise ValueError("distance parameter should be either max or mean")
+    l = []
+    for edge1 in c1:
+        best_distance = inf
+        x1, y1 = G_nx.nodes(data=True)[edge1[0]]["x"], G_nx.nodes(data=True)[edge1[0]]["y"]
+        for edge2 in c2:
+            x2, y2 = G_nx.nodes(data=True)[edge1[0]]["x"], G_nx.nodes(data=True)[edge2[0]]["y"]
+            d_edge = max(abs(x1-x2), abs(y1-y2))
+            best_distance = d_edge if d_edge < best_distance else best_distance
+        l.append(best_distance)
+        first = False
+    return d_cut(l)
+
+def distance_geo(c1: list[tuple[int, int]], c2: list[tuple[int, int]], G_nx: nx.Graph, distance: str="max") -> float:
+    """
+    Distance between two cuts based on geographical proximity.
+    Since it's not always defined, skips not defined edges.
+    First for each edge of c1 we find the closest corresponding edge in c2.
+    Then distance is defined as:
+        - max: the largest value found
+        - mean: the mean of the values
+    Too much skipped edges, geometrical distance should be preferred
+    """
+    match distance:
+        case "max": d_cut = lambda l: max(l)
+        case "mean": d_cut = lambda l: mean(l)
+        case _: raise ValueError("distance parameter should be either max or mean")
+    l = []
+    first = True
+    skipped1, skipped2 = 0, 0
+    for edge1 in c1:
+        best_distance = inf
+        try:
+            lon1, lat1 = G_nx.nodes(data=True)[edge1[0]]["lon"], G_nx.nodes(data=True)[edge1[0]]["lat"]
+        except:
+            skipped1 += 1
+            continue
+        for edge2 in c2:
+            try:
+                lon2, lat2 = G_nx.nodes(data=True)[edge1[0]]["lon"], G_nx.nodes(data=True)[edge2[0]]["lat"]
+            except:
+                if first:
+                    skipped2 += 1
+                continue
+            
+            d_edge = max(abs(lon1-lon2), abs(lat1-lat2))
+            best_distance = d_edge if d_edge < best_distance else best_distance
+        l.append(best_distance)
+        first = False
+    return d_cut(l), l, skipped1, skipped2
 
 def representant_method(
     cuts: Cuts,
     p: float = 0.5,
     n: int = 3,
+    t: float = 0.05,
     criterion_name: str = "intersection",
     G_kp: Optional[Graph] = None,
+    G_nx: Optional[Any] = None
 ) -> Classes:
     """
     Takes as parameter a list of Cut objects, returns a list of list of Cut objects
@@ -153,6 +238,7 @@ def representant_method(
         intersection (default): classify according to the number of same moment
         neighbor: classify according to the edge closeness
         mixed: a mix of the two above
+        geographical: using longitute and latitude
     """
     match criterion_name:
         case "intersection":
@@ -169,7 +255,12 @@ def representant_method(
                     "A Graph should be passed as argument for the mixed criterion"
                 )
             criterion = lambda u, v: mixed_criterion(u, v, G_kp, p, n)
-
+        case "geographical":
+            if not G_kp:
+                raise TypeError(
+                    "A Graph should be passed as argument for the mixed criterion"
+                )
+            criterion = lambda u, v: geographical_criterion(u, v, G_kp, G_nx, t)
     classes: Classes = []
     for k, cut in cuts.items():
         classified = False
@@ -252,11 +343,30 @@ def iterative_division(cuts: Cuts, n: int, treshold: float) -> Classes:
     return classes
 
 
-def measure_balance_artefacts(G_kp: Graph, treshold: int = 5) -> list[int]:
-    cmpnts = G_kp.cpt_connex_components()
-    artefacts = []
-    for cmpnt in cmpnts:
-        if len(cmpnt) < treshold:
-            artefacts.append(cmpnt)
-    print(f"there are {len(artefacts)} balancing artefacts smaller than {treshold}")
-    return artefacts
+def get_connected_components(G_kp: Graph) -> Any:
+    """Get connected components from KaHIP graph using NetworkX"""
+    G_nx = G_kp.to_nx()
+    cut = G_kp.process_cut()
+    G_nx.remove_edges_from(cut)
+    return nx.connected_components(G_nx)
+
+def classify_by_connected_components(cc: dict[str, list[int]], liberty: int=3) -> Classes:
+    classes: Classes = []
+    for cut_name, co_cpnts in cc.items():
+        classified = False
+        for class_id, cls in enumerate(classes):
+            if cc[cls[0]][:liberty] == co_cpnts[:liberty]:
+                classified = True
+                break
+        if classified:
+            classes[class_id].append(cut_name)
+        else:
+            classes.append([cut_name])
+    return classes
+
+def cluster_louvain(cuts: Cuts, G_nx: nx.Graph) -> list[set]:
+    G = nx.Graph()
+    for k, v in cuts.items():
+        for kprime, vprime in cuts.items():
+            G.add_edge(k, kprime, weight=distance(v, vprime, G_nx, distance="mean"))
+    return [list(c) for c in nx.community.louvain_communities(G)]

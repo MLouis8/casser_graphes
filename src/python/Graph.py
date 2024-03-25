@@ -108,21 +108,21 @@ class Graph:
         self, e1: tuple[int, int], e2: tuple[int, int], k: int
     ) -> bool:
         """Return whether d(e1, e2) <= k"""
-        return (
-            self.closer_k_nodes(e1[0], e2[0], k - 1)
-            or self.closer_k_nodes(e1[0], e2[1], k - 1)
-            or self.closer_k_nodes(e1[1], e2[0], k - 1)
-            or self.closer_k_nodes(e1[1], e2[1], k - 1)
-        )
+        met_nodes = []
+        for i in range(4):
+            closer, met_nodes = self.closer_k_nodes(e1[i//2], e2[i%2], k - 1, met_nodes)
+            if closer:
+                return True
+        return False
 
-    def closer_k_nodes(self, n1: int, n2: int, k: int) -> bool:
+    def closer_k_nodes(self, n1: int, n2: int, k: int, seen: list[int]) -> bool:
         if n1 == n2:
             return True
         if k == 0:
             return False
         neighbors = self.get_neighbors(n1)
         for neighbor in neighbors:
-            if self.closer_k_nodes(neighbor, n2, k - 1):
+            if not neighbor in seen and self.closer_k_nodes(neighbor, n2, k - 1):
                 return True
         return False
 
@@ -197,39 +197,6 @@ class Graph:
                     cut_edges.append(edge)
 
         return cut_edges
-
-    def cpt_connex_components(self) -> list[list[int]]:
-        """
-        Computes the connected components after a cut.
-
-        Returns a list of list of connected nodes in the same block
-        """
-
-        def explore_component(node, seen):
-            nb_neighbors = self["xadj"][node + 1] - self["xadj"][node]
-            cpnt = [node]
-            seen.append(node)
-            for neighbor in self["adjncy"][
-                self["xadj"][node] : self["xadj"][node] + nb_neighbors
-            ]:
-                if (
-                    self._blocks[node] == self._blocks[neighbor]
-                    and not neighbor in seen
-                ):
-                    seen.append(neighbor)
-                    cpnt += explore_component(neighbor, seen)
-            return cpnt
-
-        if not self._blocks:
-            raise ValueError("You must first cut then compute the connex components")
-        components = []
-        components_flat: list[int] = []
-        for node in range(len(self["xadj"])):
-            if node in components_flat or node + 1 == len(self["xadj"]):
-                continue
-            else:
-                components.append(explore_component(node, components_flat))
-        return components
 
     def display_city_cut(
         self,
