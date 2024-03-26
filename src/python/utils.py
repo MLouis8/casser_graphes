@@ -1,6 +1,8 @@
 import networkx as nx
 import osmnx as ox
+import random as rd
 from Graph import Graph
+from math import inf
 
 def replace_parallel_edges(G):
     """
@@ -80,14 +82,25 @@ def preprocessing(G, val_name: str = "no valuation"):
                 map[highway] = 2
 
         return map
-
-    match val_name:
-        case "width":
-            val = lambda x: int(x)
-        case "squared width":
-            val = lambda x: int(x ** 2)
-        case _:
-            val = lambda _: 1
+    
+    def val(width: float, maxspeed: int, bridge: bool, tunnel: bool, val_name: str, minmax: tuple[int, int]=None, distrib: dict[int, float]=None) -> float:
+        match val_name:
+            case "width":
+                return int(width)
+            case "squared width":
+                return int(width ** 2)
+            case "width with maxspeed":
+                return int(width) if maxspeed <= 50 else inf
+            case "width without bridge":
+                return int(width) if not bridge else inf
+            case "width without tunnel":
+                return int(width) if not tunnel else inf
+            case "random(min, max)":
+                return rd.randint(minmax[0], minmax[1])
+            case "random distribution":
+                return rd.choices(distrib.keys(), distrib.values())
+            case _:
+                return 1
     t_l_map = map_type_lanes(G)
     edge_type = nx.get_edge_attributes(G, "highway")
     edge_type = dict((k, pp1(v)) for k, v in edge_type.items())
@@ -109,7 +122,7 @@ def preprocessing(G, val_name: str = "no valuation"):
                 edge_width[edge] = 4 * edge_lanes[edge]
     nx.set_edge_attributes(G, edge_width, "width")
     for edge in edge_width.keys():
-        edge_width[edge] = val(edge_width[edge])
+        edge_width[edge] = val(edge_width[edge], )
     nx.set_edge_attributes(G, edge_width, "weight")
 
     G.remove_edges_from(nx.selfloop_edges(G))
@@ -157,3 +170,20 @@ def prepare_instance(filename):
     print(f"Conversion into KaHIP format...")
     G_kp = Graph(nx=G_nx)
     G_kp.save_graph(filepath_kahip)
+
+def flatten(l):
+    if isinstance(l, str):
+        return [l]
+    res = []
+    for x in l:
+        res += flatten(x)
+    return res
+
+def gen_to_list(gen):
+        if isinstance(gen, str):
+            return gen 
+        res = []
+        for elem in gen:
+            res.append(gen_to_list(elem))
+        return res
+    

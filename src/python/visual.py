@@ -5,7 +5,7 @@ import numpy as np
 import random as rd
 import osmnx as ox
 import pandas as pd
-from cuts_analysis import get_n_biggest_freq, representant_method, to_Cut
+from cuts_analysis import get_n_biggest_freq, to_Cut
 
 def imbalances(G_kp):
     imbalances = np.linspace(0, 0.1, 30)
