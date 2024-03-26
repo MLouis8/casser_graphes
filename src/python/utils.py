@@ -47,13 +47,15 @@ def replace_parallel_edges(G):
     nx.set_edge_attributes(G, edges_weight, "weight")
 
 
-def preprocessing(G, val_name: str = "no valuation"):
+def preprocessing(G, val_name: str = "no valuation", minmax: tuple[int, int]=None, distrib: dict[int, float]=None):
     """
     Does all the required preprocessing in place and returns the preprocessed graph.
     """
     pp1 = lambda x: x[0] if isinstance(x, list) else x
     pp2 = lambda x: float(max(x) if isinstance(x, list) else x) if x else 0
-
+    pp3 = lambda x: int(x) if x else 0
+    pp4 = lambda x: True if x else False
+    
     def add_node_weights_and_relabel(G):
         w_nodes = {}
         for node in list(G.nodes):
@@ -83,7 +85,7 @@ def preprocessing(G, val_name: str = "no valuation"):
 
         return map
     
-    def val(width: float, maxspeed: int, bridge: bool, tunnel: bool, val_name: str, minmax: tuple[int, int]=None, distrib: dict[int, float]=None) -> float:
+    def val(width: float, maxspeed: int, bridge: bool, tunnel: bool, val_name: str, minmax: tuple[int, int], distrib: dict[int, float]) -> float:
         match val_name:
             case "width":
                 return int(width)
@@ -111,6 +113,15 @@ def preprocessing(G, val_name: str = "no valuation"):
     edge_lanes = nx.get_edge_attributes(G, "lanes")
     edge_lanes = dict((k, pp2(v)) for k, v in edge_lanes.items())
 
+    edge_maxspeed = nx.get_edge_attributes(G, "maxspeed")
+    edge_maxspeed = dict((k, pp3(v)) for k, v in edge_maxspeed.items())
+
+    edge_tunnel = nx.get_edge_attributes(G, "tunnel")
+    edge_tunnel = dict((k, pp4(v)) for k, v in edge_tunnel.items())
+
+    edge_bridge = nx.get_edge_attributes(G, "bridge")
+    edge_bridge = dict((k, pp4(v)) for k, v in edge_bridge.items())
+
     for edge in G.edges:
         if not edge in edge_width.keys():
             if not edge in edge_lanes.keys():
@@ -122,7 +133,7 @@ def preprocessing(G, val_name: str = "no valuation"):
                 edge_width[edge] = 4 * edge_lanes[edge]
     nx.set_edge_attributes(G, edge_width, "width")
     for edge in edge_width.keys():
-        edge_width[edge] = val(edge_width[edge], )
+        edge_width[edge] = val(edge_width[edge], edge_maxspeed[edge], edge_bridge[edge], edge_tunnel[edge], val_name, minmax, distrib)
     nx.set_edge_attributes(G, edge_width, "weight")
 
     G.remove_edges_from(nx.selfloop_edges(G))

@@ -22,17 +22,24 @@ class CutsClassification:
 
     def distance(self, c1: Cut, c2: Cut, tdistance: str) -> float:
         """
-        Distance between two cuts based on geometrical proximity.
+        Distance between two cuts based on geographical proximity.
         First for each edge of c1 we find the closest (Euclidially) corresponding edge in c2.
         Then distance is defined as:
             - max: the largest value found
-            - mean: the mean of the values
+            - sum: sum of the values
+            - sum squarred: sum of the squarred values
+            - inter: only distance of 0 is kept
         """
         match tdistance:
             case "max": d_cut = lambda l: max(l)
-            case "mean": d_cut = lambda l: mean(l)
             case "sum": d_cut = lambda l: sum(l)
             case "sum squarred": d_cut = lambda l: sum([e**2 for e in l])
+            case "inter":
+                inter = 0
+                for ele in c2:
+                    if ele in c1:
+                        inter += 1
+                return int((inter / (len(c1) + len(c2)))*100)
             case _: raise ValueError("distance parameter should be either max or mean")
         l = []
         for edge1 in c1:
@@ -42,55 +49,19 @@ class CutsClassification:
             for edge2 in c2:
                 x2 = self._nodes[edge2[0]]["x"] + self._nodes[edge2[1]]["x"] / 2
                 y2 = self._nodes[edge2[0]]["y"] + self._nodes[edge2[1]]["y"] / 2
-                d_edge = sqrt((x1-x2)**2 + (y1-y2)**2)
+                d_edge = int((sqrt((x1-x2)**2 + (y1-y2)**2)) * 100)
                 best_distance = d_edge if d_edge < best_distance else best_distance
             l.append(best_distance)
         return d_cut(l)
 
-    def distance_geo(self, c1: Cut, c2: Cut, tdistance: str) -> float:
-        """
-        Distance between two cuts based on geographical proximity.
-        Since it's not always defined, skips not defined edges.
-        First for each edge of c1 we find the closest corresponding edge in c2.
-        Then distance is defined as:
-            - max: the largest value found
-            - mean: the mean of the values
-        Too much skipped edges, geometrical distance should be preferred
-        """
-        match tdistance:
-            case "max": d_cut = lambda l: max(l)
-            case "mean": d_cut = lambda l: mean(l)
-            case _: raise ValueError("distance parameter should be either max or mean")
-        l = []
-        first = True
-        skipped1, skipped2 = 0, 0
-        for edge1 in c1:
-            best_distance = inf
-            try:
-                lon1, lat1 = self._nodes[edge1[0]]["lon"], self._nodes[edge1[0]]["lat"]
-            except:
-                skipped1 += 1
-                continue
-            for edge2 in c2:
-                try:
-                    lon2, lat2 = self._nodes[edge1[0]]["lon"], self._nodes[edge2[0]]["lat"]
-                except:
-                    if first:
-                        skipped2 += 1
-                    continue
-                
-                d_edge = max(abs(lon1-lon2), abs(lat1-lat2))
-                best_distance = d_edge if d_edge < best_distance else best_distance
-            l.append(best_distance)
-            first = False
-        return d_cut(l), l, skipped1, skipped2
-
-    def cluster_louvain(self) -> list[Any]:
+    def cluster_louvain(self, distance_type: str) -> list[Any]:
         G = nx.Graph()
+        w_max, w_min = 0, 1
         for k, v in self._cuts.items():
             for kprime, vprime in self._cuts.items():
                 if not (k,  kprime) in G.edges and not (kprime, k) in G.edges and k != kprime:
-                    G.add_edge(k, kprime, weight=self.distance(v, vprime, "sum squarred"))
+                    G.add_edge(k, kprime, weight=self.distance(v, vprime, distance_type))
+        print(w_max, w_min)
         self._levels = gen_to_list(nx.community.louvain_partitions(G))
 
     def get_class_level(self):

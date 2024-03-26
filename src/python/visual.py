@@ -230,43 +230,43 @@ def visualize_class(cls, G_nx, cuts, savefig=False, filepath=None, show=True, ax
         edge_alpha=None
     )
 
-def nbclass_maxclass_plot(cuts, G_kp):
-    epsilons = np.linspace(0.1, 1, 10)
-    y1, y2 = [], []
-    for eps in epsilons:
-        print(f"classifying for eps={eps}")
-        classes = representant_method(cuts, eps, 4, "mixed", G_kp)
-        biggest_cls = 0
-        for cls in classes:
-            if len(cls) > biggest_cls:
-                biggest_cls = len(cls)
-        y1.append(len(classes))
-        y2.append(biggest_cls)
-    fig = plt.figure()
-    axes = fig.subplots(1, 2)
-    axes[0].plot(epsilons, y1)
-    axes[0].set_ylabel("nb classes")
-    axes[1].plot(epsilons, y2)
-    axes[1].set_ylabel("biggest class size")
-    axes[0].set_xlabel("epsilon")
-    axes[1].set_xlabel("epsilon")
-    fig.suptitle("Classification results: representant method + intersection criterion")
-    plt.savefig("./presentations/images/mixed4_rpz_plots_003.pdf")
+# def nbclass_maxclass_plot(cuts, G_kp):
+#     epsilons = np.linspace(0.1, 1, 10)
+#     y1, y2 = [], []
+#     for eps in epsilons:
+#         print(f"classifying for eps={eps}")
+#         classes = representant_method(cuts, eps, 4, "mixed", G_kp)
+#         biggest_cls = 0
+#         for cls in classes:
+#             if len(cls) > biggest_cls:
+#                 biggest_cls = len(cls)
+#         y1.append(len(classes))
+#         y2.append(biggest_cls)
+#     fig = plt.figure()
+#     axes = fig.subplots(1, 2)
+#     axes[0].plot(epsilons, y1)
+#     axes[0].set_ylabel("nb classes")
+#     axes[1].plot(epsilons, y2)
+#     axes[1].set_ylabel("biggest class size")
+#     axes[0].set_xlabel("epsilon")
+#     axes[1].set_xlabel("epsilon")
+#     fig.suptitle("Classification results: representant method + intersection criterion")
+#     plt.savefig("./presentations/images/mixed4_rpz_plots_003.pdf")
 
-def mosaic_of_classes(kcuts, G_kp, G_nx):
-    cuts = {}
-    print("converting cuts...")
-    for k, (_, blocks) in kcuts.items():
-        cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
-    print("classifying...")
-    classes = representant_method(cuts)
-    c = [0, 1, 2, 4, 5, 8, 10, 14, 24]
-    print("displaying...")
-    fig, axes = plt.subplots(3, 3)
-    for i, k in enumerate(c):
-        visualize_class(classes[k], G_nx, cuts, figsize=(3, 3), ax=axes[i//3, i%3], show=False)
-        axes[i//3, i%3].set_title("classe de taille " + str(len(classes[k])))
-    fig.savefig("./presentations/images/visual_rpz_inter05.pdf")
+# def mosaic_of_classes(kcuts, G_kp, G_nx):
+#     cuts = {}
+#     print("converting cuts...")
+#     for k, (_, blocks) in kcuts.items():
+#         cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
+#     print("classifying...")
+#     classes = representant_method(cuts)
+#     c = [0, 1, 2, 4, 5, 8, 10, 14, 24]
+#     print("displaying...")
+#     fig, axes = plt.subplots(3, 3)
+#     for i, k in enumerate(c):
+#         visualize_class(classes[k], G_nx, cuts, figsize=(3, 3), ax=axes[i//3, i%3], show=False)
+#         axes[i//3, i%3].set_title("classe de taille " + str(len(classes[k])))
+#     fig.savefig("./presentations/images/visual_rpz_inter05.pdf")
 
 
 
