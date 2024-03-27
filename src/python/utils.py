@@ -47,15 +47,16 @@ def replace_parallel_edges(G):
     nx.set_edge_attributes(G, edges_weight, "weight")
 
 
-def preprocessing(G, val_name: str = "no valuation", minmax: tuple[int, int]=None, distrib: dict[int, float]=None):
-    """
-    Does all the required preprocessing in place and returns the preprocessed graph.
-    """
+def preprocessing(G, val_name, minmax: tuple[int, int]=None, distrib: dict[int, float]=None):
+    """Does all the required preprocessing in place"""
     pp1 = lambda x: x[0] if isinstance(x, list) else x
     pp2 = lambda x: float(max(x) if isinstance(x, list) else x) if x else 0
-    pp3 = lambda x: int(x) if x else 0
+    def pp3(x):
+        try:
+            int(x)
+        except:
+            0
     pp4 = lambda x: True if x else False
-    
     def add_node_weights_and_relabel(G):
         w_nodes = {}
         for node in list(G.nodes):
@@ -171,16 +172,14 @@ def init_city_graph(filepath):
 
 # init_city_graph("./data/Paris.graphml")
 
-def prepare_instance(filename):
-    filepath_graph = "./data/"+filename+".graphml"
-    filepath_kahip = "./data/"+filename+".json"
-    print(f"Loading instance {filepath_graph}")
-    G_nx = ox.load_graphml(filepath_graph)
+def prepare_instance(read_filename: str, write_filename: str, val_name: str):
+    print("Loading instance")
+    G_nx = ox.load_graphml(read_filename)
     print(f"preprocessing the graph...")
-    preprocessing(G_nx, val="width")
-    print(f"Conversion into KaHIP format...")
+    preprocessing(G_nx, val_name)
+    print("Conversion into KaHIP format...")
     G_kp = Graph(nx=G_nx)
-    G_kp.save_graph(filepath_kahip)
+    G_kp.save_graph(write_filename)
 
 def flatten(l):
     if isinstance(l, str):
