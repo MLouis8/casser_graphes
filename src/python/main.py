@@ -58,24 +58,26 @@ def main():
     with open(cut_paths[1], "r") as read_file:
         kcuts = json.load(read_file)
     cuts = {}
-    for k, (_, blocks) in list(kcuts.items())[:100]:
+    for k, (_, blocks) in list(kcuts.items()):
         cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
 
     # with open(class_paths[0], "r") as read_file:
     #     levels = json.load(read_file)
-    # print("analyse classes...")
-    # for level in levels:
-    #     print(len(level))
-        
+    
     print("clustering...")
     C = CutsClassification(cuts, G_nx)
-    C.cluster_louvain("max")
-    C.save_last_classes(class_paths[0])
-
-    # print("displaying...")
-    # fig, axes = plt.subplots(2, 2)
-    # for i in range(4):
-    #     visualize_class(levels[0][i], G_nx, cuts, ax=axes[i//2, i%2], show=False)
-    #     axes[i//2, i%2].set_title("classe de taille " + str(len(levels[0][i])))
-    # fig.savefig("./presentations/images/clusters003_sum.pdf")
+    C.cluster_louvain("var")
+    # C.save_last_classes(class_paths[0])
+    print("displaying...")
+    for level in C._levels:
+        print(len(level))
+    # levels = C._levels
+    # _, ax = plt.subplots()
+    # visualize_class(C._levels[0][0], C._levels[0], G_nx, cuts, ax=ax, show=True)
+    # fig, axes = plt.subplots(3, 3)
+    # for i in range(9):
+    #     visualize_class(levels[0][i], G_nx, cuts, ax=axes[i//3, i%3], show=False)
+    #     axes[i//3, i%3].set_title("classe de taille " + str(len(levels[0][i])))
+    # plt.show()
+    # fig.savefig("./presentations/images/clusters003_sumsq.pdf")
 main()
