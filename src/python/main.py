@@ -5,33 +5,44 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from sys import setrecursionlimit
-from utils import flatten
+from utils import prepare_instance
 from CutsClassification import CutsClassification
 from visual import visualize_class
 
 from scipy.stats import pearsonr
 
 setrecursionlimit(100000)
-# f = {}
-# for k, v in freq.items():
-#     f[eval(k)] = v
-# cuts = {}
-# for k, (_, blocks) in kcuts.items():
-#     cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
+
+# Code samples for main
+def cpt_freq(freq, kcuts, G_kp):
+    f = {}
+    for k, v in freq.items():
+        f[eval(k)] = v
+    cuts = {}
+    for k, (_, blocks) in kcuts.items():
+        cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
+
 def clustering(cuts, G_nx, filepath):
     print("clustering...")
     C = CutsClassification(cuts, G_nx)
     C.cluster_louvain()
     C.save_last_classes(filepath[2])
-    print("displaying...")
-    for level in C.get_levels():
-        print(len(flatten(level)))
-        # print(flatten(level))
-        print(level)
 
+    print("displaying...") 
+    with open(filepath[2], "r") as read_file:
+        levels = json.load(read_file)
+    for level in levels:
+        print(level)
+    fig, axes = plt.subplots(2, 3)
+    fig.suptitle("clusters avec distance sum et treshold (10000)")
+    for i in range(4):
+        visualize_class(levels[0][i], G_nx, cuts, ax=axes[i//2, i%2], show=False)
+        axes[i//2, i%2].set_title("classe de taille " + str(len(levels[0][i])))
+    plt.show()
+    # fig.savefig("./presentations/images/clusters/cluster_t_10000sub.pdf")
 
 def main():
-    # a excute a partir du repo Casser_graphe (chemin relatifs)
+    # a execute a partir du repo Casser_graphe (chemin relatifs)
     kp_path = "./data/Paris.json"
     grahml_path = "./data/Paris.graphml"
     btw_path = "./data/betweenness_Paris.json"
@@ -63,21 +74,4 @@ def main():
     cuts = {}
     for k, (_, blocks) in kcuts.items():
         cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
-
-    with open(class_paths[6], "r") as read_file:
-        levels = json.load(read_file)
-    
-    # print("clustering...")
-    C = CutsClassification(cuts, G_nx)
-    # C.cluster_louvain("sum", True)
-    # C.save_last_classes(class_paths[6])
-    # print("displaying...")
-    for level in levels:
-        print(len(level))
-    fig, axes = plt.subplots(2, 3)
-    fig.suptitle("clusters avec distance sum et treshold (10000)")
-    for i in range(4):
-        visualize_class(levels[0][i], G_nx, cuts, ax=axes[i//2, i%2], show=False)
-        axes[i//2, i%2].set_title("classe de taille " + str(len(levels[0][i])))
-    fig.savefig("./presentations/images/clusters/cluster_t_10000sub.pdf")
 main()
