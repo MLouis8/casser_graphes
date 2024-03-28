@@ -9,7 +9,6 @@ import networkx as nx
 import random as rd
 import numpy as np
 from math import inf, sqrt
-from numpy import mean
 
 class CutsClassification:
     def __init__(self, cuts: Cuts, G_nx: nx.Graph) -> None:
@@ -32,42 +31,48 @@ class CutsClassification:
             - inter: only distance of 0 is kept
         """
         match tdistance:
-            case "max": d_cut = lambda l: int(max(l)*1000)
-            case "sum": d_cut = lambda l: int(sum(l)*10)
-            case "sum squarred": d_cut = lambda l: sum([e**2 for e in l])
+            case "max": d_cut = lambda l: max(l)
+            case "sum": d_cut = lambda l: sum(l)
+            case "squared sum": d_cut = lambda l: sum([e**2 for e in l])
             case "inter":
                 inter = 0
                 for ele in c2:
                     if ele in c1:
                         inter += 1
                 return int((inter / (len(c1) + len(c2)))*100)
-            case "var": d_cut = lambda l: int(10*np.var(l))
+            case "var": d_cut = lambda l: int(np.var(l))
             case _: raise ValueError("wrong distance parameter")
         l, seen = [], []
         for edge1 in c1:
-            best_distance, best_edge = inf, None
+            best_distance = inf
             x1 = self._nodes[edge1[0]]["x"] + self._nodes[edge1[1]]["x"] / 2
             y1 = self._nodes[edge1[0]]["y"] + self._nodes[edge1[1]]["y"] / 2
             for edge2 in c2:
                 if not edge2 in seen:
                     x2 = self._nodes[edge2[0]]["x"] + self._nodes[edge2[1]]["x"] / 2
                     y2 = self._nodes[edge2[0]]["y"] + self._nodes[edge2[1]]["y"] / 2
-                    d_edge = (sqrt((x1-x2)**2 + (y1-y2)**2))
+                    d_edge = sqrt((x1-x2)**2 + (y1-y2)**2)
                     if d_edge < best_distance:
                         best_distance = d_edge
-                        best_edge = edge2
-            seen.append(best_edge)
-            l.append(best_distance if best_distance != inf else 0)
-        return d_cut(l)
+            if best_distance == inf:
+                l.append(0)
+            elif best_distance == 0:
+                l.append(-1)
+            else:
+                l.append(int(best_distance**(-1)))
+        return d_cut([1000 if e == -1 else e for e in l])
 
-    def cluster_louvain(self, distance_type: str) -> list[Any]:
+    def cluster_louvain(self, distance_type: str, treshold: bool=False) -> list[Any]:
         G = nx.Graph()
+        weights = []
         for k, v in self._cuts.items():
             for kprime, vprime in self._cuts.items():
                 if not (k,  kprime) in G.edges and not (kprime, k) in G.edges and k != kprime:
                     w = self.distance(v, vprime, distance_type)
-                    if w > 10:
+                    weights.append(w)
+                    if not treshold or w >= 10000:
                         G.add_edge(k, kprime, weight=w)
+        print(min(weights), max(weights), np.mean(weights), np.var(weights))
         self._levels = gen_to_list(nx.community.louvain_partitions(G))
 
     def get_class_level(self):

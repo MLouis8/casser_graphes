@@ -53,17 +53,32 @@
     \begin{frame}
         \frametitle{Clustering avec intersection, level 0 (0.003)}
         \centering
-        \includegraphics[scale=0.75]{clusters003_inter.pdf}
+        \includegraphics[scale=0.75]{clusters/clusters003_inter.pdf}
     
     \end{frame}
     
     \begin{frame}
         \frametitle{Clustering avec intersection, level 1 (0.003)}
         \centering
-        \includegraphics[scale=0.7]{clusters003_interbis.pdf}
-    
+        \includegraphics[scale=0.7]{clusters/clusters003_interbis.pdf}
     \end{frame}
     
+    \begin{frame}
+        \frametitle{Clustering avec distance geographique: conclusions}
+        \begin{itemize}
+            \item Quelques soit les méthodes (max, sum, var, mean, sum des carrés) on a un résultat équivalent
+            \item Par contre ce n'est intéressant qu'avec un treshold sinon il se passe ça:
+        \end{itemize}
+        \centering
+        \includegraphics[scale=0.5]{clusters/clusters003_sum.pdf}
+    \end{frame}
+    
+    \begin{frame}
+        \frametitle{Clustering avec distance geographique: résultats}
+        \centering
+        \includegraphics[scale=0.75]{clusters/cluster_t_50000.pdf}
+    \end{frame}
+
     \subsection{Outils gardés}
     \subsection{Quelques résultats}
     \section{fonctions de coûts}

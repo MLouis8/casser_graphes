@@ -9,6 +9,8 @@ from utils import flatten
 from CutsClassification import CutsClassification
 from visual import visualize_class
 
+from scipy.stats import pearsonr
+
 setrecursionlimit(100000)
 # f = {}
 # for k, v in freq.items():
@@ -34,22 +36,23 @@ def main():
     grahml_path = "./data/Paris.graphml"
     btw_path = "./data/betweenness_Paris.json"
     freq_paths = [
-        "./data/frequency_1000_cuts_Paris_01.json",
-        "./data/frequency_1000_cuts_Paris_003.json",
-        "./data/frequency_1000_cuts_Paris.json"
+        "./data/freqs/frequency_1000_cuts_Paris_01.json",
+        "./data/freqs/frequency_1000_cuts_Paris_003.json",
+        "./data/freqs/frequency_1000_cuts_Paris.json"
     ]
     cut_paths = [
-        "./data/1000_cuts_Paris_01.json",
-        "./data/1000_cuts_Paris_003.json",
-        "./data/1000_cuts_Paris.json",
+        "./data/cuts/1000_cuts_Paris_01.json",
+        "./data/cuts/1000_cuts_Paris_003.json",
+        "./data/cuts/1000_cuts_Paris.json",
     ]
     class_paths = [
-        "./data/cluster_sum_003.json",
-        "./data/cluster_sum_01.json",
-        "./data/cluster_sumsq_003.json",
-        "./data/cluster_inter_01.json",
-        "./data/cluster_inter_003.json",
-        "./data/cluster_max_003.json"
+        "./data/clusters/cluster_sum_003.json",
+        "./data/clusters/cluster_inter_01.json",
+        "./data/clusters/cluster_inter_003.json",
+        "./data/clusters/cluster_t_70000.json",
+        "./data/clusters/cluster_t_50000.json",
+        "./data/clusters/cluster_t_30000.json",
+        "./data/clusters/cluster_t_10000.json"
     ]
     print("import stuff...")
     G_nx = ox.load_graphml(grahml_path)
@@ -58,26 +61,23 @@ def main():
     with open(cut_paths[1], "r") as read_file:
         kcuts = json.load(read_file)
     cuts = {}
-    for k, (_, blocks) in list(kcuts.items()):
+    for k, (_, blocks) in kcuts.items():
         cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
 
-    # with open(class_paths[0], "r") as read_file:
-    #     levels = json.load(read_file)
+    with open(class_paths[6], "r") as read_file:
+        levels = json.load(read_file)
     
-    print("clustering...")
+    # print("clustering...")
     C = CutsClassification(cuts, G_nx)
-    C.cluster_louvain("var")
-    # C.save_last_classes(class_paths[0])
-    print("displaying...")
-    for level in C._levels:
+    # C.cluster_louvain("sum", True)
+    # C.save_last_classes(class_paths[6])
+    # print("displaying...")
+    for level in levels:
         print(len(level))
-    # levels = C._levels
-    # _, ax = plt.subplots()
-    # visualize_class(C._levels[0][0], C._levels[0], G_nx, cuts, ax=ax, show=True)
-    # fig, axes = plt.subplots(3, 3)
-    # for i in range(9):
-    #     visualize_class(levels[0][i], G_nx, cuts, ax=axes[i//3, i%3], show=False)
-    #     axes[i//3, i%3].set_title("classe de taille " + str(len(levels[0][i])))
-    # plt.show()
-    # fig.savefig("./presentations/images/clusters003_sumsq.pdf")
+    fig, axes = plt.subplots(2, 3)
+    fig.suptitle("clusters avec distance sum et treshold (10000)")
+    for i in range(4):
+        visualize_class(levels[0][i], G_nx, cuts, ax=axes[i//2, i%2], show=False)
+        axes[i//2, i%2].set_title("classe de taille " + str(len(levels[0][i])))
+    fig.savefig("./presentations/images/clusters/cluster_t_10000sub.pdf")
 main()
