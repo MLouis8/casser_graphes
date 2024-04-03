@@ -8,9 +8,9 @@ import pandas as pd
 import networkx as nx
 
 from cuts_analysis import get_n_biggest_freq, to_Cut
-from typ import Cuts, Edge
+from typ import Cuts, Edge, EdgeDict, KCuts
 
-def imbalances(G_kp):
+def imbalances_cut(G_kp):
     imbalances = np.linspace(0, 0.1, 30)
     used_seed = []
     mean, minimum, maximum = [], [], []
@@ -107,24 +107,24 @@ def freq_distributions(freq, total_edges=46761):
     plt.savefig("./presentations/images/distribution_01.svg")
 
 
-def basic_stats_edges(dictionary, g_size=46761, nb_cuts=1000):
-    most_cut = max(dictionary, key=dictionary.get)
-    less_cut = min(dictionary, key=dictionary.get)
-    values = list(dictionary.values())
+def basic_stats_edges(freq_dict: EdgeDict, g_size=46761, nb_cuts=1000):
+    most_cut = max(freq_dict, key=freq_dict.get)
+    less_cut = min(freq_dict, key=freq_dict.get)
+    values = list(freq_dict.values())
     mean = np.mean(values)
     std = np.std(values)
 
     print("Here some basic stats on this set of cut(s):")
-    print(f"The most cut edge ({most_cut}) has been cut {dictionary[most_cut]} times")
-    print(f"The less cut edge has been cut {dictionary[less_cut]} times")
+    print(f"The most cut edge ({most_cut}) has been cut {freq_dict[most_cut]} times")
+    print(f"The less cut edge has been cut {freq_dict[less_cut]} times")
     print(f"We have a mean of {mean}")
     print(f"We have an std of {std}")
     print(
-        f"With {nb_cuts} cuts we have cut {len(dictionary.keys())} different edges over {g_size}"
+        f"With {nb_cuts} cuts we have cut {len(freq_dict.keys())} different edges over {g_size}"
     )
 
 
-def basic_stats_cuts(cuts, nb_cuts=1000):
+def basic_stats_cuts(cuts: dict[str, KCuts], nb_cuts=1000):
     nb_edges_cut = [edgecut for edgecut, _ in cuts.values()]
     best_cut = min(nb_edges_cut)
     worst_cut = max(nb_edges_cut)

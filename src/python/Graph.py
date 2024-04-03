@@ -1,7 +1,7 @@
 import networkx as nx
 import osmnx as ox
 
-import kahip # to comment if ARM, uncomment to cut
+# import kahip # to comment if ARM, uncomment to cut
 import json
 from typing import Optional
 
@@ -166,17 +166,18 @@ class Graph:
         Configurations with a social in their name should be used for social
         networks and web graphs.
         """
-        self._edgecut, self._blocks = kahip.kaffpa(
-            self["vwgt"],
-            self["xadj"],
-            self["adjcwgt"],
-            self["adjncy"],
-            nblocks,
-            imbalance,
-            suppress_output,
-            seed,
-            mode,
-        )
+        pass
+        # self._edgecut, self._blocks = kahip.kaffpa(
+        #     self["vwgt"],
+        #     self["xadj"],
+        #     self["adjcwgt"],
+        #     self["adjncy"],
+        #     nblocks,
+        #     imbalance,
+        #     suppress_output,
+        #     seed,
+        #     mode,
+        # )
 
     def process_cut(self, weight: bool = False) -> list[tuple[int, int, int]]:
         edges = []

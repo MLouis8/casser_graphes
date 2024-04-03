@@ -180,6 +180,8 @@ etc/
 cache/
 src/mes_modules.py
 package-lock.json
+
+# latex
 *.fls
 *.aux
 *.fdb_latexmk
@@ -189,3 +191,4 @@ package-lock.json
 *.toc
 *.synctex.gz
 presentations/images
+presentations/cuts/*.pdf
