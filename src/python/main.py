@@ -50,17 +50,17 @@ def main():
         "./data/costs/nocost.json",
         "./data/costs/width.json",
         "./data/costs/widthsq.json",
-        "./data/costs/widthmaxspeed.json",
-        "./data/costs/widthnobridge.json",
-        "./data/costs/widthnotunnel.json"
+        # "./data/costs/widthmaxspeed.json",
+        # "./data/costs/widthnobridge.json",
+        # "./data/costs/widthnotunnel.json"
     ]
     costs_name = [
         "nocost",
         "width",
         "widthsq",
-        "widthmaxspeed",
-        "widthnobridge",
-        "widthnotunnel"
+        # "widthmaxspeed",
+        # "widthnobridge",
+        # "widthnotunnel"
     ]
     graphml_path = "./data/Paris.graphml"
     btw_path = "./data/betweenness_Paris.json"
@@ -92,17 +92,22 @@ def main():
     # cuts = {}
     # for k, (_, blocks) in kcuts.items():
     #     cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
-    seen_seeds = []
     for i, kp in enumerate(kp_paths):
         print(f"cutting for cost {costs_name[i]}")
         for imbalance in [0.03, 0.05, 0.1]:
+            cut = {}
+            seen_seeds = []
             print(f"cutting for imbalance {imbalance}")
-            G_kp = Graph(json=kp)
-            seed = rd.randint(0, 1044642763)
-            while seed in seen_seeds:
+            for ncut in range(1000):
+                print(f"cut nb {ncut}")
+                G_kp = Graph(json=kp)
                 seed = rd.randint(0, 1044642763)
-            seen_seeds.append(seed)
-            G_kp.kaffpa_cut(2, imbalance, 0, seed, 3)
-            G_kp.save_graph("./data/cuts/"+costs_name[i]+"_"+str(imbalance)+".json")
+                while seed in seen_seeds:
+                    seed = rd.randint(0, 1044642763)
+                seen_seeds.append(seed)
+                G_kp.kaffpa_cut(2, imbalance, 0, seed, 3)
+                cut[str(ncut)] = G_kp.get_last_results
+            with open("./data/cuts/"+costs_name[i]+"_1000_"+str(imbalance)+".json", "w") as cut_file:
+                json.dump(cut, cut_file)
 
 main()
