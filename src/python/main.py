@@ -1,6 +1,6 @@
 from Graph import Graph
 from cuts_analysis import to_Cut
-from utils import thousand_cuts
+from utils import thousand_cuts, prepare_instance
 from CutsClassification import CutsClassification
 from visual import visualize_class
 from progress_bar import printProgressBar
@@ -94,5 +94,6 @@ def main():
     #     cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
     imbalances = [0.03, 0.05, 0.1]
     thousand_cuts(kp_paths, costs_name, imbalances)
+    # prepare_instance(graphml_path, kp_paths[0], "width with maxspeed")
 
 main()

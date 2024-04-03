@@ -180,7 +180,7 @@ def preprocessing(
     @returns:
         None
     """
-    inf = 9032014067870987 # big number for removing cut access to an edge
+    inf: int = 95099713 # big number for removing cut access to an edge
     if cost_name in [
         "width",
         "squared width",
