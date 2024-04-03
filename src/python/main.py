@@ -8,6 +8,7 @@ from progress_bar import printProgressBar
 import osmnx as ox
 import json
 import numpy as np
+import random as rd
 import networkx as nx
 import matplotlib.pyplot as plt
 from sys import setrecursionlimit
@@ -46,12 +47,20 @@ def clustering(cuts, G_nx, filepath):
 def main():
     # a execute a partir du repo Casser_graphe (chemin relatifs)
     kp_paths = [
-        # "./data/costs/nocost.json",
+        "./data/costs/nocost.json",
         "./data/costs/width.json",
         "./data/costs/widthsq.json",
         "./data/costs/widthmaxspeed.json",
         "./data/costs/widthnobridge.json",
         "./data/costs/widthnotunnel.json"
+    ]
+    costs_name = [
+        "nocost",
+        "width",
+        "widthsq",
+        "widthmaxspeed",
+        "widthnobridge",
+        "widthnotunnel"
     ]
     graphml_path = "./data/Paris.graphml"
     btw_path = "./data/betweenness_Paris.json"
@@ -83,17 +92,14 @@ def main():
     # cuts = {}
     # for k, (_, blocks) in kcuts.items():
     #     cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
-
-    costs = [
-        # "no_val",
-        "width",
-        "squared width",
-        "width with maxspeed",
-        "width without bridge",
-        "width without tunnel",
-    ]
-    for i, path in enumerate(kp_paths):
-        print(f"path {path}")
-        prepare_instance(graphml_path, path, costs[i])
+    seen_seeds = []
+    for kp in kp_paths:
+        for imbalance in [0.03, 0.05, 0.1]:
+            G_kp = Graph(json=kp)
+            seed = rd.randint(1044642763)
+            while seed in seen_seeds:
+                seed = rd.randint(1044642763)
+            seen_seeds.append(seed)
+            G_kp.kaffpa_cut(2, imbalance, 0, seed, 3)
 
 main()
