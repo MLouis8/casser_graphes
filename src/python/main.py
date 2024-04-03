@@ -93,13 +93,16 @@ def main():
     # for k, (_, blocks) in kcuts.items():
     #     cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
     seen_seeds = []
-    for kp in kp_paths:
+    for i, kp in enumerate(kp_paths):
+        print(f"cutting for cost {costs_name[i]}")
         for imbalance in [0.03, 0.05, 0.1]:
+            print(f"cutting for imbalance {imbalance}")
             G_kp = Graph(json=kp)
-            seed = rd.randint(1044642763)
+            seed = rd.randint(0, 1044642763)
             while seed in seen_seeds:
-                seed = rd.randint(1044642763)
+                seed = rd.randint(0, 1044642763)
             seen_seeds.append(seed)
             G_kp.kaffpa_cut(2, imbalance, 0, seed, 3)
+            G_kp.save_graph("./data/cuts/"+costs_name[i]+"_"+str(imbalance)+".json")
 
 main()
