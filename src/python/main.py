@@ -1,6 +1,6 @@
 from Graph import Graph
 from cuts_analysis import to_Cut
-from utils import prepare_instance
+from utils import thousand_cuts
 from CutsClassification import CutsClassification
 from visual import visualize_class
 from progress_bar import printProgressBar
@@ -47,20 +47,20 @@ def clustering(cuts, G_nx, filepath):
 def main():
     # a execute a partir du repo Casser_graphe (chemin relatifs)
     kp_paths = [
-        "./data/costs/nocost.json",
-        "./data/costs/width.json",
-        "./data/costs/widthsq.json",
-        # "./data/costs/widthmaxspeed.json",
-        # "./data/costs/widthnobridge.json",
-        # "./data/costs/widthnotunnel.json"
+        # "./data/costs/nocost.json",
+        # "./data/costs/width.json",
+        # "./data/costs/widthsq.json",
+        "./data/costs/widthmaxspeed.json",
+        "./data/costs/widthnobridge.json",
+        "./data/costs/widthnotunnel.json"
     ]
     costs_name = [
-        "nocost",
-        "width",
-        "widthsq",
-        # "widthmaxspeed",
-        # "widthnobridge",
-        # "widthnotunnel"
+        # "nocost",
+        # "width",
+        # "widthsq",
+        "widthmaxspeed",
+        "widthnobridge",
+        "widthnotunnel"
     ]
     graphml_path = "./data/Paris.graphml"
     btw_path = "./data/betweenness_Paris.json"
@@ -92,22 +92,7 @@ def main():
     # cuts = {}
     # for k, (_, blocks) in kcuts.items():
     #     cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
-    for i, kp in enumerate(kp_paths):
-        print(f"cutting for cost {costs_name[i]}")
-        for imbalance in [0.03, 0.05, 0.1]:
-            cut = {}
-            seen_seeds = []
-            print(f"cutting for imbalance {imbalance}")
-            for ncut in range(1000):
-                print(f"cut nb {ncut}")
-                G_kp = Graph(json=kp)
-                seed = rd.randint(0, 1044642763)
-                while seed in seen_seeds:
-                    seed = rd.randint(0, 1044642763)
-                seen_seeds.append(seed)
-                G_kp.kaffpa_cut(2, imbalance, 0, seed, 3)
-                cut[str(ncut)] = G_kp.get_last_results
-            with open("./data/cuts/"+costs_name[i]+"_1000_"+str(imbalance)+".json", "w") as cut_file:
-                json.dump(cut, cut_file)
+    imbalances = [0.03, 0.05, 0.1]
+    thousand_cuts(kp_paths, costs_name, imbalances)
 
 main()

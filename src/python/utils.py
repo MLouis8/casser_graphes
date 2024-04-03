@@ -1,7 +1,7 @@
 import networkx as nx
 import osmnx as ox
 import random as rd
-from math import inf
+import json
 
 from Graph import Graph
 from typ import EdgeDict
@@ -180,6 +180,7 @@ def preprocessing(
     @returns:
         None
     """
+    inf = 9032014067870987 # big number for removing cut access to an edge
     if cost_name in [
         "width",
         "squared width",
@@ -197,17 +198,17 @@ def preprocessing(
             maxspeed_dict = nx.get_edge_attributes(G, "maxspeed", default=50)
             edge_weight = {
                 k: v if maxspeed_dict[k] == 'walk' or int(maxspeed_dict[k]) <= 50 else inf
-                for (k, v) in edge_width.items()
+                for k, v in edge_width.items()
             }
         case "width without bridge":
             bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
             edge_weight = {
-                k: v if not bridge_dict[k] else inf for (k, v) in edge_width.items()
+                k: v if not bridge_dict[k] else inf for k, v in edge_width.items()
             }
         case "width without tunnel":
             tunnel_dict = nx.get_edge_attributes(G, "tunnel", default=False)
             edge_weight = {
-                k: v if not tunnel_dict[k] else inf for (k, v) in edge_width.items()
+                k: v if not tunnel_dict[k] else inf for k, v in edge_width.items()
             }
         case "random(min, max)":
             edge_weight = {(k, rd.randint(minmax[0], minmax[1])) for k in G.edges}
@@ -283,3 +284,23 @@ def gen_to_list(gen):
     for elem in gen:
         res.append(gen_to_list(elem))
     return res
+
+def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[float]):
+    assert len(kp_paths) == len(costs_names)
+    for i, kp in enumerate(kp_paths):
+        print(f"cutting for cost {costs_names[i]}...")
+        for imbalance in imbalances:
+            cut = {}
+            seen_seeds = []
+            print(f"cutting for imbalance {imbalance}...")
+            for ncut in range(1000):
+                print(f"cut number {ncut} for imbalance {imbalance} and cost {costs_names[i]}")
+                G_kp = Graph(json=kp)
+                seed = rd.randint(0, 1044642763)
+                while seed in seen_seeds:
+                    seed = rd.randint(0, 1044642763)
+                seen_seeds.append(seed)
+                G_kp.kaffpa_cut(2, imbalance, 0, seed, 3)
+                cut[str(ncut)] = G_kp.get_last_results
+            with open("./data/cuts/"+costs_names[i]+"_1000_"+str(imbalance)+".json", "w") as cut_file:
+                json.dump(cut, cut_file)
