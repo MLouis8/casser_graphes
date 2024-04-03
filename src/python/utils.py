@@ -1,8 +1,11 @@
 import networkx as nx
 import osmnx as ox
 import random as rd
-from Graph import Graph
 from math import inf
+
+from Graph import Graph
+from typ import EdgeDict
+
 
 def replace_parallel_edges(G):
     """
@@ -47,130 +50,212 @@ def replace_parallel_edges(G):
     nx.set_edge_attributes(G, edges_weight, "weight")
 
 
-def preprocessing(G, val_name, minmax: tuple[int, int]=None, distrib: dict[int, float]=None):
-    """Does all the required preprocessing in place"""
-    pp1 = lambda x: x[0] if isinstance(x, list) else x
-    pp2 = lambda x: float(max(x) if isinstance(x, list) else x) if x else 0
-    def pp3(x):
+def add_node_weights_and_relabel(G):
+    w_nodes = {}
+    for node in list(G.nodes):
+        w_nodes[node] = 1
+    nx.set_node_attributes(G, w_nodes, "weight")
+    sorted_nodes = sorted(G.nodes())
+    mapping = {old_node: new_node for new_node, old_node in enumerate(sorted_nodes)}
+    G = nx.relabel_nodes(G, mapping)
+
+# Resultats observes lors de l'execution
+# Just after importation, we have :
+# 94783 edges
+# 70263 nodes
+# After consolidation, we have :
+# 59060 edges
+# 40547 nodes
+# After projection, we have :
+# 59060 edges
+# 40547 nodes
+
+
+def infer_width(G: nx.graph) -> EdgeDict:
+    distr = {
+        "primary": {
+            True: [872, 2757, 934, 382, 95, 47, 1, 4, 0, 22],
+            False: [0, 926, 296, 1894, 220, 280, 58, 64, 2, 0],
+        },
+        "residential": {
+            True: [2227, 405, 19, 4, 0, 0, 0, 0, 0, 0],
+            False: [220, 1338, 74, 30, 0, 0, 0, 0, 0, 0],
+        },
+        "living_street": {
+            True: [152, 4, 2, 0, 0, 0, 0, 0, 0, 0],
+            False: [20, 24, 2, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "motorway": {
+            True: [6, 135, 64, 80, 8, 0, 0, 0, 0, 0],
+            False: [6, 135, 64, 80, 8, 0, 0, 0, 0, 0],
+        },
+        "tertiary": {
+            True: [768, 794, 140, 15, 3, 1, 0, 0, 0, 0],
+            False: [14, 3200, 382, 168, 6, 12, 0, 0, 0, 0],
+        },
+        "trunk_link": {
+            True: [326, 481, 48, 0, 0, 0, 0, 0, 0, 0],
+            False: [326, 481, 48, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "motorway_link": {
+            True: [63, 355, 15, 2, 0, 0, 0, 0, 0, 0],
+            False: [63, 355, 15, 2, 0, 0, 0, 0, 0, 0],
+        },
+        "secondary": {
+            True: [629, 1432, 452, 128, 29, 26, 0, 2, 0, 0],
+            False: [32, 2706, 880, 606, 40, 46, 0, 0, 0, 0],
+        },
+        "primary_link": {
+            True: [162, 125, 22, 4, 2, 0, 0, 0, 0, 0],
+            False: [0, 4, 4, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "tertiary_link": {
+            True: [17, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            False: [2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "unclassified": {
+            True: [296, 72, 19, 5, 4, 0, 3, 0, 0, 0],
+            False: [12, 288, 28, 16, 0, 0, 0, 0, 0, 0],
+        },
+        "secondary_link": {
+            True: [34, 39, 7, 1, 0, 0, 0, 0, 0, 0],
+            False: [34, 39, 7, 1, 0, 0, 0, 0, 0, 0],
+        },
+        "trunk": {
+            True: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
+            False: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
+        },
+        "crossing": {
+            True: None, False: None,
+        },
+        "emergency_access_point": {
+            True: None, False: None,
+        },
+        "disused": {
+            True: None, False: None,
+        },
+    }
+    widths, lanes = {}, [1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
+    existing_widths = nx.get_edge_attributes(G, "width")
+    existing_lanes = nx.get_edge_attributes(G, "lanes")
+    highways = nx.get_edge_attributes(G, "highway")
+    oneways = nx.get_edge_attributes(G, "oneway")
+    for u, v, w in G.edges:
         try:
-            int(x)
+            widths[(u, v, w)] = int(existing_widths[(u, v, w)])
         except:
-            0
-    pp4 = lambda x: True if x else False
-    def add_node_weights_and_relabel(G):
-        w_nodes = {}
-        for node in list(G.nodes):
-            w_nodes[node] = 1
-        nx.set_node_attributes(G, w_nodes, "weight")
-        sorted_nodes = sorted(G.nodes())
-        mapping = {old_node: new_node for new_node, old_node in enumerate(sorted_nodes)}
-        G = nx.relabel_nodes(G, mapping)
+            try:
+                widths[(u, v, w)] = (
+                    int(existing_lanes[(u, v, w)]) * 4
+                )  # 4 étant la largeur moyenne d'une rue parisienne
+            except:
+                widths[(u, v, w)] = rd.choices(
+                    lanes, weights=distr[highways[(u, v, w)]][oneways[(u, v, w)]]
+                )[0] * 4
+    return widths
 
-    def map_type_lanes(G):
-        """Function mapping lanes to their type, used for inferring width attribute."""
-        gdfs = ox.graph_to_gdfs(G)
-        gdf_l_h = gdfs[1].loc[~gdfs[1]["lanes"].isna() & ~gdfs[1]["highway"].isna()]
+def preprocessing(
+    G: nx.Graph,
+    cost_name: str,
+    minmax: tuple[int, int] = None,
+    distrib: dict[int, float] = None,
+):
+    """
+    Does all the required preprocessing in place
 
-        gdf_l_h.loc[:, "lanes"] = gdf_l_h["lanes"].apply(pp2)
-        gdf_l_h.loc[:, "highway"] = gdf_l_h["highway"].apply(pp1)
-        edges = gdf_l_h[["highway", "lanes"]]
-        hist_data = edges.groupby(["highway", "lanes"]).size().reset_index(name="count")
-        max_count_indices = hist_data.groupby("highway")["count"].idxmax()
-        max_count = hist_data.loc[max_count_indices]
-        map = {max_count["highway"][i]: max_count["lanes"][i] for i in max_count.index}
-        # convert highway to 2 lanes
-        gdf_h = gdfs[1]["highway"].apply(pp1)
-        for highway in gdf_h.unique():
-            if highway not in map.keys():
-                map[highway] = 2
+    @params:
+        Required: G the networkx graph
+        Required: cost_name the name of the cost function, available names are
+            - width
+            - squared width
+            - width with maxspeed
+            - width without tunnel
+            - width without bridge
+            - random(min, max)
+            - random distribution
+            - _ will be considered as weight 1 everywhere
+        Optional: minmax a tuple of min and max values for cost random(min, max)
+        Optional: distribution a distribution of frequencies to respect for cost random distribution
 
-        return map
-    
-    def val(width: float, maxspeed: int, bridge: bool, tunnel: bool, val_name: str, minmax: tuple[int, int], distrib: dict[int, float]) -> float:
-        match val_name:
-            case "width":
-                return int(width)
-            case "squared width":
-                return int(width ** 2)
-            case "width with maxspeed":
-                return int(width) if maxspeed <= 50 else inf
-            case "width without bridge":
-                return int(width) if not bridge else inf
-            case "width without tunnel":
-                return int(width) if not tunnel else inf
-            case "random(min, max)":
-                return rd.randint(minmax[0], minmax[1])
-            case "random distribution":
-                return rd.choices(distrib.keys(), distrib.values())
-            case _:
-                return 1
-    t_l_map = map_type_lanes(G)
-    edge_type = nx.get_edge_attributes(G, "highway")
-    edge_type = dict((k, pp1(v)) for k, v in edge_type.items())
-
-    edge_width = nx.get_edge_attributes(G, "width")
-    edge_width = dict((k, pp2(v)) for k, v in edge_width.items())
-
-    edge_lanes = nx.get_edge_attributes(G, "lanes")
-    edge_lanes = dict((k, pp2(v)) for k, v in edge_lanes.items())
-
-    edge_maxspeed = nx.get_edge_attributes(G, "maxspeed")
-    edge_maxspeed = dict((k, pp3(v)) for k, v in edge_maxspeed.items())
-
-    edge_tunnel = nx.get_edge_attributes(G, "tunnel")
-    edge_tunnel = dict((k, pp4(v)) for k, v in edge_tunnel.items())
-
-    edge_bridge = nx.get_edge_attributes(G, "bridge")
-    edge_bridge = dict((k, pp4(v)) for k, v in edge_bridge.items())
-
-    for edge in G.edges:
-        if not edge in edge_width.keys():
-            if not edge in edge_lanes.keys():
-                # on infere avec le type de voie
-                edge_width[edge] = (
-                    4 * t_l_map[edge_type[edge]]
-                )  # le facteur 4 correspond a la moyenne des largeurs des rues de Paris
-            else:
-                edge_width[edge] = 4 * edge_lanes[edge]
-    nx.set_edge_attributes(G, edge_width, "width")
-    for edge in edge_width.keys():
-        edge_width[edge] = val(edge_width[edge], edge_maxspeed[edge], edge_bridge[edge], edge_tunnel[edge], val_name, minmax, distrib)
-    nx.set_edge_attributes(G, edge_width, "weight")
-
+    @returns:
+        None
+    """
+    if cost_name in [
+        "width",
+        "squared width",
+        "width without tunnel",
+        "width without bridge",
+        "width with maxspeed",
+    ]:
+        edge_width = infer_width(G)
+    match cost_name:
+        case "width":
+            edge_weight = edge_width
+        case "squared width":
+            edge_weight = {k: v**2 for k, v in edge_width.items()}
+        case "width with maxspeed":
+            maxspeed_dict = nx.get_edge_attributes(G, "maxspeed", default=50)
+            edge_weight = {
+                k: v if maxspeed_dict[k] == 'walk' or int(maxspeed_dict[k]) <= 50 else inf
+                for (k, v) in edge_width.items()
+            }
+        case "width without bridge":
+            bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
+            edge_weight = {
+                k: v if not bridge_dict[k] else inf for (k, v) in edge_width.items()
+            }
+        case "width without tunnel":
+            tunnel_dict = nx.get_edge_attributes(G, "tunnel", default=False)
+            edge_weight = {
+                k: v if not tunnel_dict[k] else inf for (k, v) in edge_width.items()
+            }
+        case "random(min, max)":
+            edge_weight = {(k, rd.randint(minmax[0], minmax[1])) for k in G.edges}
+        case "random distribution":
+            edge_weight = {
+                k: rd.choices(distrib.keys(), distrib.values()) for k in G.edges
+            }
+        case _:
+            edge_weight = {k: 1 for k in G.edges}
+    nx.set_edge_attributes(G, edge_weight, "weight")
     G.remove_edges_from(nx.selfloop_edges(G))
     add_node_weights_and_relabel(G)
     replace_parallel_edges(G)
     G.to_undirected()
 
-# Resultats observes lors de l'execution
-# Just after importation, we have : 
-# 94783 edges
-# 70263 nodes
-# After consolidation, we have : 
-# 59060 edges
-# 40547 nodes
-# After projection, we have : 
-# 59060 edges
-# 40547 nodes
 
 def init_city_graph(filepath):
-    G = ox.graph_from_place('Paris, Paris, France', network_type="drive", buffer_dist=350,simplify=False,retain_all=True,clean_periphery=False,truncate_by_edge=False)
-    G_Paris = ox.project_graph(G, to_crs='epsg:2154') ## pour le mettre dans le même référentiel que les données de Paris
+    G = ox.graph_from_place(
+        "Paris, Paris, France",
+        network_type="drive",
+        buffer_dist=350,
+        simplify=False,
+        retain_all=True,
+        clean_periphery=False,
+        truncate_by_edge=False,
+    )
+    G_Paris = ox.project_graph(
+        G, to_crs="epsg:2154"
+    )  ## pour le mettre dans le même référentiel que les données de Paris
 
-    print('Just after importation, we have : ')
-    print(str(len(G.edges())) + ' edges')
-    print(str(len(G.nodes()))+ ' nodes')
-    G2 = ox.consolidate_intersections(G_Paris, rebuild_graph=True, tolerance=4, dead_ends=True)
-    print('After consolidation, we have : ')
-    print(str(len(G2.edges())) + ' edges')
-    print(str(len(G2.nodes()))+ ' nodes')
-    G_out = ox.project_graph(G2, to_crs='epsg:4326')
-    print('After projection, we have : ')
-    print(str(len(G_out.edges())) + ' edges')
-    print(str(len(G_out.nodes()))+ ' nodes')
+    print("Just after importation, we have : ")
+    print(str(len(G.edges())) + " edges")
+    print(str(len(G.nodes())) + " nodes")
+    G2 = ox.consolidate_intersections(
+        G_Paris, rebuild_graph=True, tolerance=4, dead_ends=True
+    )
+    print("After consolidation, we have : ")
+    print(str(len(G2.edges())) + " edges")
+    print(str(len(G2.nodes())) + " nodes")
+    G_out = ox.project_graph(G2, to_crs="epsg:4326")
+    print("After projection, we have : ")
+    print(str(len(G_out.edges())) + " edges")
+    print(str(len(G_out.nodes())) + " nodes")
     ox.save_graphml(G_out, filepath=filepath)
 
+
 # init_city_graph("./data/Paris.graphml")
+
 
 def prepare_instance(read_filename: str, write_filename: str, val_name: str):
     print("Loading instance")
@@ -181,6 +266,7 @@ def prepare_instance(read_filename: str, write_filename: str, val_name: str):
     G_kp = Graph(nx=G_nx)
     G_kp.save_graph(write_filename)
 
+
 def flatten(l):
     if isinstance(l, str):
         return [l]
@@ -189,11 +275,11 @@ def flatten(l):
         res += flatten(x)
     return res
 
+
 def gen_to_list(gen):
-        if isinstance(gen, str):
-            return gen 
-        res = []
-        for elem in gen:
-            res.append(gen_to_list(elem))
-        return res
-    
+    if isinstance(gen, str):
+        return gen
+    res = []
+    for elem in gen:
+        res.append(gen_to_list(elem))
+    return res

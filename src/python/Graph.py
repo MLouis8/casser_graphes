@@ -24,7 +24,7 @@ class Graph:
         self._edgecut = 0  # 2
         self._blocks: list[int] = []  # [0, 0, 1, 1, 0]
 
-        self._nx = False
+        self._nx: bool | nx.Graph = False
 
         if nx:
             self.set_from_nx(nx)
@@ -88,9 +88,7 @@ class Graph:
                     )
 
     def to_nx(self):
-        """
-        Conversion du type KaHIP (adjacency) au type networkx.graph
-        """
+        """Conversion du type KaHIP (adjacency) au type networkx.graph"""
         G = nx.Graph()
 
         for i in range(self._sizeV):
@@ -108,21 +106,20 @@ class Graph:
         self, e1: tuple[int, int], e2: tuple[int, int], k: int
     ) -> bool:
         """Return whether d(e1, e2) <= k"""
-        met_nodes = []
         for i in range(4):
-            closer, met_nodes = self.closer_k_nodes(e1[i//2], e2[i%2], k - 1, met_nodes)
+            closer = self.closer_k_nodes(e1[i//2], e2[i%2], k - 1)
             if closer:
                 return True
         return False
 
-    def closer_k_nodes(self, n1: int, n2: int, k: int, seen: list[int]) -> bool:
+    def closer_k_nodes(self, n1: int, n2: int, k: int) -> bool:
         if n1 == n2:
             return True
         if k == 0:
             return False
         neighbors = self.get_neighbors(n1)
         for neighbor in neighbors:
-            if not neighbor in seen and self.closer_k_nodes(neighbor, n2, k - 1):
+            if self.closer_k_nodes(neighbor, n2, k - 1):
                 return True
         return False
 

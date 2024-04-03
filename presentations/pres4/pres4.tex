@@ -81,6 +81,50 @@
 
     \subsection{Outils gardés}
     \subsection{Quelques résultats}
-    \section{fonctions de coûts}
+    \section{Coût}
+    \begin{frame}
+        \frametitle{Retour sur la width}
+        Anciennement:
+        \begin{itemize}
+            \item inférée à partir de lanes (97\%)
+            \item lanes inféré à partir de highway (49\%)
+            \begin{itemize}
+                \item on regarde la distribution des lanes par highway (51\%)
+                \item on prend le max de la catégorie
+            \end{itemize}
+            On suppose donc que la répartition des lanes est aléatoire et on ne la suit pas avec précision.
+        \end{itemize}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Répartition des lanes}
+        \centering
+        \includegraphics[scale=0.4]{cost_def/edges_with_lanes.pdf}
+        \includegraphics[scale=0.4]{cost_def/edges_without_lanes.pdf}
+    \end{frame}
     
+    \begin{frame}
+        \frametitle{Pertinence de l'inférence}
+        \centering
+        \includegraphics[scale=0.35]{cost_def/type_distr.png}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Et si on infère la largeur par rapport à la largeur ?}
+        Le calcul de la width devient:
+        \begin{itemize}
+            \item 3\% width
+            \item inféré à partir de lane si il y a ($\approx$50\%)
+            \item le reste inféré par rapport au highway
+            \begin{itemize}
+                \item on suit la distribution des widths renseignées
+            \end{itemize}
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Pertinence de l'inférence}
+        \centering
+        \includegraphics{cost_def/width_distr.pdf}
+    \end{frame}
 \end{document}

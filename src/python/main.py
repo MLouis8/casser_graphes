@@ -1,14 +1,16 @@
-from cuts_analysis import to_Cut
 from Graph import Graph
-import osmnx as ox
-import json
-import numpy as np
-import matplotlib.pyplot as plt
-from sys import setrecursionlimit
+from cuts_analysis import to_Cut
 from utils import prepare_instance
 from CutsClassification import CutsClassification
 from visual import visualize_class
+from progress_bar import printProgressBar
 
+import osmnx as ox
+import json
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+from sys import setrecursionlimit
 from scipy.stats import pearsonr
 
 setrecursionlimit(100000)
@@ -43,8 +45,15 @@ def clustering(cuts, G_nx, filepath):
 
 def main():
     # a execute a partir du repo Casser_graphe (chemin relatifs)
-    kp_path = "./data/Paris.json"
-    grahml_path = "./data/Paris.graphml"
+    kp_paths = [
+        # "./data/costs/nocost.json",
+        "./data/costs/width.json",
+        "./data/costs/widthsq.json",
+        "./data/costs/widthmaxspeed.json",
+        "./data/costs/widthnobridge.json",
+        "./data/costs/widthnotunnel.json"
+    ]
+    graphml_path = "./data/Paris.graphml"
     btw_path = "./data/betweenness_Paris.json"
     freq_paths = [
         "./data/freqs/frequency_1000_cuts_Paris_01.json",
@@ -66,12 +75,25 @@ def main():
         "./data/clusters/cluster_t_10000.json"
     ]
     print("import stuff...")
-    G_nx = ox.load_graphml(grahml_path)
-    G_kp = Graph(json=kp_path)
+    G_nx = ox.load_graphml(graphml_path)
+    # G_kp = Graph(json=kp_paths[0])
     
-    with open(cut_paths[1], "r") as read_file:
-        kcuts = json.load(read_file)
-    cuts = {}
-    for k, (_, blocks) in kcuts.items():
-        cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
+    # with open(cut_paths[1], "r") as read_file:
+    #     kcuts = json.load(read_file)
+    # cuts = {}
+    # for k, (_, blocks) in kcuts.items():
+    #     cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
+
+    costs = [
+        # "no_val",
+        "width",
+        "squared width",
+        "width with maxspeed",
+        "width without bridge",
+        "width without tunnel",
+    ]
+    for i, path in enumerate(kp_paths):
+        print(f"path {path}")
+        prepare_instance(graphml_path, path, costs[i])
+
 main()
