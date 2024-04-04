@@ -7,6 +7,8 @@ kp_paths = [
     "./data/costs/widthmaxspeed.json",
     "./data/costs/widthnobridge.json",
     "./data/costs/widthnotunnel.json",
+    "./data/costs/randomminmax.json",
+    "./data/costs/randomdistr.json",
 ]
 costs_name = [
     "old_width",
@@ -56,6 +58,14 @@ cut_paths = [
     "./data/cuts/widthnotunnel_1000_01.json",
     "./data/cuts/widthnotunnel_1000_003.json",
     "./data/cuts/widthnotunnel_1000_005.json",
+    # 21
+    "./data/cuts/rdminmax_1000_01.json",
+    "./data/cuts/rdminmax_1000_003.json",
+    "./data/cuts/rdminmax_1000_005.json",
+    # 24
+    "./data/cuts/rddditr_1000_01.json",
+    "./data/cuts/rddistr_1000_003.json",
+    "./data/cuts/rddistr_1000_005.json",
 ]
 clusters_paths_1 = [
     "./data/clusters/cluster_sum_003.json",
@@ -68,14 +78,12 @@ clusters_paths_1 = [
 ]
 
 clusters_paths_2 = [
-    # no cost -> 0-4
-    "./data/clusters/CTS_30000nocost.json",
-    # width -> 5-6
-    "./data/clusters/CTS_500width.json",    
-    "./data/clusters/CTS_2500width.json",
-    # widthsq -> 7
-    "./data/clusters/CTS_2500widthsq.json",
-    # widthnobridge -> 8-9
-    "./data/clusters/CTS_500widthnobridge.json",
-    "./data/clusters/CTS_2500widthnobridge.json",
+    "./data/clusters/CTS_50000nocost.json",
+    "./data/clusters/CTS_50000width.json",
+    "./data/clusters/CTS_50000widthsq.json",
+    "./data/clusters/CTS_50000widthmaxspeed.json",
+    "./data/clusters/CTS_50000widthnobridge.json",
+    "./data/clusters/CTS_50000widthnotunnel.json",
+    "./data/clusters/CTS_50000randomminmax.json",
+    "./data/clusters/CTS_50000randomdistr.json",
 ]

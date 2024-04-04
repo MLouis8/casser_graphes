@@ -50,33 +50,34 @@ def main():
     
     print("import stuff...")
     G_nx = ox.load_graphml(graphml_path[1])
-    G_kp = Graph(json=kp_paths[4])
+    G_kp = Graph(json=kp_paths[6])
     
-    with open(cut_paths[14], "r") as read_file:
+    with open(cut_paths[20], "r") as read_file:
         kcuts = json.load(read_file)
     cuts = {}
     for k, (_, blocks) in kcuts.items():
         cuts[k] = to_Cut(G_kp["xadj"], G_kp["adjncy"], blocks)
 
-    print("clustering...")
-    C = CutsClassification(cuts, G_nx)
-    n = 50000
-    C.cluster_louvain("sum", n)
-    print(f"for n = {n}")
-    for level in C._levels:
-        print(len(level))
-    C.save_last_classes("data/clusters/CTS_"+str(n)+"widthmaxspeed.json")
-
-    # print("displaying...") 
-    # with open(clusters_paths_2[4], "r") as read_file:
-    #     levels = json.load(read_file)
-    # for level in levels:
+    # print("clustering...")
+    # C = CutsClassification(cuts, G_nx)
+    # n = 50000
+    # C.cluster_louvain("sum", n)
+    # print(f"for n = {n}")
+    # for level in C._levels:
     #     print(len(level))
-    # fig, axes = plt.subplots(2, 3)
-    # fig.suptitle("clusters graphe non valué (t=30000)")
-    # for i in range(5):
-    #     visualize_class(levels[0][i], G_nx, cuts, ax=axes[i//3, i%3], show=False)
-    #     axes[i//3, i%3].set_title("classe de taille " + str(len(levels[0][i])))
-    # plt.savefig("presentations/images/CTS_nocost_500.pdf")
+    # C.save_last_classes("data/clusters/CTS_"+str(n)+"randomminmax.json")
+
+    print("displaying...") 
+    with open(clusters_paths_2[5], "r") as read_file:
+        levels = json.load(read_file)
+    for level in levels:
+        print(len(level))
+    fig, axes = plt.subplots(2, 3)
+    fig.suptitle("clusters graphe valué par largeur sans tunnel")
+    for i in range(6):
+        x, y = 0, 3 
+        visualize_class(levels[x][i], G_nx, cuts, ax=axes[i//y, i%y], show=False)
+        axes[i//y, i%y].set_title("classe de taille " + str(len(levels[x][i])))
+    plt.savefig("presentations/images/clusters/CTS_widthnotunnel.pdf")
     # plt.show()
 main()
