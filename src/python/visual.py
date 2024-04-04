@@ -284,3 +284,38 @@ def visualize_class(
         node_color="#54545420",
         edge_alpha=None,
     )
+
+def visualize_cost_heatmap(G_nx: nx.Graph, gradient: list[str], savefig: str=None):
+    """
+    Takes as parameter the city graph processed according to the desired cost
+    (edges weight parameter should be set to the corresponding value)
+    Saves of shows the plot
+    """
+    weight = nx.get_edge_attributes(G_nx, "weight")
+    def colorize(u, v):
+        if weight[(u, v)]  <= 4:
+            return "#001AFF"
+        elif weight[(u, v)] <= 8:
+            return "#BC00A0"
+        elif  weight[(u, v)] <= 20:
+            return "#EA0066"
+        else:
+            return "#FF3300"
+    _, ax = plt.subplot()
+    edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
+    print("edges colorized, starting display...")
+    show = False if savefig else True
+    save = not show
+    return ox.plot_graph(
+        G_nx,
+        bgcolor="white",
+        node_size=0.5,
+        edge_color=edge_color,
+        edge_linewidth=1,
+        save=save,
+        filepath=savefig,
+        show=show,
+        ax=ax,
+        node_color="#54545420",
+    )
+    
