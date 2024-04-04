@@ -62,7 +62,7 @@ class CutsClassification:
                 l.append(int(best_distance**(-1)))
         return d_cut([1000 if e == -1 else e for e in l])
 
-    def cluster_louvain(self, distance_type: str, treshold: bool=False) -> list[Any]:
+    def cluster_louvain(self, distance_type: str, treshold: int=None) -> list[Any]:
         G = nx.Graph()
         weights = []
         for k, v in self._cuts.items():
@@ -70,7 +70,7 @@ class CutsClassification:
                 if not (k,  kprime) in G.edges and not (kprime, k) in G.edges and k != kprime:
                     w = self.distance(v, vprime, distance_type)
                     weights.append(w)
-                    if not treshold or w >= 10000:
+                    if not treshold or w >= treshold:
                         G.add_edge(k, kprime, weight=w)
         print(min(weights), max(weights), np.mean(weights), np.var(weights))
         self._levels = gen_to_list(nx.community.louvain_partitions(G))

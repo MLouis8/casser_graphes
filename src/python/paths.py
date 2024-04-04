@@ -1,13 +1,15 @@
 # a executer a partir du repo Casser_graphe (chemin relatifs)
 kp_paths = [
+    "./data/costs/old_width.json",
     "./data/costs/nocost.json",
     "./data/costs/width.json",
     "./data/costs/widthsq.json",
     "./data/costs/widthmaxspeed.json",
     "./data/costs/widthnobridge.json",
-    "./data/costs/widthnotunnel.json"
+    "./data/costs/widthnotunnel.json",
 ]
 costs_name = [
+    "old_width",
     "nocost",
     "width",
     "widthsq",
@@ -15,7 +17,10 @@ costs_name = [
     "widthnobridge",
     "widthnotunnel"
 ]
-graphml_path = "./data/Paris.graphml"
+graphml_path = [
+    "./data/Paris.graphml",
+    "./data/ParisPreprocessedW.graphml"
+]
 btw_path = "./data/betweenness_Paris.json"
 freq_paths = [
     "./data/freqs/frequency_1000_cuts_Paris_01.json",

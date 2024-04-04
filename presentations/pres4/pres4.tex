@@ -50,12 +50,6 @@
     \end{frame}
 
     \section{Résultats de classification}
-    \begin{frame}
-        \frametitle{Clustering avec intersection, level 0 (0.003)}
-        \centering
-        \includegraphics[scale=0.75]{clusters/clusters003_inter.pdf}
-    
-    \end{frame}
     
     \begin{frame}
         \frametitle{Clustering avec intersection, level 1 (0.003)}
@@ -79,8 +73,6 @@
         \includegraphics[scale=0.75]{clusters/cluster_t_50000.pdf}
     \end{frame}
 
-    \subsection{Outils gardés}
-    \subsection{Quelques résultats}
     \section{Coût}
     \begin{frame}
         \frametitle{Retour sur la width}
@@ -110,21 +102,29 @@
     \end{frame}
 
     \begin{frame}
-        \frametitle{Et si on infère la largeur par rapport à la largeur ?}
+        \frametitle{Le critère oneway}
+        \centering
+        \includegraphics[scale=0.4]{cost_def/oneway.pdf}
+        \includegraphics[scale=0.4]{cost_def/not_oneway.pdf}
+    
+    \end{frame}
+    \begin{frame}
+        \frametitle{Affinage de l'inférence}
         Le calcul de la width devient:
         \begin{itemize}
             \item 3\% width
             \item inféré à partir de lane si il y a ($\approx$50\%)
-            \item le reste inféré par rapport au highway
-            \begin{itemize}
-                \item on suit la distribution des widths renseignées
-            \end{itemize}
+            \item le reste des lanes inféré par rapport à la distribution des highway et des oneway
         \end{itemize}
+        On enlève pas le biais de la répartition des lanes renseigné mais on suit plus finement la distribution.
     \end{frame}
 
+    \section{Analyses de nouvelles coupes}
     \begin{frame}
-        \frametitle{Pertinence de l'inférence}
-        \centering
-        \includegraphics{cost_def/width_distr.pdf}
+        \frametitle{Comparaison ancienne et nouvelle width}
+    
+        % heatmaps et clusters de coupes
+    
     \end{frame}
+
 \end{document}

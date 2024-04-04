@@ -157,8 +157,8 @@ def infer_width(G: nx.graph) -> EdgeDict:
 def preprocessing(
     G: nx.Graph,
     cost_name: str,
-    minmax: tuple[int, int] = None,
-    distrib: dict[int, float] = None,
+    minmax: tuple[int, int],
+    distrib: dict[int, float],
 ):
     """
     Does all the required preprocessing in place
@@ -211,10 +211,10 @@ def preprocessing(
                 k: v if not tunnel_dict[k] else inf for k, v in edge_width.items()
             }
         case "random(min, max)":
-            edge_weight = {(k, rd.randint(minmax[0], minmax[1])) for k in G.edges}
+            edge_weight = { k: rd.randint(minmax[0], minmax[1]) for k in G.edges}
         case "random distribution":
             edge_weight = {
-                k: rd.choices(distrib.keys(), distrib.values()) for k in G.edges
+                k: rd.choices(list(distrib.keys()), weights=list(distrib.values()))[0] for k in G.edges
             }
         case _:
             edge_weight = {k: 1 for k in G.edges}
@@ -258,11 +258,24 @@ def init_city_graph(filepath):
 # init_city_graph("./data/Paris.graphml")
 
 
-def prepare_instance(read_filename: str, write_filename: str, val_name: str):
+def prepare_instance(read_filename: str, write_filename: str, val_name: str, minmax: tuple[int, int]=None, distr: dict[int, float]=None):
+    """"
+    Prepare a json KaHIP Graph instance according to the required cost function.
+
+    Cost options:
+        - "no val"
+        - "width"
+        - "squared width"
+        - "width with maxspeed"
+        - "width without bridge"
+        - "width without tunnel"
+        - "random(min, max)"
+        - "random distribution"
+    """
     print("Loading instance")
     G_nx = ox.load_graphml(read_filename)
     print(f"preprocessing the graph...")
-    preprocessing(G_nx, val_name)
+    preprocessing(G_nx, val_name, minmax, distr)
     print("Conversion into KaHIP format...")
     G_kp = Graph(nx=G_nx)
     G_kp.save_graph(write_filename)
