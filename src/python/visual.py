@@ -254,7 +254,7 @@ def visualize_class(
     edges_to_color = set()
     for cut_id, edges in cuts.items():
         if cut_id in cls:
-            edges_to_color.add(edges) #|= set(edges)
+            edges_to_color |= set(edges) #.add(edges)
     def colorize(u, v):
         if (u, v) in edges_to_color:
             return "r"
@@ -263,10 +263,10 @@ def visualize_class(
 
     def thicken(u, v):
         if (u, v) in edges_to_color:
-            return 1#4
+            return 4 #1
         else:
-            return 1#1
-
+            return 1
+        
     edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
     edge_width = [thicken(u, v) for u, v, _ in G_nx.edges]
     print("edges colorized, starting display...")

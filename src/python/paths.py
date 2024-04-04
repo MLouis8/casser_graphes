@@ -57,7 +57,7 @@ cut_paths = [
     "./data/cuts/widthnotunnel_1000_003.json",
     "./data/cuts/widthnotunnel_1000_005.json",
 ]
-class_paths = [
+clusters_paths_1 = [
     "./data/clusters/cluster_sum_003.json",
     "./data/clusters/cluster_inter_01.json",
     "./data/clusters/cluster_inter_003.json",
@@ -65,4 +65,17 @@ class_paths = [
     "./data/clusters/cluster_t_50000.json",
     "./data/clusters/cluster_t_30000.json",
     "./data/clusters/cluster_t_10000.json"
+]
+
+clusters_paths_2 = [
+    # no cost -> 0-4
+    "./data/clusters/CTS_30000nocost.json",
+    # width -> 5-6
+    "./data/clusters/CTS_500width.json",    
+    "./data/clusters/CTS_2500width.json",
+    # widthsq -> 7
+    "./data/clusters/CTS_2500widthsq.json",
+    # widthnobridge -> 8-9
+    "./data/clusters/CTS_500widthnobridge.json",
+    "./data/clusters/CTS_2500widthnobridge.json",
 ]
