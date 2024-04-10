@@ -70,8 +70,90 @@ def add_node_weights_and_relabel(G):
 # 59060 edges
 # 40547 nodes
 
-
 def infer_width(G: nx.graph) -> EdgeDict:
+    distr = {
+        "primary": {
+            True: [872, 2757, 934, 382, 95, 47, 1, 4, 0, 22],
+            False: [0, 926, 296, 1894, 220, 280, 58, 64, 2, 0],
+        },
+        "residential": {
+            True: [2227, 405, 19, 4, 0, 0, 0, 0, 0, 0],
+            False: [220, 1338, 74, 30, 0, 0, 0, 0, 0, 0],
+        },
+        "living_street": {
+            True: [152, 4, 2, 0, 0, 0, 0, 0, 0, 0],
+            False: [20, 24, 2, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "motorway": {
+            True: [6, 135, 64, 80, 8, 0, 0, 0, 0, 0],
+            False: [6, 135, 64, 80, 8, 0, 0, 0, 0, 0],
+        },
+        "tertiary": {
+            True: [768, 794, 140, 15, 3, 1, 0, 0, 0, 0],
+            False: [14, 3200, 382, 168, 6, 12, 0, 0, 0, 0],
+        },
+        "trunk_link": {
+            True: [326, 481, 48, 0, 0, 0, 0, 0, 0, 0],
+            False: [326, 481, 48, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "motorway_link": {
+            True: [63, 355, 15, 2, 0, 0, 0, 0, 0, 0],
+            False: [63, 355, 15, 2, 0, 0, 0, 0, 0, 0],
+        },
+        "secondary": {
+            True: [629, 1432, 452, 128, 29, 26, 0, 2, 0, 0],
+            False: [32, 2706, 880, 606, 40, 46, 0, 0, 0, 0],
+        },
+        "primary_link": {
+            True: [162, 125, 22, 4, 2, 0, 0, 0, 0, 0],
+            False: [0, 4, 4, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "tertiary_link": {
+            True: [17, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            False: [2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "unclassified": {
+            True: [296, 72, 19, 5, 4, 0, 3, 0, 0, 0],
+            False: [12, 288, 28, 16, 0, 0, 0, 0, 0, 0],
+        },
+        "secondary_link": {
+            True: [34, 39, 7, 1, 0, 0, 0, 0, 0, 0],
+            False: [34, 39, 7, 1, 0, 0, 0, 0, 0, 0],
+        },
+        "trunk": {
+            True: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
+            False: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
+        },
+        "crossing": {
+            True: None, False: None,
+        },
+        "emergency_access_point": {
+            True: None, False: None,
+        },
+        "disused": {
+            True: None, False: None,
+        },
+    }
+    widths, lanes = {}, [1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
+    existing_widths = nx.get_edge_attributes(G, "width")
+    existing_lanes = nx.get_edge_attributes(G, "lanes")
+    highways = nx.get_edge_attributes(G, "highway")
+    oneways = nx.get_edge_attributes(G, "oneway")
+    for u, v, w in G.edges:
+        try:
+            widths[(u, v, w)] = int(existing_widths[(u, v, w)])
+        except:
+            try:
+                widths[(u, v, w)] = (
+                    int(existing_lanes[(u, v, w)]) * 4
+                )  # 4 étant la largeur moyenne d'une rue parisienne
+            except:
+                widths[(u, v, w)] = rd.choices(
+                    lanes, weights=distr[highways[(u, v, w)]][oneways[(u, v, w)]]
+                )[0] * 4
+    return widths
+
+def infer_lanes(G: nx.graph) -> EdgeDict:
     widths = {}
     existing_widths = nx.get_edge_attributes(G, "width")
     existing_lanes = nx.get_edge_attributes(G, "lanes")
@@ -91,7 +173,7 @@ def infer_width(G: nx.graph) -> EdgeDict:
                     widths[(u, v, w)] = 3
             else:
                 try:                    
-                    widths[(u, v, w)] = existing_lanes[(u, v, w)]
+                    widths[(u, v, w)] = int(existing_lanes[(u, v, w)])
                 except:
                     widths[(u, v, w)] = 2
     return widths
@@ -115,6 +197,10 @@ def preprocessing(
             - width without bridge
             - random(min, max)
             - random distribution
+            - lanes
+            - squared lanes"
+            - lanes with maxspeed
+            - lanes wihtout bridge 
             - _ will be considered as weight 1 everywhere
         Optional: minmax a tuple of min and max values for cost random(min, max)
         Optional: distribution a distribution of frequencies to respect for cost random distribution
@@ -131,6 +217,13 @@ def preprocessing(
         "width with maxspeed",
     ]:
         edge_width = infer_width(G)
+    elif cost_name in [
+        "lanes",
+        "squared lanes",
+        "lanes with maxspeed",
+        "lanes without bridge"
+    ]:
+        edge_lanes = infer_lanes(G)
     match cost_name:
         case "width":
             edge_weight = edge_width
@@ -157,6 +250,21 @@ def preprocessing(
         case "random distribution":
             edge_weight = {
                 k: rd.choices(list(distrib.keys()), weights=list(distrib.values()))[0] for k in G.edges
+            }
+        case "lanes":
+            edge_weight = edge_lanes
+        case "squared lanes":
+            edge_weight = {k: v**2 for k, v in edge_lanes.items()}
+        case "lanes with maxspeed":
+            maxspeed_dict = nx.get_edge_attributes(G, "maxspeed", default=50)
+            edge_weight = {
+                k: v if maxspeed_dict[k] == 'walk' or int(maxspeed_dict[k]) <= 50 else inf
+                for k, v in edge_lanes.items()
+            }
+        case "lanes without bridge":
+            bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
+            edge_weight = {
+                k: v if not bridge_dict[k] else inf for k, v in edge_lanes.items()
             }
         case _:
             edge_weight = {k: 1 for k in G.edges}
@@ -214,6 +322,10 @@ def prepare_instance(read_filename: str, write_filename: str, val_name: str, min
         - "width without tunnel"
         - "random(min, max)"
         - "random distribution"
+        - "lanes"
+        - "squared lanes"
+        - "lanes with maxspeed"
+        - "lanes wihtout bridge" 
     """
     print("Loading instance")
     G_nx = ox.load_graphml(read_filename)

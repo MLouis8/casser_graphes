@@ -1,5 +1,6 @@
 from scipy.stats import pearsonr
 import networkx as nx
+import numpy as np
 from Graph import Graph
 
 from typing import Any
@@ -64,7 +65,7 @@ def get_n_biggest_freq(freq: EdgeDict, n: int) -> EdgeDict:
     return chosen
 
 
-def to_Cut(xadj: list[int], adjncy: list[int], blocks: list[int]):
+def to_Cut(xadj: list[int], adjncy: list[int], blocks: list[int]) -> list[tuple[int, int]]:
     edges = []
     for i in range(1, len(xadj)):
         for j in range(xadj[i - 1], xadj[i]):
@@ -97,5 +98,12 @@ def classify_by_connected_components(cc: dict[str, list[int]], liberty: int=3) -
             classes.append([cut_name])
     return classes
 
-def class_mean_cost(cls: list[str], cuts: dict[Edge, Cuts]):
-    pass
+def class_mean_cost(cls: list[str], cuts: Cuts, G: nx.Graph):
+    weights = nx.get_edge_attributes(G, "weight")
+    cost = []
+    for cut_name in cls:
+        for name, edges in cuts.items():
+            if cut_name == name:
+                for edge in edges:
+                    cost.append(weights[(edge[0], edge[1], 0)])
+    return np.mean(np.array(cost))
