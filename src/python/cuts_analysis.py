@@ -3,7 +3,7 @@ import networkx as nx
 from Graph import Graph
 
 from typing import Any
-from typ import KCuts, EdgeDict, EdgeDictStr, Classes
+from typ import KCuts, EdgeDict, EdgeDictStr, Classes, Cuts, Edge
 
 def determine_edge_frequency(G: Graph, C: dict[str, KCuts]) -> EdgeDict:
     """
@@ -96,3 +96,6 @@ def classify_by_connected_components(cc: dict[str, list[int]], liberty: int=3) -
         else:
             classes.append([cut_name])
     return classes
+
+def class_mean_cost(cls: list[str], cuts: dict[Edge, Cuts]):
+    pass

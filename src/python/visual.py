@@ -285,6 +285,39 @@ def visualize_class(
         edge_alpha=None,
     )
 
+def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict=None, filepath: str=None, ax=None):
+    def colorize(u, v):
+        if (u, v) in edgeList:
+            return "r"
+        else:
+            return "#54545430"
+
+    def thicken(u, v):
+        if (u, v) in edgeList:
+            return thickness[(u, v)]
+        else:
+            return 1
+        
+    edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
+    if bool(thickness):
+        edge_width = [thicken(u, v) for u, v, _ in G_nx.edges]
+    else:
+        edge_width = 1
+    print("edges colorized, starting display...")
+    return ox.plot_graph(
+        G_nx,
+        bgcolor="white",
+        node_size=0.5,
+        edge_color=edge_color,
+        edge_linewidth=edge_width,
+        save=bool(filepath),
+        filepath=filepath,
+        show=not bool(filepath),
+        ax=ax,
+        node_color="#54545420",
+        edge_alpha=None,
+    )
+
 def visualize_cost_heatmap(G_nx: nx.Graph, gradient: list[str], savefig: str=None):
     """
     Takes as parameter the city graph processed according to the desired cost

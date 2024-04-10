@@ -65,14 +65,14 @@ class CutsClassification:
     def cluster_louvain(self, distance_type: str, treshold: int=None) -> list[Any]:
         G = nx.Graph()
         weights = []
-        for k, v in self._cuts.items():
-            for kprime, vprime in self._cuts.items():
-                if not (k,  kprime) in G.edges and not (kprime, k) in G.edges and k != kprime:
-                    w = self.distance(v, vprime, distance_type)
+        for e1, e2 in self._cuts.items():
+            for e3, e4 in self._cuts.items():
+                if not (e3, e1) in G.edges and e1 != e3:
+                    w = self.distance(e2, e4, distance_type)
                     weights.append(w)
                     if not treshold or w >= treshold:
-                        G.add_edge(k, kprime, weight=w)
-        print(min(weights), max(weights), np.mean(weights), np.var(weights))
+                        G.add_edge(e1, e3, weight=w)
+        # print(min(weights), max(weights), np.mean(weights), np.var(weights))
         self._levels = gen_to_list(nx.community.louvain_partitions(G))
 
     def get_class_level(self):

@@ -1,0 +1,66 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+\usepackage{pdfpages}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{multicol}
+
+\graphicspath{ {../images/} }
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Nouvelle fonction de coût, coupes contraintes et robustesse, composantes connexes en fonction du déséquilibre}
+\subtitle{Stage Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \AtBeginSection[]{
+    \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+        \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+    \end{frame}
+    }
+    % frame 1
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    % frame 2
+    \begin{frame}
+        \frametitle{Outline}
+        \tableofcontents
+    \end{frame}
+
+    \section{Nouvelle fonction de coût}
+    \begin{frame}
+        \frametitle{Retour sur le coût: calcul du nombre de voies}
+        \begin{itemize}
+            \item Si on a le nombre de voies
+            $$weight = \#lanes$$
+            \item Sinon, si on a la width
+            $$weight = width \slash 4$$
+            \item Sinon:
+            $$weight = 2$$
+        \end{itemize}
+        Améliorations dans le prétraitement: fusion des voies == addition du nombre de voies
+    \end{frame}
+
+\end{document}

@@ -2,10 +2,10 @@ import networkx as nx
 import osmnx as ox
 import random as rd
 import json
+import math
 
 from Graph import Graph
 from typ import EdgeDict
-
 
 def replace_parallel_edges(G):
     """
@@ -72,86 +72,28 @@ def add_node_weights_and_relabel(G):
 
 
 def infer_width(G: nx.graph) -> EdgeDict:
-    distr = {
-        "primary": {
-            True: [872, 2757, 934, 382, 95, 47, 1, 4, 0, 22],
-            False: [0, 926, 296, 1894, 220, 280, 58, 64, 2, 0],
-        },
-        "residential": {
-            True: [2227, 405, 19, 4, 0, 0, 0, 0, 0, 0],
-            False: [220, 1338, 74, 30, 0, 0, 0, 0, 0, 0],
-        },
-        "living_street": {
-            True: [152, 4, 2, 0, 0, 0, 0, 0, 0, 0],
-            False: [20, 24, 2, 0, 0, 0, 0, 0, 0, 0],
-        },
-        "motorway": {
-            True: [6, 135, 64, 80, 8, 0, 0, 0, 0, 0],
-            False: [6, 135, 64, 80, 8, 0, 0, 0, 0, 0],
-        },
-        "tertiary": {
-            True: [768, 794, 140, 15, 3, 1, 0, 0, 0, 0],
-            False: [14, 3200, 382, 168, 6, 12, 0, 0, 0, 0],
-        },
-        "trunk_link": {
-            True: [326, 481, 48, 0, 0, 0, 0, 0, 0, 0],
-            False: [326, 481, 48, 0, 0, 0, 0, 0, 0, 0],
-        },
-        "motorway_link": {
-            True: [63, 355, 15, 2, 0, 0, 0, 0, 0, 0],
-            False: [63, 355, 15, 2, 0, 0, 0, 0, 0, 0],
-        },
-        "secondary": {
-            True: [629, 1432, 452, 128, 29, 26, 0, 2, 0, 0],
-            False: [32, 2706, 880, 606, 40, 46, 0, 0, 0, 0],
-        },
-        "primary_link": {
-            True: [162, 125, 22, 4, 2, 0, 0, 0, 0, 0],
-            False: [0, 4, 4, 0, 0, 0, 0, 0, 0, 0],
-        },
-        "tertiary_link": {
-            True: [17, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            False: [2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        },
-        "unclassified": {
-            True: [296, 72, 19, 5, 4, 0, 3, 0, 0, 0],
-            False: [12, 288, 28, 16, 0, 0, 0, 0, 0, 0],
-        },
-        "secondary_link": {
-            True: [34, 39, 7, 1, 0, 0, 0, 0, 0, 0],
-            False: [34, 39, 7, 1, 0, 0, 0, 0, 0, 0],
-        },
-        "trunk": {
-            True: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
-            False: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
-        },
-        "crossing": {
-            True: None, False: None,
-        },
-        "emergency_access_point": {
-            True: None, False: None,
-        },
-        "disused": {
-            True: None, False: None,
-        },
-    }
-    widths, lanes = {}, [1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
+    widths = {}
     existing_widths = nx.get_edge_attributes(G, "width")
     existing_lanes = nx.get_edge_attributes(G, "lanes")
     highways = nx.get_edge_attributes(G, "highway")
-    oneways = nx.get_edge_attributes(G, "oneway")
     for u, v, w in G.edges:
-        try:
-            widths[(u, v, w)] = int(existing_widths[(u, v, w)])
+        try: # 4 étant la largeur moyenne d'une rue parisienne
+            widths[(u, v, w)] = math.ceil(existing_widths[(u, v, w)] / 4)
         except:
-            try:
-                widths[(u, v, w)] = (
-                    int(existing_lanes[(u, v, w)]) * 4
-                )  # 4 étant la largeur moyenne d'une rue parisienne
-            except:
-                widths[(u, v, w)] = rd.choices(
-                    lanes, weights=distr[highways[(u, v, w)]][oneways[(u, v, w)]]
-                )[0] * 4
+            if highways[(u, v, w)] == "primary" or highways[(u, v, w)] == "secondary":
+                try:                    
+                    val = int(existing_lanes[(u, v, w)])
+                    if val < 3:
+                        widths[(u, v, w)] = 3
+                    else:
+                        widths[(u, v, w)] = val
+                except:
+                    widths[(u, v, w)] = 3
+            else:
+                try:                    
+                    widths[(u, v, w)] = existing_lanes[(u, v, w)]
+                except:
+                    widths[(u, v, w)] = 2
     return widths
 
 def preprocessing(
@@ -226,6 +168,7 @@ def preprocessing(
 
 
 def init_city_graph(filepath):
+    # create, project, and consolidate a graph
     G = ox.graph_from_place(
         "Paris, Paris, France",
         network_type="drive",
