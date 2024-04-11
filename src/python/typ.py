@@ -2,6 +2,7 @@
 Edge = tuple[int, int]
 KCut = tuple[int, list[int]]  # cuts under KaHIP format
 EdgeDict = dict[Edge, int]  # common edge dict
+EdgeDict3 = dict[tuple[int, int, int], int]  # common edge dict
 EdgeDictStr = dict[str, int]  # edge dict after json import
 Cuts = dict[
     str, list[Edge]

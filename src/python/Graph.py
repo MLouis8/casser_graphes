@@ -266,7 +266,7 @@ class Graph:
         G_nx.remove_edges_from(cut)
         return nx.connected_components(G_nx)
 
-    def rmv_small_cc_from_cut(self, treshold: int, G_nx: nx.graph=None) -> tuple[int, Cut]:
+    def rmv_small_cc_from_cut(self, treshold: int, G_nx: nx.graph=None) -> None:
         """"
         Removes small connected components from the cut
         (the cost of cutting these small components)

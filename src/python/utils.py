@@ -5,7 +5,7 @@ import json
 import math
 
 from Graph import Graph
-from typ import EdgeDict
+from typ import EdgeDict3, EdgeDict
 
 def replace_parallel_edges(G):
     """
@@ -70,7 +70,7 @@ def add_node_weights_and_relabel(G):
 # 59060 edges
 # 40547 nodes
 
-def infer_width(G: nx.graph) -> EdgeDict:
+def infer_width(G: nx.graph) -> EdgeDict3:
     distr = {
         "primary": {
             True: [872, 2757, 934, 382, 95, 47, 1, 4, 0, 22],
@@ -144,16 +144,15 @@ def infer_width(G: nx.graph) -> EdgeDict:
             widths[(u, v, w)] = int(existing_widths[(u, v, w)])
         except:
             try:
-                widths[(u, v, w)] = (
-                    int(existing_lanes[(u, v, w)]) * 4
-                )  # 4 étant la largeur moyenne d'une rue parisienne
+                widths[(u, v, w)] = int(existing_lanes[(u, v, w)]) * 4
+                # 4 étant la largeur moyenne d'une rue parisienne
             except:
                 widths[(u, v, w)] = rd.choices(
                     lanes, weights=distr[highways[(u, v, w)]][oneways[(u, v, w)]]
                 )[0] * 4
     return widths
 
-def infer_lanes(G: nx.graph) -> EdgeDict:
+def infer_lanes(G: nx.graph) -> EdgeDict3:
     widths = {}
     existing_widths = nx.get_edge_attributes(G, "width")
     existing_lanes = nx.get_edge_attributes(G, "lanes")
@@ -181,8 +180,8 @@ def infer_lanes(G: nx.graph) -> EdgeDict:
 def preprocessing(
     G: nx.Graph,
     cost_name: str,
-    minmax: tuple[int, int],
-    distrib: dict[int, float],
+    minmax: tuple[int, int] | None,
+    distrib: dict[int, float] | None,
 ):
     """
     Does all the required preprocessing in place
@@ -246,8 +245,12 @@ def preprocessing(
                 k: v if not tunnel_dict[k] else inf for k, v in edge_width.items()
             }
         case "random(min, max)":
+            if type(minmax) is None:
+                raise TypeError("argument minmax should be given if minmax cost is selected")
             edge_weight = { k: rd.randint(minmax[0], minmax[1]) for k in G.edges}
         case "random distribution":
+            if type(distrib) is None:
+                raise TypeError("argument distrib should be given if distrib cost is selected")
             edge_weight = {
                 k: rd.choices(list(distrib.keys()), weights=list(distrib.values()))[0] for k in G.edges
             }
@@ -309,7 +312,7 @@ def init_city_graph(filepath):
 # init_city_graph("./data/Paris.graphml")
 
 
-def prepare_instance(read_filename: str, write_filename: str, val_name: str, minmax: tuple[int, int]=None, distr: dict[int, float]=None):
+def prepare_instance(read_filename: str, write_filename: str, val_name: str, minmax: tuple[int, int] | None=None, distr: dict[int, float] | None=None):
     """"
     Prepare a json KaHIP Graph instance according to the required cost function.
 

@@ -1,4 +1,4 @@
-from typ import Cuts, Cut, Classes
+from typ import Cuts, Cut, Classes, Edge
 from Graph import Graph
 from typing import Any, Optional
 
@@ -42,7 +42,8 @@ class CutsClassification:
                 return int((inter / (len(c1) + len(c2)))*100)
             case "var": d_cut = lambda l: int(np.var(l))
             case _: raise ValueError("wrong distance parameter")
-        l, seen = [], []
+        seen: list[Edge] = []
+        l = []
         for edge1 in c1:
             best_distance = inf
             x1 = self._nodes[edge1[0]]["x"] + self._nodes[edge1[1]]["x"] / 2
@@ -54,6 +55,7 @@ class CutsClassification:
                     d_edge = sqrt((x1-x2)**2 + (y1-y2)**2)
                     if d_edge < best_distance:
                         best_distance = d_edge
+                    seen.append(edge2)
             if best_distance == inf:
                 l.append(0)
             elif best_distance == 0:
@@ -62,7 +64,7 @@ class CutsClassification:
                 l.append(int(best_distance**(-1)))
         return d_cut([1000 if e == -1 else e for e in l])
 
-    def cluster_louvain(self, distance_type: str, treshold: int=None) -> list[Any]:
+    def cluster_louvain(self, distance_type: str, treshold: int | None=None) -> None:
         G = nx.Graph()
         weights = []
         for e1, e2 in self._cuts.items():
@@ -88,10 +90,10 @@ class CutsClassification:
         return self._levels
 
 class HomemadeClassification:
-    def __init__(self) -> None:
-        pass 
+    def __init__(self, cuts: Cuts) -> None:
+        self._cuts = cuts 
 
-    def intersection_criterion(c1: Cut, c2: Cut, eps: float) -> bool:
+    def intersection_criterion(self, c1: Cut, c2: Cut, eps: float) -> bool:
         """Takes as parameters Cut objects and return whether their intersection is big enough according to epsilon"""
         obj, cpt = len(c2) * eps, 0
         for ele in c2:
@@ -102,7 +104,7 @@ class HomemadeClassification:
         return cpt > obj
 
 
-    def neighbor_criterion(c1: Cut, c2: Cut, G_kp: Graph, k: int) -> bool:
+    def neighbor_criterion(self, c1: Cut, c2: Cut, G_kp: Graph, k: int) -> bool:
         """
         Takes as paramerters Cut objects and return wheter their local closeness is big enough
 
@@ -120,7 +122,7 @@ class HomemadeClassification:
 
 
     def mixed_criterion(
-        c1: Cut, c2: Cut, G_kp: Graph, p: float, k: int
+        self, c1: Cut, c2: Cut, G_kp: Graph, p: float, k: int
     ) -> bool:
         obj, cpt = len(c2) * p, 0
         for edge2 in c2:
@@ -133,7 +135,7 @@ class HomemadeClassification:
         return cpt > obj
 
     def geographical_criterion(
-        c1: Cut, c2: Cut, G_kp: Graph, G_nx: Any, t: float
+        self, c1: Cut, c2: Cut, G_kp: Graph, G_nx: Any, t: float
     ) -> bool:
         """
         Looks at the (lon, lat) values to determine wheter the edges are close enough
@@ -159,7 +161,7 @@ class HomemadeClassification:
             if not flag:
                 return False
         return True
-    def proximity(c1: Cut, c2: Cut) -> float:
+    def proximity(self, c1: Cut, c2: Cut) -> float:
         """proximity criterion based on intersection"""
         inter = 0
         for ele in c2:

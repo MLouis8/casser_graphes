@@ -3,10 +3,9 @@ import networkx as nx
 import numpy as np
 from Graph import Graph
 
-from typing import Any
-from typ import KCuts, EdgeDict, EdgeDictStr, Classes, Cuts, Cut
+from typ import KCut, EdgeDict, EdgeDictStr, Classes, Cuts
 
-def determine_edge_frequency(G: Graph, C: dict[str, KCuts]) -> EdgeDict:
+def determine_edge_frequency(G: Graph, C: dict[str, KCut]) -> EdgeDict:
     """
     Function for determining edge frequency in cuts
 
@@ -18,12 +17,12 @@ def determine_edge_frequency(G: Graph, C: dict[str, KCuts]) -> EdgeDict:
 
     for _, val in C.items():
         G.set_last_results(*val)
-        p_cut = G.process_cut(weight=True)
+        p_cut = G.process_cut()
         for edge in p_cut:
-            if edge[:2] in frequencies:
-                frequencies[edge[:2]] += 1
+            if edge in frequencies:
+                frequencies[edge] += 1
             else:
-                frequencies[edge[:2]] = 1
+                frequencies[edge] = 1
 
     # removing doublons
     freq = frequencies.copy()

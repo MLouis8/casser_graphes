@@ -7,8 +7,8 @@ import osmnx as ox
 import pandas as pd
 import networkx as nx
 
-from cuts_analysis import get_n_biggest_freq, to_Cut
-from typ import Cuts, Edge, EdgeDict, KCuts
+from cuts_analysis import get_n_biggest_freq
+from typ import Cuts, Edge, EdgeDict, KCut
 
 def imbalances_cut(G_kp):
     imbalances = np.linspace(0, 0.1, 30)
@@ -124,7 +124,7 @@ def basic_stats_edges(freq_dict: EdgeDict, g_size=46761, nb_cuts=1000):
     )
 
 
-def basic_stats_cuts(cuts: dict[str, KCuts], nb_cuts=1000):
+def basic_stats_cuts(cuts: dict[str, KCut], nb_cuts=1000):
     nb_edges_cut = [edgecut for edgecut, _ in cuts.values()]
     best_cut = min(nb_edges_cut)
     worst_cut = max(nb_edges_cut)
@@ -285,7 +285,7 @@ def visualize_class(
         edge_alpha=None,
     )
 
-def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict=None, filepath: str=None, ax=None):
+def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict | None=None, filepath: str | None=None, ax=None):
     def colorize(u, v):
         if (u, v) in edgeList:
             return "r"
@@ -318,7 +318,7 @@ def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict
         edge_alpha=None,
     )
 
-def visualize_cost_heatmap(G_nx: nx.Graph, gradient: list[str], savefig: str=None):
+def visualize_cost_heatmap(G_nx: nx.Graph, gradient: list[str], savefig: str | None=None):
     """
     Takes as parameter the city graph processed according to the desired cost
     (edges weight parameter should be set to the corresponding value)
