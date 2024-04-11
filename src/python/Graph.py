@@ -1,10 +1,11 @@
 import networkx as nx
 import osmnx as ox
-
+import numpy as np
 # import kahip # to comment if ARM, uncomment to cut
 import json
 from typing import Optional, Any
-from typ import Cut
+from typ import EdgeDict
+from math import log, exp
 
 
 class Graph:
@@ -25,10 +26,18 @@ class Graph:
         self._edgecut = 0  # 2
         self._blocks: list[int] = []  # [0, 0, 1, 1, 0]
 
-        self._nx: bool | nx.Graph = False
+        self._nx: None | nx.Graph = None
+        self._bc: None | EdgeDict = None
+        self._cf_bc: None | EdgeDict = None
+        self._avg_dist: None | float = None
+        self._adj_spectrum: None | np.ndarray = None
+        self._spectral_gap: None | float = None
+        self._spectral_rad: None | float = None
+        self._nat_co: None | float = None
 
         if nx:
-            self.set_from_nx(nx)
+            if not json:
+                self.set_from_nx(nx)
             self._nx = nx
         if json:
             self.import_from_json(json)
@@ -254,30 +263,26 @@ class Graph:
         self._adjacency_weight = data["adjcwgt"]
         self._adjacency = data["adjncy"]
 
-    def compute_edge_betweenness(self):
-        """Computes edge betweenness centrality and returns the dict assigning to each edge its betweenness"""
+    def get_connected_components(self) -> Any:
+        """Get connected components from KaHIP graph using NetworkX"""
         if not self._nx:
             self._nx = self.to_nx()
-        return nx.edge_betweenness_centrality(self._nx)
-
-    def get_connected_components(self, G_nx: nx.graph) -> Any:
-        """Get connected components from KaHIP graph using NetworkX"""
         cut = self.process_cut()
-        G_nx.remove_edges_from(cut)
-        return nx.connected_components(G_nx)
+        self._nx.remove_edges_from(cut)
+        return nx.connected_components(self._nx)
 
-    def rmv_small_cc_from_cut(self, treshold: int, G_nx: nx.graph=None) -> None:
+    def rmv_small_cc_from_cut(self, treshold: int) -> None:
         """"
         Removes small connected components from the cut
         (the cost of cutting these small components)
         (in place)
         Set the processed cut as last_result
         """
-        if not G_nx:
-            G_nx = self.to_nx()
+        if not self._nx:
+            self._nx = self.to_nx()
         size, blocks = self.get_last_results()
-        weights = nx.get_edge_attributes(G_nx, "weight")
-        for component in self.get_connected_components(G_nx):
+        weights = nx.get_edge_attributes(self._nx, "weight")
+        for component in self.get_connected_components(self._nx):
             if len(component) < treshold:
                 cut = self.process_cut()
                 for node in component:
@@ -288,3 +293,90 @@ class Graph:
                     # et on change de bloc les elements du component
                     blocks[node] = 1 - blocks[node]
         self.set_last_results(size, blocks)
+
+    def cpt_edge_bc(self) -> None:
+        if not self._nx:
+            self._nx = self.to_nx()
+        self._bc = nx.edge_betweenness_centrality(self._nx)
+
+    @property
+    def get_edge_bc(self) -> EdgeDict:
+        if not self._bc:
+            self.cpt_edge_bc()
+        return self._bc
+    
+    @property
+    def get_avg_edge_bc(self) -> float:
+        return np.mean(np.array(self.get_edge_bc.values()))
+    
+    def cpt_edge_cf_bc(self) -> None:
+        if not self._nx:
+            self._nx = self.to_nx()
+        self._cf_bc = nx.edge_current_flow_betweenness_centrality(self._nx)
+
+    @property
+    def get_edge_cf_bc(self) -> EdgeDict:
+        if not self._cf_bc:
+            self.cpt_edge_cf_bc()
+        return self._cf_bc
+    
+    @property
+    def get_avg_edge_cf_bc(self) -> float:
+        return np.mean(np.array(self.get_edge_cf_bc.values()))
+    
+    def cpt_avg_dist(self) -> None:
+        if not self._nx:
+            self._nx = self.to_nx()
+        self._avg_dist = nx.average_shortest_path_length(self._nx)
+
+    @property
+    def get_avg_dist(self) -> EdgeDict:
+        if not self._avg_dist:
+            self.cpt_edge_avg_dist()
+        return self._avg_dist
+    
+    def cpt_spectral_radius(self) -> None:
+        if not self._adj_spectrum:
+            if not self._nx:
+                self._nx = self.to_nx()
+            self._adj_spectrum = nx.adjacency_spectrum(self._nx)
+        self._spectral_rad = np.max(self._adj_spectrum)
+
+    @property
+    def get_spectral_radius(self) -> EdgeDict:
+        if not self._spectral_rad:
+            self.cpt_spectral_radius()
+        return self._spectral_rad
+    
+    def cpt_spectral_gap(self) -> None:
+        if not self._adj_spectrum:
+            if not self._nx:
+                self._nx = self.to_nx()
+            self._adj_spectrum = nx.adjacency_spectrum(self._nx)
+        max1, max2 = 0, 0
+        for eigen in self._adj_spectrum:
+            if eigen > max2:
+                if eigen > max1:
+                    max2 = max1
+                    max1 = eigen
+                else:
+                    max2 = eigen
+        self._spectral_gap = max1 - max2
+
+
+    @property
+    def get_spectral_gap(self) -> EdgeDict:
+        if not self._spectral_gap:
+            self.cpt_spectral_gap()
+        return self._spectral_gap
+    
+    def cpt_natural_co(self) -> None:
+        if not self._nx:
+            self._nx = self.to_nx()
+        self._nat_co =  log(nx.subgraph_centrality(self._nx)/self._sizeV)
+
+    @property
+    def get_natural_co(self) -> EdgeDict:
+        if not self._nat_co:
+            self.cpt_natural_co()
+        return self._nat_co

@@ -90,6 +90,7 @@ cut_paths_2 = [
     "./data/cuts/nocost_1000_002.json",
     "./data/cuts/nocost_1000_003.json",
     "./data/cuts/nocost_1000_004.json",
+    "./data/cuts/nocost_1000_005.json",
     "./data/cuts/nocost_1000_008.json",
     "./data/cuts/nocost_1000_01.json",
     "./data/cuts/nocost_1000_012.json",
