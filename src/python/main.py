@@ -1,5 +1,5 @@
 from Graph import Graph
-from cuts_analysis import to_Cut, determine_edge_frequency, class_mean_cost
+from cuts_analysis import to_Cut, determine_edge_frequency, class_mean_cost, get_connected_components
 from utils import thousand_cuts, prepare_instance, preprocessing
 from CutsClassification import CutsClassification
 from visual import visualize_class, basic_stats_cuts, basic_stats_edges, display_best_n_freq, visualize_edgeList
@@ -49,13 +49,18 @@ def clustering(cuts, G_nx, filepath):
     # fig.savefig("./presentations/images/clusters/cluster_t_10000sub.pdf")
 
 def main():
-    imbalances = [0.03, 0.05, 0.1]
-    paths = kp_paths[9:]
-    c_names = ["lanes", "squared lanes", "lanes with maxspeed", "lanes without maxspeed"]
-    for i, p in enumerate(paths):
-        thousand_cuts(p, c_names[i], imbalances)
-    thousand_cuts()
-    
+    for i, kp_path in enumerate(kp_paths[:6]):
+        print(f"Components of {kp_path}")
+        for cut_path in cut_paths_1[slice(i*3, (i+1)*3)]:
+            print(f"opening cuts: {cut_path}")
+            with open(cut_path, "r") as cut_file:
+                kcuts = json.load(cut_file)
+            print("importing graph")
+            G_kp = Graph(json=kp_path)
+            for _, v in list(kcuts.items())[:20]:
+                G_kp.set_last_results(v[0], v[1])
+                c = get_connected_components(G_kp)
+                print(len([len(c) for c in sorted(c, key=len, reverse=True)]))
 main()
 
 # with open(cut_paths[8], "r") as read_file:

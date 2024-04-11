@@ -1,6 +1,6 @@
 ## Type Aliases ##
 Edge = tuple[int, int]
-KCuts = tuple[int, list[int]]  # cuts under KaHIP format
+KCut = tuple[int, list[int]]  # cuts under KaHIP format
 EdgeDict = dict[Edge, int]  # common edge dict
 EdgeDictStr = dict[str, int]  # edge dict after json import
 Cuts = dict[

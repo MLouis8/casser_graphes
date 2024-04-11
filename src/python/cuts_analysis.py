@@ -4,7 +4,7 @@ import numpy as np
 from Graph import Graph
 
 from typing import Any
-from typ import KCuts, EdgeDict, EdgeDictStr, Classes, Cuts, Edge
+from typ import KCuts, EdgeDict, EdgeDictStr, Classes, Cuts, Cut
 
 def determine_edge_frequency(G: Graph, C: dict[str, KCuts]) -> EdgeDict:
     """
@@ -63,26 +63,6 @@ def get_n_biggest_freq(freq: EdgeDict, n: int) -> EdgeDict:
         if len(chosen.keys()) > n:
             chosen.pop(min(chosen, key=chosen.get))
     return chosen
-
-
-def to_Cut(xadj: list[int], adjncy: list[int], blocks: list[int]) -> list[tuple[int, int]]:
-    edges = []
-    for i in range(1, len(xadj)):
-        for j in range(xadj[i - 1], xadj[i]):
-            edges.append((i - 1, adjncy[j]))
-    cut_edges = []
-    for edge in edges:
-        if blocks[edge[0]] != blocks[edge[1]]:
-            if not edge in cut_edges and not (edge[1], edge[0]) in cut_edges:
-                cut_edges.append(edge)
-    return cut_edges
-
-def get_connected_components(G_kp: Graph) -> Any:
-    """Get connected components from KaHIP graph using NetworkX"""
-    G_nx = G_kp.to_nx()
-    cut = G_kp.process_cut()
-    G_nx.remove_edges_from(cut)
-    return nx.connected_components(G_nx)
 
 def classify_by_connected_components(cc: dict[str, list[int]], liberty: int=3) -> Classes:
     classes: Classes = []

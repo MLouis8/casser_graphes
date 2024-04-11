@@ -1,9 +1,10 @@
 import networkx as nx
 import osmnx as ox
 
-import kahip # to comment if ARM, uncomment to cut
+# import kahip # to comment if ARM, uncomment to cut
 import json
-from typing import Optional
+from typing import Optional, Any
+from typ import Cut
 
 
 class Graph:
@@ -166,32 +167,29 @@ class Graph:
         Configurations with a social in their name should be used for social
         networks and web graphs.
         """
-        self._edgecut, self._blocks = kahip.kaffpa(
-            self["vwgt"],
-            self["xadj"],
-            self["adjcwgt"],
-            self["adjncy"],
-            nblocks,
-            imbalance,
-            suppress_output,
-            seed,
-            mode,
-        )
+        pass
+        # self._edgecut, self._blocks = kahip.kaffpa(
+        #     self["vwgt"],
+        #     self["xadj"],
+        #     self["adjcwgt"],
+        #     self["adjncy"],
+        #     nblocks,
+        #     imbalance,
+        #     suppress_output,
+        #     seed,
+        #     mode,
+        # )
 
-    def process_cut(self, weight: bool = False) -> list[tuple[int, int, int]]:
+    def process_cut(self) -> list[tuple[int, int]]:
         edges = []
         for i in range(1, len(self["xadj"])):
             for j in range(self["xadj"][i - 1], self["xadj"][i]):
-                edges.append(
-                    (i - 1, self["adjncy"][j], self["adjcwgt"][j] if weight else 0)
-                )
-
+                edges.append((i - 1, self["adjncy"][j]))
         cut_edges = []
         for edge in edges:
             if self._blocks[edge[0]] != self._blocks[edge[1]]:
-                if not edge in cut_edges:
+                if not edge in cut_edges and not (edge[1], edge[0]) in cut_edges:
                     cut_edges.append(edge)
-
         return cut_edges
 
     def display_city_cut(
@@ -261,3 +259,32 @@ class Graph:
         if not self._nx:
             self._nx = self.to_nx()
         return nx.edge_betweenness_centrality(self._nx)
+
+    def get_connected_components(self, G_nx: nx.graph) -> Any:
+        """Get connected components from KaHIP graph using NetworkX"""
+        cut = self.process_cut()
+        G_nx.remove_edges_from(cut)
+        return nx.connected_components(G_nx)
+
+    def rmv_small_cc_from_cut(self, treshold: int, G_nx: nx.graph=None) -> tuple[int, Cut]:
+        """"
+        Removes small connected components from the cut
+        (the cost of cutting these small components)
+        (in place)
+        Set the processed cut as last_result
+        """
+        if not G_nx:
+            G_nx = self.to_nx()
+        size, blocks = self.get_last_results()
+        weights = nx.get_edge_attributes(G_nx, "weight")
+        for component in self.get_connected_components(G_nx):
+            if len(component) < treshold:
+                cut = self.process_cut()
+                for node in component:
+                    # on retire le coût des arêtes concernées
+                    for edge in cut:
+                        if node == edge[0] or node == edge[1]:
+                            size -= weights[edge]
+                    # et on change de bloc les elements du component
+                    blocks[node] = 1 - blocks[node]
+        self.set_last_results(size, blocks)
