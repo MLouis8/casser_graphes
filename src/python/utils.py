@@ -200,6 +200,7 @@ def preprocessing(
             - squared lanes"
             - lanes with maxspeed
             - lanes wihtout bridge 
+            - betweenness /!\ the graph must have betweenness as attribute for each edges /!\ 
             - _ will be considered as weight 1 everywhere
         Optional: minmax a tuple of min and max values for cost random(min, max)
         Optional: distribution a distribution of frequencies to respect for cost random distribution
@@ -269,6 +270,8 @@ def preprocessing(
             edge_weight = {
                 k: v if not bridge_dict[k] else inf for k, v in edge_lanes.items()
             }
+        case "betweenness":
+            edge_weight = nx.get_edge_attributes(G, "betweenness")
         case _:
             edge_weight = {k: 1 for k in G.edges}
     nx.set_edge_attributes(G, edge_weight, "weight")
@@ -278,7 +281,7 @@ def preprocessing(
     G.to_undirected()
 
 
-def init_city_graph(filepath):
+def init_city_graph(filepath, betweenness: bool = False):
     # create, project, and consolidate a graph
     G = ox.graph_from_place(
         "Paris, Paris, France",
@@ -306,6 +309,10 @@ def init_city_graph(filepath):
     print("After projection, we have : ")
     print(str(len(G_out.edges())) + " edges")
     print(str(len(G_out.nodes())) + " nodes")
+
+    if betweenness:
+        bc = nx.edge_betweenness_centrality(G_out)
+        nx.set_edge_attributes(G, bc, "betweenness")
     ox.save_graphml(G_out, filepath=filepath)
 
 
