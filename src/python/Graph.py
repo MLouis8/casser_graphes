@@ -112,6 +112,33 @@ class Graph:
 
         return G
 
+    def remove_edge(self, edge: tuple[int, int]) -> None:
+        if self._nx:
+            self._nx.remove_edge(edge)
+        n1, n2 = edge if edge[0] < edge[1] else edge[1], edge[0]
+        new_xadj = []
+        for i in range(self._sizeV+1):
+            if i <= n1:
+                new_xadj.append(self["xadj"][i])
+            elif i <= n2:
+                new_xadj.append(self["xadj"][i] - 1)
+            else:
+                new_xadj.append(self["xadj"][i] - 2)
+        id1, id2 = 0, 0
+        for j in range(self["xadj"][n1], self["xadj"][n1+1]):
+            if self["ajdncy"][j] == n2:
+                id1 = j
+                break
+        for j in range(self["xadj"][n2], self["xadj"][n2+1]):
+            if self["ajdncy"][j] == n1:
+                id2 = j
+                break
+        self._adjacency.remove(id1)
+        self._adjacency.remove(id2)
+        self._xadjacency = new_xadj
+        self._adjacency_weight.remove(id1)
+        self._adjacency_weight.remove(id2)
+
     def closer_than_k_edges(
         self, e1: tuple[int, int], e2: tuple[int, int], k: int
     ) -> bool:
@@ -268,8 +295,9 @@ class Graph:
         if not self._nx:
             self._nx = self.to_nx()
         cut = self.process_cut()
-        self._nx.remove_edges_from(cut)
-        return nx.connected_components(self._nx)
+        G_copy = self._nx.copy()
+        G_copy.remove_edges_from(cut)
+        return nx.connected_components(G_copy)
 
     def rmv_small_cc_from_cut(self, treshold: int) -> None:
         """"
@@ -294,61 +322,42 @@ class Graph:
                     blocks[node] = 1 - blocks[node]
         self.set_last_results(size, blocks)
 
-    def cpt_edge_bc(self) -> None:
-        if not self._nx:
-            self._nx = self.to_nx()
-        self._bc = nx.edge_betweenness_centrality(self._nx)
-
     @property
     def get_edge_bc(self) -> EdgeDict:
-        if not self._bc:
-            self.cpt_edge_bc()
-        return self._bc
+        if not self._nx:
+            self._nx = self.to_nx()
+        return nx.edge_betweenness_centrality(self._nx)
     
     @property
     def get_avg_edge_bc(self) -> float:
         return np.mean(np.array(self.get_edge_bc.values()))
-    
-    def cpt_edge_cf_bc(self) -> None:
-        if not self._nx:
-            self._nx = self.to_nx()
-        self._cf_bc = nx.edge_current_flow_betweenness_centrality(self._nx)
 
     @property
     def get_edge_cf_bc(self) -> EdgeDict:
-        if not self._cf_bc:
-            self.cpt_edge_cf_bc()
-        return self._cf_bc
+        if not self._nx:
+            self._nx = self.to_nx()
+        return nx.edge_current_flow_betweenness_centrality(self._nx)
     
     @property
     def get_avg_edge_cf_bc(self) -> float:
         return np.mean(np.array(self.get_edge_cf_bc.values()))
-    
-    def cpt_avg_dist(self) -> None:
-        if not self._nx:
-            self._nx = self.to_nx()
-        self._avg_dist = nx.average_shortest_path_length(self._nx)
 
     @property
-    def get_avg_dist(self) -> EdgeDict:
-        if not self._avg_dist:
-            self.cpt_edge_avg_dist()
-        return self._avg_dist
+    def get_avg_dist(self) -> float:
+        if not self._nx:
+            self._nx = self.to_nx()
+        return nx.average_shortest_path_length(self._nx)
     
-    def cpt_spectral_radius(self) -> None:
+    @property
+    def get_spectral_radius(self) -> float:
         if not self._adj_spectrum:
             if not self._nx:
                 self._nx = self.to_nx()
             self._adj_spectrum = nx.adjacency_spectrum(self._nx)
-        self._spectral_rad = np.max(self._adj_spectrum)
-
-    @property
-    def get_spectral_radius(self) -> EdgeDict:
-        if not self._spectral_rad:
-            self.cpt_spectral_radius()
-        return self._spectral_rad
+        return np.max(self._adj_spectrum)
     
-    def cpt_spectral_gap(self) -> None:
+    @property
+    def get_spectral_gap(self) -> float:
         if not self._adj_spectrum:
             if not self._nx:
                 self._nx = self.to_nx()
@@ -361,22 +370,10 @@ class Graph:
                     max1 = eigen
                 else:
                     max2 = eigen
-        self._spectral_gap = max1 - max2
-
+        return max1 - max2
 
     @property
-    def get_spectral_gap(self) -> EdgeDict:
-        if not self._spectral_gap:
-            self.cpt_spectral_gap()
-        return self._spectral_gap
-    
-    def cpt_natural_co(self) -> None:
+    def get_natural_co(self) -> float:
         if not self._nx:
             self._nx = self.to_nx()
-        self._nat_co =  log(nx.subgraph_centrality(self._nx)/self._sizeV)
-
-    @property
-    def get_natural_co(self) -> EdgeDict:
-        if not self._nat_co:
-            self.cpt_natural_co()
-        return self._nat_co
+        return log(nx.subgraph_centrality(self._nx)/self._sizeV)

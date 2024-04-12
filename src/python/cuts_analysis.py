@@ -81,8 +81,13 @@ def class_mean_cost(cls: list[str], cuts: Cuts, G: nx.Graph):
     weights = nx.get_edge_attributes(G, "weight")
     cost = []
     for cut_name in cls:
+        cpt = 0
         for name, edges in cuts.items():
             if cut_name == name:
                 for edge in edges:
-                    cost.append(weights[(edge[0], edge[1], 0)])
+                    try:
+                        cpt += int(weights[(edge[0], edge[1], 0)])
+                    except:
+                        cpt += int(weights[(edge[1], edge[0], 0)])
+        cost.append(cpt)
     return np.mean(np.array(cost))

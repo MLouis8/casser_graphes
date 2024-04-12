@@ -20,8 +20,8 @@
 \newcommand{\N}{\mathbb{N}}
 \DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
 
-\title{Nouvelle fonction de coût, coupes contraintes et robustesse, composantes connexes en fonction du déséquilibre}
-\subtitle{Stage Casser des Graphes}
+\title{(non) Amélioration du preprocessing, Nouvelle fonction de coût, robustesse, composantes connexes en fonction du déséquilibre}
+\subtitle{Casser des Graphes}
 \author{Louis Milhaud}
 \institute{Complex Networks - LIP6}
 \date{\today}
@@ -49,6 +49,24 @@
         \tableofcontents
     \end{frame}
 
+    \section{Amélioration du preprocessing}
+    \begin{frame}
+        \frametitle{fusion des edges attributes}
+        \centering
+        \includegraphics[scale=0.4]{fusion_attributs.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Ajoût des lignes de bus}
+        impossible car données non uniformes:\\
+        \vspace{15pt}
+        \begin{center}
+            \includegraphics[scale=0.25]{Capture d’écran 2024-04-08 à 10.03.23.png}
+            \includegraphics[scale=0.25]{Capture d’écran 2024-04-08 à 10.05.07.png}
+        \end{center}
+        Première image: $lanes = 2$ et pas de busway\\
+        Seconde image: $lanes = 6$ et $busway = lanes$\\
+        Troisième cas: $busway = lanes$ mais pas compris dans le nb de $lanes$
+    \end{frame}
     \section{Nouvelle fonction de coût}
     \begin{frame}
         \frametitle{Retour sur le coût: calcul du nombre de voies}
@@ -58,9 +76,19 @@
             \item Sinon, si on a la width
             $$weight = width \slash 4$$
             \item Sinon:
-            $$weight = 2$$
+            \begin{itemize}
+                \item si $highway \in \{'primary', 'secondary'\}$ alors $weight = 3$
+                \item sinon  $weight = 2$
+            \end{itemize}
         \end{itemize}
-        Améliorations dans le prétraitement: fusion des voies == addition du nombre de voies
     \end{frame}
 
+    \section{Robustesse}
+    \subsection{Attaque par betweenness}
+    \section{composantes connexes}
+    \begin{frame}
+        \frametitle{Distribution des tailles des composantes connexes}
+        \centering
+        \includegraphics[scale=0.63]{freq_cc_size.pdf}
+    \end{frame}
 \end{document}

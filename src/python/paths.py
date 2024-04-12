@@ -92,7 +92,7 @@ cut_paths_2 = [
     "./data/cuts/nocost_1000_004.json",
     "./data/cuts/nocost_1000_005.json",
     "./data/cuts/nocost_1000_008.json",
-    "./data/cuts/nocost_1000_01.json",
+    "./data/cuts/nocost_1000_010.json",
     "./data/cuts/nocost_1000_012.json",
     "./data/cuts/nocost_1000_016.json",
     "./data/cuts/nocost_1000_024.json",
@@ -112,8 +112,8 @@ clusters_paths_1 = [
 clusters_paths_2 = [
     "./data/clusters/CTS_50000_nocost.json",
     "./data/clusters/CTS_50000_width.json",
-    "./data/clusters/CTS_70000_width.json",
     "./data/clusters/CTS_50000_widthsq.json",
+    "./data/clusters/CTS_60000_widthsq.json",
     "./data/clusters/CTS_50000_widthmaxspeed.json",
     "./data/clusters/CTS_50000_widthnobridge.json",
     "./data/clusters/CTS_50000_widthnotunnel.json",
@@ -122,12 +122,14 @@ clusters_paths_2 = [
 ]
 
 clusters_paths_3 = [
+    "./data/clusters/CTS_40000_lanes.json",
+    "./data/clusters/CTS_50000_lanes.json",
     "./data/clusters/CTS_60000_lanes.json",
-    "./data/clusters/CTS_70000_lanes.json",
     "./data/clusters/CTS_60000_lanessq.json",
-    "./data/clusters/CTS_70000_lanessq.json",
     "./data/clusters/CTS_60000_lanesmaxspeed.json",
     "./data/clusters/CTS_70000_lanesmaxspeed.json",
+    "./data/clusters/CTS_70000_lanesmaxspeed.json",
+    "./data/clusters/CTS_40000_lanesnobridge.json",
+    "./data/clusters/CTS_50000_lanesnobridge.json",
     "./data/clusters/CTS_60000_lanesnobridge.json",
-    "./data/clusters/CTS_70000_lanesnobridge.json",
 ]
