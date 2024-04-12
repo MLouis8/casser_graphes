@@ -36,11 +36,11 @@ def cpt_freq(freq, kcuts, G_kp):
         cuts[k] = G_kp.process_cut()
 
 
-def clustering_procedure(cuts, G_nx, filepath):
+def clustering_procedure():
     print("import stuff...")
     G_nx = ox.load_graphml(graphml_path[2])
-    G_kp = Graph(json=kp_paths[10])
-    with open(cut_paths_2[1], "r") as read_file:
+    G_kp = Graph(json=kp_paths[9])
+    with open(cut_paths_2[0], "r") as read_file:
         kcuts = json.load(read_file)
     cuts = {}
     for k, (edgecut, blocks) in kcuts.items():
@@ -49,12 +49,12 @@ def clustering_procedure(cuts, G_nx, filepath):
 
     print("clustering...")
     C = CutsClassification(cuts, G_nx)
-    n = 70000
+    n = 12500
     C.cluster_louvain("sum", n)
     print(f"for n = {n}")
     for level in C._levels:
         print(len(level))
-    C.save_last_classes("data/clusters/CTS_" + str(n) + "_lanessq.json")
+    C.save_last_classes("data/clusters/CTS_" + str(n) + "_lanes.json")
 
 def clustering_display():
     print("loading graphs...")
@@ -68,14 +68,14 @@ def clustering_display():
     for k, (edgecut, blocks) in kcuts.items():
         G_kp.set_last_results(edgecut, blocks)
         cuts[k] = G_kp.process_cut()
-    with open(clusters_paths_3[1], "r") as read_file:
+    with open(clusters_paths_3[2], "r") as read_file:
         levels = json.load(read_file)
     for level in levels:
         print(len(level))
     print("displaying...")
-    fig, axes = plt.subplots(1, 3)
-    fig.suptitle("clusters graphe valué par le nb de voies")
-    x, y = 0, 3
+    fig, axes = plt.subplots(3, 4)
+    fig.suptitle("clusters graphe valué par le nombre de voies")
+    x, y = 2, 4
     for i in range(len(levels[x])):
         print(f"displaying axe {i}")
         visualize_class(levels[x][i], G_nx, cuts, ax=axes[i // y, i % y], show=False)
@@ -86,11 +86,12 @@ def clustering_display():
             + str(round(class_mean_cost(levels[x][i], cuts, G_nx))),
             fontsize=6
         )
-    # axes[-1, -1].axis("off") 
-    plt.savefig("presentations/images/clusters/CTS_lanes2.pdf")
+    axes[-1, -1].axis("off") 
+    plt.savefig("presentations/images/clusters/CTS_lanes7500.pdf")
 
 
 def main():
-    G_kp = Graph(json=kp_paths[9]) #lanes
-    edge_frequency_attack(G_kp, 3, "data/edge_frequency_attack.json", 250, bc=True, spec_gap=True, spec_rad=True, nat_co=True)
+    G_nx = ox.load_graphml("data/ParisPreprocessedBC.graphml")
+    for edge in G_nx.edges(data=True):
+        print(edge[2]["weight"])
 main()

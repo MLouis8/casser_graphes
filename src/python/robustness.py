@@ -2,8 +2,10 @@ from Graph import Graph
 
 import json
 import random as rd
+import networkx as nx
+import numpy as np
 from typing import Any
-from typ import Cuts, Edge, RobustnessDict
+from typ import RobustnessDict, Cuts
 
 def edge_frequency_attack(G: Graph, k: int, fp: str, ncuts: int=1000, bc: bool=False, cfbc: bool=False, dist: bool=False, spec_gap: bool=False, spec_rad: bool=False, nat_co: bool=False) -> RobustnessDict:
     """"
@@ -51,7 +53,7 @@ def edge_frequency_attack(G: Graph, k: int, fp: str, ncuts: int=1000, bc: bool=F
                 frequencies[edge] += 1
             else:
                 frequencies[edge] = 1
-        most_cut_edge = max()
+        most_cut_edge = max(frequencies, key=frequencies.get)
         G.remove_edge(most_cut_edge)
         robust_dict["edges"].append(most_cut_edge)
         if bc:
@@ -67,5 +69,29 @@ def edge_frequency_attack(G: Graph, k: int, fp: str, ncuts: int=1000, bc: bool=F
 
     with open(fp, "w") as save_file:
         json.dump(robust_dict)
+# Sur le modèle ci-dessus
+# faire une random edge attack
+# faire une random edge parmis celles coupées
 
 
+def betweenness_attack(G: nx.Graph, k: int) -> RobustnessDict:
+    robust_dict = {
+        "edges": [],
+        "avg bc": []
+    }
+
+    for _ in range(k):
+        bc_dict = nx.edge_betweenness_centrality(G)
+        biggest_bc_edge = max(bc_dict, key=bc_dict.get)
+        robust_dict["edges"].append(biggest_bc_edge)
+        robust_dict["avg bc"].append(np.mean(np.array(bc_dict)))
+        G.remove_edge(biggest_bc_edge)
+
+    robust_dict["avg bc"].append(np.mean(np.array(nx.edge_betweenness_centrality(G))))
+    return robust_dict
+
+def best_class_attack(classes: list[Cuts], metric: str="bc"):
+    """
+    Test every class cut on the Graph and returns the best one
+    """
+    pass

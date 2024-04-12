@@ -75,7 +75,7 @@ cut_paths_1 = [
     "./data/cuts/rdminmax_1000_003.json",
     "./data/cuts/rdminmax_1000_005.json",
     # 24
-    "./data/cuts/rddditr_1000_01.json",
+    "./data/cuts/rddistr_1000_01.json",
     "./data/cuts/rddistr_1000_003.json",
     "./data/cuts/rddistr_1000_005.json",
 ]
@@ -118,13 +118,11 @@ clusters_paths_2 = [
     "./data/clusters/CTS_50000_widthnobridge.json",
     "./data/clusters/CTS_50000_widthnotunnel.json",
     "./data/clusters/CTS_50000_randomminmax.json",
-    "./data/clusters/CTS_60000_randomdistr.json",
 ]
 
 clusters_paths_3 = [
-    "./data/clusters/CTS_40000_lanes.json",
-    "./data/clusters/CTS_50000_lanes.json",
-    "./data/clusters/CTS_60000_lanes.json",
+    "./data/clusters/CTS_5000_lanes.json",
+    "./data/clusters/CTS_7500_lanes.json",
     "./data/clusters/CTS_60000_lanessq.json",
     "./data/clusters/CTS_60000_lanesmaxspeed.json",
     "./data/clusters/CTS_70000_lanesmaxspeed.json",
