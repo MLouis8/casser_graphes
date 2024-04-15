@@ -10,7 +10,7 @@ from visual import (
     visualize_edgeList,
     bar_plot,
 )
-from robustness import edge_frequency_attack
+from robustness import edge_frequency_attack, betweenness_attack
 from paths import graphml_path, kp_paths, cut_paths_1, cut_paths_2, clusters_paths_2, clusters_paths_3
 
 import osmnx as ox
@@ -91,7 +91,10 @@ def clustering_display():
 
 
 def main():
-    G_nx = ox.load_graphml("data/ParisPreprocessedBC.graphml")
-    for edge in G_nx.edges(data=True):
-        print(edge[2]["weight"])
+    # G_nx = ox.load_graphml(graphml_path[2])
+    G_nx = ox.graph_from_place("Batignolles, France")
+    print(len(G_nx.nodes))
+    d = betweenness_attack(G_nx, 2)
+    with open("data/bc_attack_test.json", "w") as save:
+        json.dump(d, save)
 main()

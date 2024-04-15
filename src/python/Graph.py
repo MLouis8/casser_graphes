@@ -330,7 +330,7 @@ class Graph:
     
     @property
     def get_avg_edge_bc(self) -> float:
-        return np.mean(np.array(self.get_edge_bc.values()))
+        return np.mean(list(self.get_edge_bc.values()))
 
     @property
     def get_edge_cf_bc(self) -> EdgeDict:
@@ -340,7 +340,7 @@ class Graph:
     
     @property
     def get_avg_edge_cf_bc(self) -> float:
-        return np.mean(np.array(self.get_edge_cf_bc.values()))
+        return np.mean(list(self.get_edge_cf_bc.values()))
 
     @property
     def get_avg_dist(self) -> float:
