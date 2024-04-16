@@ -3,9 +3,14 @@ import osmnx as ox
 import random as rd
 import json
 import math
+import matplotlib.pyplot as plt
 
-from Graph import Graph
-from typ import EdgeDict3, EdgeDict
+from python.Graph import Graph
+from python.typ import EdgeDict3
+from python.paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
+from python.visual import visualize_class
+from python.CutsClassification import CutsClassification
+from python.cuts_analysis import class_mean_cost
 
 def replace_parallel_edges(G):
     """
@@ -382,3 +387,70 @@ def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[
                 cut[str(ncut)] = G_kp.get_last_results
             with open("./data/cuts/"+costs_names[i]+"_1000_"+str(imbalance)+".json", "w") as cut_file:
                 json.dump(cut, cut_file)
+
+# Code samples for main
+def cpt_freq(freq, kcuts, G_kp):
+    # necessaire pour l'import de fréquences
+    f = {}
+    for k, v in freq.items():
+        f[eval(k)] = v
+    # nécessaire pour la traduction des coupes
+    cuts = {}
+    for k, (edgecut, blocks) in kcuts.items():
+        G_kp.set_last_results(edgecut, blocks)
+        cuts[k] = G_kp.process_cut()
+
+
+def clustering_procedure():
+    print("import stuff...")
+    G_nx = ox.load_graphml(graphml_path[2])
+    G_kp = Graph(json=kp_paths[11])
+    with open(cut_paths_2[2], "r") as read_file:
+        kcuts = json.load(read_file)
+    cuts = {}
+    for k, (edgecut, blocks) in kcuts.items():
+        G_kp.set_last_results(edgecut, blocks)
+        cuts[k] = G_kp.process_cut()
+
+    print("clustering...")
+    C = CutsClassification(cuts, G_nx)
+    n = 7500
+    C.cluster_louvain("sum", n)
+    print(f"for n = {n}")
+    for level in C._levels:
+        print(len(level))
+    C.save_last_classes("data/clusters/CTS_" + str(n) + "_lanesmaxspeed.json")
+
+def clustering_display():
+    print("loading graphs...")
+    j = 3
+    G_nx = ox.load_graphml(graphml_path[2])
+    G_kp = Graph(json=kp_paths[j+9])
+    print("loading cuts and clusters...")
+    with open(cut_paths_2[j], "r") as read_file:
+        kcuts = json.load(read_file)
+    cuts = {}
+    for k, (edgecut, blocks) in kcuts.items():
+        G_kp.set_last_results(edgecut, blocks)
+        cuts[k] = G_kp.process_cut()
+    with open(clusters_paths_3[7], "r") as read_file:
+        levels = json.load(read_file)
+    for level in levels:
+        print(len(level))
+    print("displaying...")
+    fig, axes = plt.subplots(3, 4)
+    fig.suptitle("clusters graphe valué par le nombre de voies sans pont")
+    x, y = 1, 4
+    for i in range(len(levels[x])):
+        print(f"displaying axe {i}")
+        visualize_class(levels[x][i], G_nx, cuts, ax=axes[i // y, i % y], show=False)
+        axes[i // y, i % y].set_title(
+            "taille: "
+            + str(len(levels[x][i]))
+            + ", coût moyen: "
+            + str(round(class_mean_cost(levels[x][i], cuts, G_nx))),
+            fontsize=6
+        )
+    axes[-1, -1].axis("off")
+    axes[-1, -2].axis("off") 
+    plt.savefig("presentations/images/clusters/CTS_lanesnobridge7500.pdf")

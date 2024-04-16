@@ -1,7 +1,7 @@
 import networkx as nx
 import osmnx as ox
 import numpy as np
-# import kahip # to comment if ARM, uncomment to cut
+import kahip # to comment if ARM, uncomment to cut
 import json
 from typing import Optional, Any
 from typ import EdgeDict
@@ -9,7 +9,7 @@ from math import log, exp
 
 
 class Graph:
-    def __init__(
+    def __init__(   
         self,
         vwgt: list[int] = [],
         xadj: list[int] = [],
@@ -36,9 +36,10 @@ class Graph:
         self._spectral_rad: None | float = None
         self._nat_co: None | float = None
 
-        if nx and not json:
-            self.set_from_nx(nx)
-    
+        if nx:
+            if not json:
+                self.set_from_nx(nx)
+            self._nx = nx
         if json:
             self.import_from_json(json)
 
@@ -115,7 +116,7 @@ class Graph:
     def remove_edge(self, edge: tuple[int, int]) -> None:
         if self._nx:
             self._nx.remove_edge(edge)
-        n1, n2 = edge if edge[0] < edge[1] else edge[1], edge[0]
+        n1, n2 = edge if edge[0] < edge[1] else (edge[1], edge[0])
         new_xadj = []
         for i in range(self._sizeV+1):
             if i <= n1:
@@ -126,18 +127,18 @@ class Graph:
                 new_xadj.append(self["xadj"][i] - 2)
         id1, id2 = 0, 0
         for j in range(self["xadj"][n1], self["xadj"][n1+1]):
-            if self["ajdncy"][j] == n2:
+            if self["adjncy"][j] == n2:
                 id1 = j
                 break
         for j in range(self["xadj"][n2], self["xadj"][n2+1]):
-            if self["ajdncy"][j] == n1:
+            if self["adjncy"][j] == n1:
                 id2 = j
                 break
-        self._adjacency.remove(id1)
-        self._adjacency.remove(id2)
+        self._adjacency.pop(id1)
+        self._adjacency.pop(id2-1)
         self._xadjacency = new_xadj
-        self._adjacency_weight.remove(id1)
-        self._adjacency_weight.remove(id2)
+        self._adjacency_weight.pop(id1)
+        self._adjacency_weight.pop(id2-1)
 
     def closer_than_k_edges(
         self, e1: tuple[int, int], e2: tuple[int, int], k: int
@@ -203,18 +204,17 @@ class Graph:
         Configurations with a social in their name should be used for social
         networks and web graphs.
         """
-        pass
-        # self._edgecut, self._blocks = kahip.kaffpa(
-        #     self["vwgt"],
-        #     self["xadj"],
-        #     self["adjcwgt"],
-        #     self["adjncy"],
-        #     nblocks,
-        #     imbalance,
-        #     suppress_output,
-        #     seed,
-        #     mode,
-        # )
+        self._edgecut, self._blocks = kahip.kaffpa(
+            self["vwgt"],
+            self["xadj"],
+            self["adjcwgt"],
+            self["adjncy"],
+            nblocks,
+            imbalance,
+            suppress_output,
+            seed,
+            mode,
+        )
 
     def process_cut(self) -> list[tuple[int, int]]:
         edges = []
@@ -326,7 +326,6 @@ class Graph:
     def get_edge_bc(self) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()
-        if not self._bc:
             return nx.edge_betweenness_centrality(self._nx)
         else:
             return self._bc
@@ -351,20 +350,21 @@ class Graph:
             self._nx = self.to_nx()
         return nx.average_shortest_path_length(self._nx)
     
+    def cpt_adj_spectrum(self) -> None:
+        if not self._nx:
+            self._nx = self.to_nx()
+        self._adj_spectrum = nx.adjacency_spectrum(self._nx)
+
     @property
     def get_spectral_radius(self) -> float:
         if not self._adj_spectrum:
-            if not self._nx:
-                self._nx = self.to_nx()
-            self._adj_spectrum = nx.adjacency_spectrum(self._nx)
+            self.cpt_adj_spectrum()
         return np.max(self._adj_spectrum)
     
     @property
     def get_spectral_gap(self) -> float:
         if not self._adj_spectrum:
-            if not self._nx:
-                self._nx = self.to_nx()
-            self._adj_spectrum = nx.adjacency_spectrum(self._nx)
+            self.cpt_adj_spectrum()
         max1, max2 = 0, 0
         for eigen in self._adj_spectrum:
             if eigen > max2:
