@@ -322,17 +322,16 @@ class Graph:
                     blocks[node] = 1 - blocks[node]
         self.set_last_results(size, blocks)
 
-    @property
-    def get_edge_bc(self) -> EdgeDict:
+    def get_edge_bc(self, new: bool = False) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()
-            return nx.edge_betweenness_centrality(self._nx)
-        else:
-            return self._bc
+        if not self._bc or new:    
+            self._bc = nx.edge_betweenness_centrality(self._nx)
+        return self._bc
         
     @property
     def get_avg_edge_bc(self) -> float:
-        return np.mean(list(self.get_edge_bc.values()))
+        return np.mean(list(self.get_edge_bc().values()))
 
     @property
     def get_edge_cf_bc(self) -> EdgeDict:
