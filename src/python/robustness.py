@@ -146,3 +146,18 @@ def cpt_robust_dict_from_edges(G: Graph, edges: list[Edge], fp: str, bc: bool = 
 
     with open(fp, "w") as save_file:
         json.dump(robust_dict, save_file)
+
+def avg_bc_edge_subset(G: nx.Graph, s: list[Edge]):
+    """
+    Returns the average BC of the all graph compared to the average of the listed edges,
+    the graph must have the attribute betweenness
+    """
+    avg1, cpt1 = 0, 0
+    avg2, cpt2 = 0, 0
+    for edge in G.edges(data=True):
+        avg1 += edge[2]["betweenness"]
+        cpt1 += 1
+        if (edge[0], edge[1]) in s or (edge[1], edge[0]) in s:
+            avg2 += edge[2]["betweenness"]
+            cpt2 += 1
+    return avg1/cpt1, avg2/cpt2

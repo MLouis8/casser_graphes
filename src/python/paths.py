@@ -14,7 +14,9 @@ kp_paths = [
     "./data/costs/lanes.json",
     "./data/costs/lanessq.json",
     "./data/costs/lanesmaxspeed.json",
-    "./data/costs/lanesnobridge.json"
+    "./data/costs/lanesnobridge.json",
+    "./data/costs/randomminmax1-12.json",
+    "./data/costs/randomlanedistr,json"
 ]
 costs_name = [
     "old_width",
@@ -33,7 +35,8 @@ costs_name = [
 graphml_path = [
     "./data/Paris.graphml",
     "./data/ParisPreprocessedW.graphml",
-    "./data/ParisPreprocessedL.graphml"
+    "./data/ParisPreprocessedL.graphml",
+    "./data/ParisPreprocessedBC.graphml"
 ]
 btw_path = "./data/betweenness_Paris.json"
 freq_paths = [
@@ -96,7 +99,7 @@ cut_paths_2 = [
     "./data/cuts/nocost_1000_012.json",
     "./data/cuts/nocost_1000_016.json",
     "./data/cuts/nocost_1000_024.json",
-    "./data/cuts/nocost_1000_032.json"
+    "./data/cuts/nocost_1000_032.json",
 ]
 
 clusters_paths_1 = [
@@ -128,6 +131,8 @@ clusters_paths_3 = [
     "./data/clusters/CTS_70000_lanesmaxspeed.json",
     "./data/clusters/CTS_70000_lanesmaxspeed.json",
     "./data/clusters/CTS_40000_lanesnobridge.json",
+    "./data/clusters/CTS_7500_lanesnobridge.json",
+    "./data/clusters/CTS_10000_lanesnobridge.json",
     "./data/clusters/CTS_50000_lanesnobridge.json",
     "./data/clusters/CTS_60000_lanesnobridge.json",
 ]

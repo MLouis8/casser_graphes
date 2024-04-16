@@ -84,11 +84,50 @@
     \end{frame}
 
     \section{Robustesse}
+    \subsection{Introduction}
+    \begin{frame}
+        \frametitle{Métriques sur le graphe de base}
+        \begin{itemize}
+            \item Avg Betweenness Centrality: $0.002820583576670117$
+            \item Avg Distance: $0$
+            \item Spectral Gap: $0$
+            \item Spectral Radius: $0$
+            \item Natural Connectivity: $0$
+        \end{itemize}
+    \end{frame}
+
+    % \begin{frame}
+    %     \frametitle{Différence avec les coupes}
+    
+        
+    
+    % \end{frame}
+
     \subsection{Attaque par betweenness}
+    \begin{frame}
+        \frametitle{Attaque par betweenness: évolution de l'avg bc en 10 itérations}
+        \centering
+        \includegraphics[scale=0.65]{bc_attack_10.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Attaque par betweenness: les 10 arêtes}
+        \centering
+        \includegraphics[scale=0.8]{bc_attack_edges.pdf}
+    \end{frame}
+
+    \subsection{Attaque par fréquence de coupe}
+    \begin{frame}
+        \frametitle{Attaque par fréquence de coupe: les 10 arêtes}
+        \centering
+        \includegraphics[scale=0.8]{edge_attack_edges.pdf}
+    \end{frame}
+
     \section{composantes connexes}
     \begin{frame}
         \frametitle{Distribution des tailles des composantes connexes}
         \centering
         \includegraphics[scale=0.63]{freq_cc_size.pdf}
     \end{frame}
+
 \end{document}

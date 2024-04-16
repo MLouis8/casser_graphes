@@ -294,7 +294,7 @@ def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict
 
     def thicken(u, v):
         if (u, v) in edgeList:
-            return thickness[(u, v)]
+            return 10#thickness[(u, v)]
         else:
             return 1
         

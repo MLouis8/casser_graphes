@@ -238,7 +238,7 @@ def preprocessing(
         case "width without bridge":
             bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
             edge_weight = {
-                k: v if not bridge_dict[k] else inf for k, v in edge_width.items()
+                k: inf if bridge_dict[k] == 'yes' else v for k, v in edge_width.items()
             }
         case "width without tunnel":
             tunnel_dict = nx.get_edge_attributes(G, "tunnel", default=False)
@@ -268,7 +268,7 @@ def preprocessing(
         case "lanes without bridge":
             bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
             edge_weight = {
-                k: v if not bridge_dict[k] else inf for k, v in edge_lanes.items()
+                k: inf if bridge_dict[k] == 'yes' else v for k, v in edge_lanes.items()
             }
         case "betweenness":
             edge_weight = nx.get_edge_attributes(G, "betweenness")
@@ -312,7 +312,7 @@ def init_city_graph(filepath, betweenness: bool = False):
 
     if betweenness:
         bc = nx.edge_betweenness_centrality(G_out)
-        nx.set_edge_attributes(G, bc, "betweenness")
+        nx.set_edge_attributes(G_out, bc, "betweenness")
     ox.save_graphml(G_out, filepath=filepath)
 
 
@@ -335,7 +335,7 @@ def prepare_instance(read_filename: str, write_filename: str, val_name: str, min
         - "lanes"
         - "squared lanes"
         - "lanes with maxspeed"
-        - "lanes wihtout bridge" 
+        - "lanes without bridge" 
     """
     print("Loading instance")
     G_nx = ox.load_graphml(read_filename)

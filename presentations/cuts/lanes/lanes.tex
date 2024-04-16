@@ -1,0 +1,90 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+
+\graphicspath{ {../../images/} }
+\setbeamertemplate{navigation symbols}{}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Analyse de coupe: largeur}
+\subtitle{Stage Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \section{Lanes}
+    \begin{frame}
+        \frametitle{lanes: Statistiques de base}
+
+        \begin{itemize}
+            \item La meilleure coupe a un coût de 
+            \item La pire a un coût de 
+            \item Pour 1000 coupes on a une moyenne de 
+            \item Et une std de 
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{lanes: Classes}
+        \centering
+        \includegraphics[scale=0.7]{clusters/CTS_lanes.pdf}
+    \end{frame}
+
+    \section{Lanes squared}
+    \begin{frame}
+        \frametitle{Lanes squared: Statistiques de base}
+    
+        \begin{itemize}
+            \item La meilleure coupe a un coût de 
+            \item La pire a un coût de 
+            \item Pour 1000 coupes on a une moyenne de 
+            \item Et une std de 
+        \end{itemize}
+
+    \end{frame}
+    \begin{frame}
+        \frametitle{lanes au carré: Classes}
+        \centering
+        \includegraphics[scale=0.7]{clusters/CTS_lanessq.pdf}
+    \end{frame}
+
+    \section{Lanes maxspeed 50}
+    \begin{frame}
+        \frametitle{Lanes avec maxspeed 50: Statistiques de base}
+    
+        \begin{itemize}
+            \item La meilleure coupe a un coût de 
+            \item La pire a un coût de 
+            \item Pour 1000 coupes on a une moyenne de 
+            \item Et une std de 
+        \end{itemize}
+        
+    \end{frame}
+    \begin{frame}
+        \frametitle{lanes avec maxspeed 50: Classes}
+        \centering
+        \includegraphics[scale=0.7]{clusters/CTS_lanesmaxspeed.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{lanes sans pont: Classes}
+        \centering
+        \includegraphics[scale=0.7]{clusters/CTS_lanesnobridge7500.pdf}
+    \end{frame}
+
+\end{document}

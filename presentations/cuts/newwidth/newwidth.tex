@@ -1,0 +1,217 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+
+\graphicspath{ {../../images/} }
+\setbeamertemplate{navigation symbols}{}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Analyse de coupe: largeur}
+\subtitle{Stage Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \section{Width}
+    \begin{frame}
+        \frametitle{Statistiques de base}
+
+        \begin{itemize}
+            \item La meilleure coupe a un coût de 320
+            \item Elle apparaît avec une fréquence de 0.001
+            \item La pire a un coût de 400
+            \item Pour 1000 coupes on a une moyenne de 349
+            \item Et une std de 15
+        \end{itemize}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Classes}
+        \centering
+        \includegraphics[scale=0.7]{clusters/CTS_newwidth.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Statistiques sur les fréquences}
+        
+        \begin{itemize}
+            \item L'arête la plus coupée (27074, 34591) l'a été 764 fois
+            \item La moins 1 (parmis celles coupées)
+            \item Pour une moyenne de coupe de 15
+            \item Et une std de 43
+            \item Pour 1000 coupes on coupe 3572 arêtes différentes (sur 46761)
+        \end{itemize}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{10 arêtes les plus coupées}
+        \centering
+        \includegraphics[scale=1.1]{width_10_most_cut.pdf}
+    \end{frame}
+
+    \section{Width squarred}
+
+    \begin{frame}
+        \frametitle{Statistiques de base}
+
+        \begin{itemize}
+            \item La meilleure coupe a un coût de 2557
+            \item Elle apparaît avec une fréquence de 0.003
+            \item La pire a un coût de 3296
+            \item Pour 1000 coupes on a une moyenne de 2744
+            \item Et une std de 84
+        \end{itemize}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Classes}
+    
+        
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Statistiques sur les fréquences}
+        
+        \begin{itemize}
+            \item L'arête la plus coupée (27074, 34591) l'a été 648 fois
+            \item La moins 1 (parmis celles coupées)
+            \item Pour une moyenne de coupe de 21
+            \item Et une std de 45
+            \item Pour 1000 coupes on coupe 3689 arêtes différentes (sur 46761)
+        \end{itemize}
+    
+    \end{frame}
+
+    \section{Width Maxspeed}
+    \begin{frame}
+        \frametitle{Statistiques de base}
+        
+        \begin{itemize}
+            \item La meilleure coupe a un coût de 701
+            \item Elle apparaît avec une fréquence de 0.001
+            \item La pire a un coût de 787
+            \item Pour 1000 coupes on a une moyenne de 739
+            \item Et une std de 14
+        \end{itemize}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Classes}
+    
+        
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Statistiques sur les fréquences}
+        
+        \begin{itemize}
+            \item L'arête la plus coupée (1273, 1274) l'a été 548 fois
+            \item La moins 1 (parmis celles coupées)
+            \item Pour une moyenne de coupe de 16
+            \item Et une std de 36
+            \item Pour 1000 coupes on coupe 8199 arêtes différentes (sur 46761)
+        \end{itemize}
+    
+    \end{frame}
+
+    \section{Width no tunnel}
+    \begin{frame}
+        \frametitle{Statistiques de base}
+        
+        \begin{itemize}
+            \item La meilleure coupe a un coût de 324
+            \item Elle apparaît avec une fréquence de 0.003
+            \item La pire a un coût de 438
+            \item Pour 1000 coupes on a une moyenne de 362
+            \item Et une std de 18
+        \end{itemize}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Classes}
+        \centering
+        \includegraphics[scale=0.75]{clusters/CTS_widthnotunnel.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Statistiques sur les fréquences}
+
+        \begin{itemize}
+            \item L'arête la plus coupée (27074, 34591) l'a été 547 fois
+            \item La moins 1 (parmis celles coupées)
+            \item Pour une moyenne de coupe de 12
+            \item Et une std de 28
+            \item Pour 1000 coupes on coupe 4554 arêtes différentes (sur 46761)
+        \end{itemize}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{10 arêtes les plus coupées}
+        \centering
+        \includegraphics[scale=1.1]{widthnotunnel_10_most_cut.pdf}    
+    \end{frame}
+    \section{Width no bridge}
+    \begin{frame}
+        \frametitle{Statistiques de base}
+        
+        \begin{itemize}
+            \item La meilleure coupe a un coût de 348
+            \item Elle apparaît avec une fréquence de 0.007
+            \item La pire a un coût de 436
+            \item Pour 1000 coupes on a une moyenne de 384
+            \item Et une std de 15
+        \end{itemize}
+
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Classes}
+        \centering
+        \includegraphics[scale=0.75]{clusters/CTS_widthnobridge.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Statistiques sur les fréquences}
+        
+        \begin{itemize}
+            \item L'arête la plus coupée (2450, 25206) l'a été 314 fois
+            \item La moins 1 (parmis celles coupées)
+            \item Pour une moyenne de coupe de 13
+            \item Et une std de 27
+            \item Pour 1000 coupes on coupe 4438 arêtes différentes (sur 46761)
+        \end{itemize}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{10 arêtes les plus coupées}
+        \centering
+        \includegraphics[scale=1.1]{widthnobridge_10_most_cut.pdf}
+    \end{frame}
+    \section{Random between}
+
+    \section{Random Following original width distribution}
+\end{document}

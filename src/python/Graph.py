@@ -15,8 +15,9 @@ class Graph:
         xadj: list[int] = [],
         adjcwgt: list[int] = [],
         adjncy: list[int] = [],
-        nx: Optional[nx.Graph] = None,
-        json: Optional[str] = None,
+        nx: nx.Graph | None = None,
+        json: str | None = None,
+        bc: EdgeDict | None = None
     ) -> None:
         self._vertices_weight = vwgt
         self._xadjacency = xadj
@@ -26,8 +27,8 @@ class Graph:
         self._edgecut = 0  # 2
         self._blocks: list[int] = []  # [0, 0, 1, 1, 0]
 
-        self._nx: None | nx.Graph = None
-        self._bc: None | EdgeDict = None
+        self._nx = nx
+        self._bc = bc
         self._cf_bc: None | EdgeDict = None
         self._avg_dist: None | float = None
         self._adj_spectrum: None | np.ndarray = None
@@ -35,10 +36,9 @@ class Graph:
         self._spectral_rad: None | float = None
         self._nat_co: None | float = None
 
-        if nx:
-            if not json:
-                self.set_from_nx(nx)
-            self._nx = nx
+        if nx and not json:
+            self.set_from_nx(nx)
+    
         if json:
             self.import_from_json(json)
 
@@ -326,8 +326,11 @@ class Graph:
     def get_edge_bc(self) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()
-        return nx.edge_betweenness_centrality(self._nx)
-    
+        if not self._bc:
+            return nx.edge_betweenness_centrality(self._nx)
+        else:
+            return self._bc
+        
     @property
     def get_avg_edge_bc(self) -> float:
         return np.mean(list(self.get_edge_bc.values()))
