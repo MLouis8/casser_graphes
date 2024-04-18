@@ -36,7 +36,7 @@ def random_attack(G: Graph):
 def attack(
     G: Graph, k: int, fp_save: str, order: str, metric_bc: bool, metric_cc: bool, ncuts: int = 1000
 ) -> RobustnessDict:
-    """ "
+    """
     Simulates an attack on a Graph with the following strategy:
         repeat k times:
         - cuts ncuts times G
@@ -69,8 +69,9 @@ def attack(
                 chosen_edge = freq_attack(G, ncuts)
             case "rd":
                 chosen_edge = random_attack(G)
+        G.remove_edge(chosen_edge)
     bc = G.get_edge_bc() if metric_bc else None
-    cc = G.get_max_cc() if metric_cc else None
+    cc = G.get_biggest_connected_component() if metric_cc else None
     metrics.append((chosen_edge, bc, cc))
 
     with open(fp_save, "w") as save_file:

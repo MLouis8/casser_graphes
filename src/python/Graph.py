@@ -322,6 +322,12 @@ class Graph:
                     blocks[node] = 1 - blocks[node]
         self.set_last_results(size, blocks)
 
+    @property
+    def get_biggest_connected_component(self):
+        if not self._nx:
+            self._nx = self.to_nx()
+        return len(sorted(nx.connected_components(self._nx), key=len, reverse=True)[0])
+
     def get_edge_bc(self, new: bool = False) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()
