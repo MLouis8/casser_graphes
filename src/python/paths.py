@@ -136,3 +136,8 @@ clusters_paths_3 = [
     "./data/clusters/CTS_50000_lanesnobridge.json",
     "./data/clusters/CTS_60000_lanesnobridge.json",
 ]
+
+rpaths_bc = [
+    "data/ParisBClanes.json",
+    "data/ParisBCnocost.json"
+]

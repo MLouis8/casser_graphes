@@ -64,7 +64,7 @@ def triple_plot_convergence():
     plt.savefig("./presentations/images/3convergences1000coupes.svg")
 
 
-def exampleBastien(G_nx: nx.Graph):
+def exempleBastien(G_nx: nx.Graph):
     edges = ox.graph_to_gdfs(G_nx, nodes=False)
     edge_types = edges["length"].value_counts()
     color_list = ox.plot.get_colors(n=len(edge_types), cmap="viridis")
@@ -294,7 +294,7 @@ def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict
 
     def thicken(u, v):
         if (u, v) in edgeList:
-            return 10#thickness[(u, v)]
+            return thickness[(u, v)]
         else:
             return 1
         
@@ -413,3 +413,176 @@ def bar_plot(ax, data, colors=None, total_width=0.8, single_width=1):
     ax.legend(bars, data.keys())
     ax.set_ylabel("distribution")
     ax.set_xlabel("imbalances")
+
+def to_hex(c):
+    f = lambda x: int(255*x)
+    return "#{0:02x}{1:02x}{2:02x}".format(f(c[0]), f(c[1]), f(c[2]))
+
+def visualize_bc(bc: EdgeDict, G: nx.Graph, fp: str, color_levels: int=10) -> None:
+    etendue = max(bc.values()) - min(bc.values())
+    step = etendue / color_levels
+    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels)]
+    print(color_list)
+    def colorize(u, v, w):
+        edge = str((u, v))
+        if edge in bc:
+            bc_score = bc[edge]
+            return color_list[int(bc_score / step)]
+        edge = str((u, v, w))
+        if edge in bc:
+            bc_score = bc[edge]
+            return color_list[int(bc_score / step)]
+        else:
+            print(edge)
+            return "#54545420"
+    
+    def thicken(u, v, w):
+        edge = str((u, v))
+        if edge in bc:
+            bc_score = bc[edge]
+            return bc_score // (step*2)
+        edge = str((u, v, w))
+        if edge in bc:
+            bc_score = bc[edge]
+            return bc_score // (step*2)
+        else:
+            return 1
+        
+    edge_color = [colorize(u, v, w) for u, v, w in G.edges]
+    edge_width = [thicken(u, v, w) for u, v, w in G.edges]
+    print(len(edge_color), len(edge_width), len(G.edges))
+    l = []
+    for elem in edge_color:
+        if not type(elem) in l:
+            l.append(type(elem))
+    print(l)
+    l = []
+    for elem in edge_width:
+        if not type(elem) in l:
+            l.append(type(elem))
+    print(l)
+    print("edges colorized, starting display...")
+    return ox.plot_graph(
+        G,
+        bgcolor="white",
+        node_size=0.5,
+        edge_color=edge_color,
+        edge_linewidth=edge_width,
+        save=True,
+        filepath=fp,
+        show=False,
+        node_color="#54545420",
+    )
+
+def visualize_Delta_bc(bc1: EdgeDict, bc2: EdgeDict, G: nx.Graph, fp: str, abslt: bool, color_levels: int=10) -> None:
+    f = lambda b1, b2: abs(b1-b2) if abslt else b2-b1
+    etendue = 0
+    for k, v in bc1.items():
+        etendue = etendue if abs(bc2[k]-v) < etendue else abs(bc2[k]-v)
+    step = etendue * 2. / color_levels if not abslt else etendue / color_levels
+    color_list = ox.plot.get_colors(n=color_levels, cmap="viridis")
+    def colorize(u, v, w):
+        edge = str((u,v))
+        if edge in bc1:
+            if not edge in bc2:
+                raise ValueError(edge + " must be in the two dicts")
+            bc_score = f(bc1[edge], bc2[edge])
+            return color_list[int(bc_score / step)]
+        edge = str((u, v, w))
+        if edge in bc1:
+            if not edge in bc2:
+                raise ValueError(edge + " must be in the two dicts")
+            bc_score = f(bc1[edge], bc2[edge])
+            return color_list[int(bc_score / step)]
+        else:
+            return "#54545420"
+    
+    def thicken(u, v, w):
+        edge = str((u,v))
+        if edge in bc1:
+            bc_score = f(bc1[edge], bc2[edge])
+            return abs(bc_score) // (step*2)
+        edge = str((u, v, w))
+        if edge in bc1:
+            bc_score = f(bc1[edge], bc2[edge])
+            return abs(bc_score) // (step*2)
+        else:
+            return 1
+        
+    edge_color = [colorize(u, v, w) for u, v, w in G.edges]
+    edge_width = [thicken(u, v, w) for u, v, w in G.edges]
+    print("edges colorized, starting display...")
+    return ox.plot_graph(
+        G,
+        bgcolor="white",
+        node_size=0.5,
+        edge_color=edge_color,
+        edge_linewidth=edge_width,
+        save=True,
+        filepath=fp,
+        show=False,
+        node_color="#54545420",
+        edge_alpha=None,
+    )
+
+def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str) -> None:
+    n_bins = 25
+    dist1 = bc1.values()
+    dist2 = bc2.values()
+    _, ax = plt.subplots()
+    ax.hist(dist1, bins=n_bins)
+    ax.hist(dist2, bins=n_bins)
+    ax.set_yscale("log")
+    plt.savefig(fp)
+
+def visualize_Deltabc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str, abslt: bool) -> None:
+    """
+    Plots distribution of difference between two edge Betweenness Centrality dictionnaries
+    asblt indicates whether the difference is to observe relatively or absolutely
+    """
+    n_bins = 25
+    f = lambda b1, b2: abs(b1-b2) if abslt else b2-b1
+    dist = [f(bc1[k], bc2[k]) for k in bc1.keys()]
+    _, ax = plt.subplots()
+    ax.hist(dist, bins=n_bins)
+    ax.set_yscale("log")
+    plt.savefig(fp)
+
+def visualize_attack_scores(attacks: list[list[list[float]] | list[EdgeDict]] | list[list[list[int]] | list[int]], fp: str, is_bc: bool) -> None:
+    """
+    Function to visualize the evolution of metrics over multiple attacks
+    is_bc indicates whether the observed scores are average eBC or biggest component size (if set to False)
+    """
+    fig, ax = plt.subplots()
+    for i, attack in enumerate(attacks):
+        x = np.arange(len(attack))
+        if is_bc:
+            if isinstance(attack, list[EdgeDict]):
+                # attack is a list of eBCs
+                y = [np.mean(list(bc_dict.values())) for bc_dict in attack]
+                plt.plot(x, y, label="bc " + str(i))
+            elif isinstance(attack, list[list[float]]):
+                # attack is a list of lists of avg eBCs (coming from random attack)
+                y_moy = [np.mean(list(bc_dict.values())) for bc_dict in attack]
+                y_min = [np.min(list(bc_dict.values())) for bc_dict in attack]
+                y_max = [np.max(list(bc_dict.values())) for bc_dict in attack]
+                plt.plot(x, y_moy, label="bc moy " + str(i))
+                plt.plot(x, y_min, label="bc min " + str(i))
+                plt.plot(x, y_max, label="bc max" + str(i))
+            else:
+                raise TypeError(f"Type {type(attack)} not recognized")
+        else:
+            if isinstance(attack, list[list[int]]):
+                # attack is a list of biggest size cc (coming from random attack)
+                y_moy = [np.mean(cc) for cc in attack]
+                y_min = [np.min(cc) for cc in attack]
+                y_max = [np.max(cc) for cc in attack]
+                plt.plot(x, y_moy, label="cc moy " + str(i))
+                plt.plot(x, y_min, label="cc min " + str(i))
+                plt.plot(x, y_max, label="cc max" + str(i))
+            elif isinstance(attack, list[int]):
+                # attack is a list of biggest size cc
+                plt.plot(x, attack, label="cc " + str(i))
+            else:
+                raise TypeError(f"Type {type(attack)} not recognized")
+    fig.savefig(fp)

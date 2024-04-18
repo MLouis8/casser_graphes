@@ -1,7 +1,7 @@
 import networkx as nx
 import osmnx as ox
 import numpy as np
-import kahip # to comment if ARM, uncomment to cut
+# import kahip # to comment if ARM, uncomment to cut
 import json
 from typing import Optional, Any
 from typ import EdgeDict
@@ -29,6 +29,7 @@ class Graph:
 
         self._nx = nx
         self._bc = bc
+        self._old_bc = False
         self._cf_bc: None | EdgeDict = None
         self._avg_dist: None | float = None
         self._adj_spectrum: None | np.ndarray = None
@@ -115,7 +116,9 @@ class Graph:
 
     def remove_edge(self, edge: tuple[int, int]) -> None:
         if self._nx:
-            self._nx.remove_edge(edge)
+            self._nx.remove_edge(edge[0], edge[1])
+        if not self._old_bc:
+            self._old_bc = True
         n1, n2 = edge if edge[0] < edge[1] else (edge[1], edge[0])
         new_xadj = []
         for i in range(self._sizeV+1):
@@ -204,17 +207,18 @@ class Graph:
         Configurations with a social in their name should be used for social
         networks and web graphs.
         """
-        self._edgecut, self._blocks = kahip.kaffpa(
-            self["vwgt"],
-            self["xadj"],
-            self["adjcwgt"],
-            self["adjncy"],
-            nblocks,
-            imbalance,
-            suppress_output,
-            seed,
-            mode,
-        )
+        pass
+        # self._edgecut, self._blocks = kahip.kaffpa(
+        #     self["vwgt"],
+        #     self["xadj"],
+        #     self["adjcwgt"],
+        #     self["adjncy"],
+        #     nblocks,
+        #     imbalance,
+        #     suppress_output,
+        #     seed,
+        #     mode,
+        # )
 
     def process_cut(self) -> list[tuple[int, int]]:
         edges = []
@@ -323,7 +327,7 @@ class Graph:
         self.set_last_results(size, blocks)
 
     @property
-    def get_biggest_connected_component(self):
+    def get_size_biggest_cc(self):
         if not self._nx:
             self._nx = self.to_nx()
         return len(sorted(nx.connected_components(self._nx), key=len, reverse=True)[0])
@@ -331,8 +335,9 @@ class Graph:
     def get_edge_bc(self, new: bool = False) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()
-        if not self._bc or new:    
+        if self._old_bc or new:    
             self._bc = nx.edge_betweenness_centrality(self._nx)
+            self._old_bc = False
         return self._bc
         
     @property

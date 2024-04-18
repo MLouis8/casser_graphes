@@ -1,0 +1,85 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+\usepackage{pdfpages}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{multicol}
+
+\graphicspath{ {../images/} }
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Robustesse 1}
+\subtitle{Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \AtBeginSection[]{
+    \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+        \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+    \end{frame}
+    }
+    % frame 1
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    % frame 2
+    \begin{frame}
+        \frametitle{Outline}
+        \tableofcontents
+    \end{frame}
+
+    \section{Étude sur le graphe non valué}
+    \subsection{Sur tout le graphe}
+    \begin{frame}
+        \frametitle{Score: eBC}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Score: plus grande CC}
+    \end{frame}
+    
+    \subsection{Sur tout les deux types de coupe les plus présentes}
+    \begin{frame}
+        \frametitle{Score: eBC}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Score: plus grande CC}
+    \end{frame}
+
+    \section{Étude sur le graphe valué par le nb de voies}
+    \subsection{Sur tout le graphe}
+    \begin{frame}
+        \frametitle{Score: eBC}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Score: plus grande CC}
+    \end{frame}
+
+    \subsection{Sur tout les deux types de coupe les plus présentes}
+    \begin{frame}
+        \frametitle{Score: eBC}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Score: plus grande CC}
+    \end{frame}
+\end{document}

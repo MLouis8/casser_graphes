@@ -15,4 +15,5 @@ Cut = list[Edge]
     # - the cut edge
     # - the EBC after the removel of the edge
     # - the size of the biggest connex component
-RobustList = list[tuple[Edge, EdgeDict, int]]
+# If we use a random attack, only the nrandoms avg EBC and the size of the biggest CC are stored (so lists)
+RobustList = list[tuple[Edge, EdgeDict, int]] | list[tuple[Edge, list[float], list[int]]]
