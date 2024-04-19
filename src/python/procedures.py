@@ -391,15 +391,6 @@ def flatten(l):
     return res
 
 
-def gen_to_list(gen):
-    if isinstance(gen, str):
-        return gen
-    res = []
-    for elem in gen:
-        res.append(gen_to_list(elem))
-    return res
-
-
 def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[float]):
     assert len(kp_paths) == len(costs_names)
     for i, kp in enumerate(kp_paths):

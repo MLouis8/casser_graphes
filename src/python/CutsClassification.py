@@ -2,8 +2,6 @@ from typ import Cuts, Cut, Classes, Edge
 from Graph import Graph
 from typing import Any, Optional
 
-from utils import gen_to_list
-
 import json
 import networkx as nx
 import random as rd
@@ -243,3 +241,11 @@ class HomemadeClassification:
                 max(range(len(rpz)), key=(lambda k: self.proximity(self._cuts[rpz[k]], self._cuts[elem])))
             ].append(elem)
         return classes
+    
+def gen_to_list(gen):
+    if isinstance(gen, str):
+        return gen
+    res = []
+    for elem in gen:
+        res.append(gen_to_list(elem))
+    return res

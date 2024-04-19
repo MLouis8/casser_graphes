@@ -29,16 +29,24 @@ def freq_attack(G: Graph, ncuts: int) -> Edge:
     return max(frequencies, key=frequencies.get)
 
 
-def betweenness_attack(G: Graph) -> Edge:
+def betweenness_attack(G: Graph, subset: list[Edge] | None) -> Edge:
     bc = G.get_edge_bc()
-    return max(bc, key=bc.get)
+    if subset:
+        res, max_bc = None, 0
+        for edge in subset:
+            if bc[edge] > max_bc:
+                max_bc = bc[edge]
+                res = edge
+        return res
+    else:
+        return max(bc, key=bc.get)
 
 
-def random_attack(G: Graph, n: int) -> list[Edge]:
+def random_attack(G: Graph, n: int, subset: list[Edge] | None) -> list[Edge]:
     return rd.choices(list(G._nx.edges), k=n)
 
 
-def maxdegree_attack(G: Graph) -> Edge:
+def maxdegree_attack(G: Graph, subset: list[Edge] | None) -> Edge:
     maxdegree, chosen_edge = 0, None
     for edge in G._nx.edges:
         degree = G._nx.degree[edge[0]] * G._nx.degree[edge[1]]
@@ -57,6 +65,7 @@ def attack(
     ncuts: int = 1000,
     nrandoms: int = 100,
     save: bool = True,
+    subset: list[Edge] | None = None,
     # extended: bool = False, TODO: don't recalculate first bc when extended
 ) -> RobustList | None:
     """
@@ -75,7 +84,10 @@ def attack(
         metric_cc: bool, whether the max size of the connected components is computed or not
         ncuts: int (default 1000), the number of cuts to decide
         nrandoms: int (default 100), the number of random edges to choose for the mean
+        save: bool, whether the result should be returned or saved (used for extended save)
+        subset: list[Edge] | None, if set, the edges will be chosen in the subset and the metrics are still computed for the entire graph
 
+        Warning subset and frequency attack aren't available at the same time.
     Saves:
         List of size k, containing a tuple of size 3 containing:
          - removed edge
@@ -104,14 +116,15 @@ def attack(
                     G.get_size_biggest_cc,
                 )
             )
-
+    if order == "freq" and subset:
+        raise ValueError("Freq attack not available when considering only a subset of edges")
     metrics, chosen_edge, chosen_edges = [], None, []
     for i in range(k):
         print(f"processing the {i+1}-th attack over {k}, order: {order}")
         match order:
             case "bc":
                 not_rd_procedure(metrics, chosen_edge)
-                chosen_edge = betweenness_attack(G)
+                chosen_edge = betweenness_attack(G, subset)
                 G.remove_edge(chosen_edge)
             case "freq":
                 not_rd_procedure(metrics, chosen_edge)
@@ -119,11 +132,11 @@ def attack(
                 G.remove_edge(chosen_edge)
             case "deg":
                 not_rd_procedure(metrics, chosen_edge)
-                chosen_edge = maxdegree_attack(G)
+                chosen_edge = maxdegree_attack(G, subset)
                 G.remove_edge(chosen_edge)
             case "rd":
                 rd_procedure(metrics, chosen_edges)
-                chosen_edges = random_attack(G, nrandoms)
+                chosen_edges = random_attack(G, nrandoms, subset)
     if order != "rd":
         not_rd_procedure(metrics, chosen_edge)
     else:

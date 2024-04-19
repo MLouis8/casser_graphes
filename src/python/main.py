@@ -16,7 +16,7 @@ def main():
     # attack on best cut types
     G = Graph(json=kp_paths[1])  # no cost
     n = 10
-    attack(G, n, "data/nocost_graph_Deg_" + str(n) + ".json", "deg", True, True)
+    attack(G, n, "data/nocost_cut_bc_" + str(n) + ".json", "bc", True, True)
     
     # visualize
     # with open("data/ParisBClanes.json", "r") as read_file:
