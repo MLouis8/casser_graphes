@@ -171,6 +171,7 @@ KaHIP/
 include/
 kahip.cpython-311-x86_64-linux-gnu.so
 bin/
+src/python/interface/
 src/cache/
 .lprof/
 .vscode/
@@ -178,7 +179,7 @@ src/notebooks
 osmnx-examples/
 etc/
 cache/
-src/mes_modules.py
+src/python/kahip.cpp
 package-lock.json
 
 # latex
