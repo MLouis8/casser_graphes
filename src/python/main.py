@@ -13,15 +13,15 @@ from sys import setrecursionlimit
 setrecursionlimit(100000)
 
 def main():
-    with open("data/cuts/nocost_1000_005.json", "r") as read_file:
-        data = json.load(read_file)
-    cut = data["8"]
+    # with open("data/cuts/nocost_1000_005.json", "r") as read_file:
+    #     data = json.load(read_file)
+    # cut = data["8"]
     G = Graph(json=kp_paths[1])
-    G.set_last_results(cut[0], cut[1])
-    edges = G.process_cut()
-    # attack on best cut types
+    # G.set_last_results(cut[0], cut[1])
+    # edges = G.process_cut()
+    # # attack on best cut types
     n = 10
-    attack(G, n, "data/robust/nocost_cut_bc_" + str(n) + ".json", "bc", True, True, subset=edges)
+    attack(G, n, "data/robust/nocost_graph_RD100_" + str(n) + ".json", "rd", True, True)
     
     # visualize
     # with open("data/ParisBClanes.json", "r") as read_file:
