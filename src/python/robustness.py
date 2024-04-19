@@ -57,7 +57,7 @@ def attack(
     ncuts: int = 1000,
     nrandoms: int = 100,
     save: bool = True,
-    extended: bool = False,
+    # extended: bool = False, TODO: don't recalculate first bc when extended
 ) -> RobustList | None:
     """
     Simulates an attack on a Graph with the following strategy:
@@ -69,7 +69,7 @@ def attack(
         G: Graph
         k: int, the number of edges to remove
         fp_save: str, the saving path
-        order: str, can be "bc", "freq" or "rd" depending on the strategy to apply for the attack
+        order: str, can be "bc", "freq", "deg" or "rd" depending on the strategy to apply for the attack
             (ex. bc will remove the highest Betweenness Centrality edge)
         metric_bc: bool, whether the Betweenness Centrality is computed at each step
         metric_cc: bool, whether the max size of the connected components is computed or not
@@ -116,6 +116,10 @@ def attack(
             case "freq":
                 not_rd_procedure(metrics, chosen_edge)
                 chosen_edge = freq_attack(G, ncuts)
+                G.remove_edge(chosen_edge)
+            case "deg":
+                not_rd_procedure(metrics, chosen_edge)
+                chosen_edge = maxdegree_attack(G)
                 G.remove_edge(chosen_edge)
             case "rd":
                 rd_procedure(metrics, chosen_edges)
@@ -185,7 +189,7 @@ def extend_attack(
         ncuts=ncuts,
         nrandoms=nrandoms,
         save=False,
-        extended=True,
+        #  extended=True, see attack for more details
     )
     # return the concat of the two metrics
     if save:

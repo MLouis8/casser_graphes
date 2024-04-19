@@ -137,7 +137,12 @@ clusters_paths_3 = [
     "./data/clusters/CTS_60000_lanesnobridge.json",
 ]
 
-rpaths_bc = [
-    "data/ParisBClanes.json",
-    "data/ParisBCnocost.json"
+rpaths = [
+    "data/robust/nocost_graph_BC_5.json",
+    "data/robust/nocost_graph_BC_10.json",
+    "data/robust/nocost_graph_Freq_5.json",
+    "data/robust/nocost_graph_Freq_10.json",
+    "data/robust/nocost_graph_RD_5.json",
+    "data/robust/nocost_graph_RD_10.json",
+    "data/robust/nocost_graph_Deg_10.json",
 ]
