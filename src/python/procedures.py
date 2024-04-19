@@ -13,6 +13,7 @@ from CutsClassification import CutsClassification
 from cuts_analysis import class_mean_cost
 from robustness import extend_attack
 
+
 def replace_parallel_edges(G):
     """
     KaHIP ne suppporte pas les aretes paralleles, on les remplace donc
@@ -65,6 +66,7 @@ def add_node_weights_and_relabel(G):
     mapping = {old_node: new_node for new_node, old_node in enumerate(sorted_nodes)}
     G = nx.relabel_nodes(G, mapping)
 
+
 # Resultats observes lors de l'execution
 # Just after importation, we have :
 # 94783 edges
@@ -75,6 +77,7 @@ def add_node_weights_and_relabel(G):
 # After projection, we have :
 # 59060 edges
 # 40547 nodes
+
 
 def infer_width(G: nx.graph) -> EdgeDict3:
     distr = {
@@ -131,13 +134,16 @@ def infer_width(G: nx.graph) -> EdgeDict3:
             False: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
         },
         "crossing": {
-            True: None, False: None,
+            True: None,
+            False: None,
         },
         "emergency_access_point": {
-            True: None, False: None,
+            True: None,
+            False: None,
         },
         "disused": {
-            True: None, False: None,
+            True: None,
+            False: None,
         },
     }
     widths, lanes = {}, [1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
@@ -153,10 +159,14 @@ def infer_width(G: nx.graph) -> EdgeDict3:
                 widths[(u, v, w)] = int(existing_lanes[(u, v, w)]) * 4
                 # 4 étant la largeur moyenne d'une rue parisienne
             except:
-                widths[(u, v, w)] = rd.choices(
-                    lanes, weights=distr[highways[(u, v, w)]][oneways[(u, v, w)]]
-                )[0] * 4
+                widths[(u, v, w)] = (
+                    rd.choices(
+                        lanes, weights=distr[highways[(u, v, w)]][oneways[(u, v, w)]]
+                    )[0]
+                    * 4
+                )
     return widths
+
 
 def infer_lanes(G: nx.graph) -> EdgeDict3:
     widths = {}
@@ -164,11 +174,11 @@ def infer_lanes(G: nx.graph) -> EdgeDict3:
     existing_lanes = nx.get_edge_attributes(G, "lanes")
     highways = nx.get_edge_attributes(G, "highway")
     for u, v, w in G.edges:
-        try: # 4 étant la largeur moyenne d'une rue parisienne
+        try:  # 4 étant la largeur moyenne d'une rue parisienne
             widths[(u, v, w)] = math.ceil(existing_widths[(u, v, w)] / 4)
         except:
             if highways[(u, v, w)] == "primary" or highways[(u, v, w)] == "secondary":
-                try:                    
+                try:
                     val = int(existing_lanes[(u, v, w)])
                     if val < 3:
                         widths[(u, v, w)] = 3
@@ -177,11 +187,12 @@ def infer_lanes(G: nx.graph) -> EdgeDict3:
                 except:
                     widths[(u, v, w)] = 3
             else:
-                try:                    
+                try:
                     widths[(u, v, w)] = int(existing_lanes[(u, v, w)])
                 except:
                     widths[(u, v, w)] = 2
     return widths
+
 
 def preprocessing(
     G: nx.Graph,
@@ -214,7 +225,7 @@ def preprocessing(
     @returns:
         None
     """
-    inf: int = 95099713 # big number for removing cut access to an edge
+    inf: int = 95099713  # big number for removing cut access to an edge
     if cost_name in [
         "width",
         "squared width",
@@ -227,7 +238,7 @@ def preprocessing(
         "lanes",
         "squared lanes",
         "lanes with maxspeed",
-        "lanes without bridge"
+        "lanes without bridge",
     ]:
         edge_lanes = infer_lanes(G)
     match cost_name:
@@ -238,13 +249,17 @@ def preprocessing(
         case "width with maxspeed":
             maxspeed_dict = nx.get_edge_attributes(G, "maxspeed", default=50)
             edge_weight = {
-                k: v if maxspeed_dict[k] == 'walk' or int(maxspeed_dict[k]) <= 50 else inf
+                k: (
+                    v
+                    if maxspeed_dict[k] == "walk" or int(maxspeed_dict[k]) <= 50
+                    else inf
+                )
                 for k, v in edge_width.items()
             }
         case "width without bridge":
             bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
             edge_weight = {
-                k: inf if bridge_dict[k] == 'yes' else v for k, v in edge_width.items()
+                k: inf if bridge_dict[k] == "yes" else v for k, v in edge_width.items()
             }
         case "width without tunnel":
             tunnel_dict = nx.get_edge_attributes(G, "tunnel", default=False)
@@ -253,13 +268,18 @@ def preprocessing(
             }
         case "random(min, max)":
             if type(minmax) is None:
-                raise TypeError("argument minmax should be given if minmax cost is selected")
-            edge_weight = { k: rd.randint(minmax[0], minmax[1]) for k in G.edges}
+                raise TypeError(
+                    "argument minmax should be given if minmax cost is selected"
+                )
+            edge_weight = {k: rd.randint(minmax[0], minmax[1]) for k in G.edges}
         case "random distribution":
             if type(distrib) is None:
-                raise TypeError("argument distrib should be given if distrib cost is selected")
+                raise TypeError(
+                    "argument distrib should be given if distrib cost is selected"
+                )
             edge_weight = {
-                k: rd.choices(list(distrib.keys()), weights=list(distrib.values()))[0] for k in G.edges
+                k: rd.choices(list(distrib.keys()), weights=list(distrib.values()))[0]
+                for k in G.edges
             }
         case "lanes":
             edge_weight = edge_lanes
@@ -268,13 +288,17 @@ def preprocessing(
         case "lanes with maxspeed":
             maxspeed_dict = nx.get_edge_attributes(G, "maxspeed", default=50)
             edge_weight = {
-                k: v if maxspeed_dict[k] == 'walk' or int(maxspeed_dict[k]) <= 50 else inf
+                k: (
+                    v
+                    if maxspeed_dict[k] == "walk" or int(maxspeed_dict[k]) <= 50
+                    else inf
+                )
                 for k, v in edge_lanes.items()
             }
         case "lanes without bridge":
             bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
             edge_weight = {
-                k: inf if bridge_dict[k] == 'yes' else v for k, v in edge_lanes.items()
+                k: inf if bridge_dict[k] == "yes" else v for k, v in edge_lanes.items()
             }
         case "betweenness":
             edge_weight = nx.get_edge_attributes(G, "betweenness")
@@ -325,8 +349,14 @@ def init_city_graph(filepath, betweenness: bool = False):
 # init_city_graph("./data/Paris.graphml")
 
 
-def prepare_instance(read_filename: str, write_filename: str, val_name: str, minmax: tuple[int, int] | None=None, distr: dict[int, float] | None=None):
-    """"
+def prepare_instance(
+    read_filename: str,
+    write_filename: str,
+    val_name: str,
+    minmax: tuple[int, int] | None = None,
+    distr: dict[int, float] | None = None,
+):
+    """ "
     Prepare a json KaHIP Graph instance according to the required cost function.
 
     Cost options:
@@ -341,7 +371,7 @@ def prepare_instance(read_filename: str, write_filename: str, val_name: str, min
         - "lanes"
         - "squared lanes"
         - "lanes with maxspeed"
-        - "lanes without bridge" 
+        - "lanes without bridge"
     """
     print("Loading instance")
     G_nx = ox.load_graphml(read_filename)
@@ -369,6 +399,7 @@ def gen_to_list(gen):
         res.append(gen_to_list(elem))
     return res
 
+
 def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[float]):
     assert len(kp_paths) == len(costs_names)
     for i, kp in enumerate(kp_paths):
@@ -378,7 +409,9 @@ def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[
             seen_seeds = []
             print(f"cutting for imbalance {imbalance}...")
             for ncut in range(1000):
-                print(f"cut number {ncut} for imbalance {imbalance} and cost {costs_names[i]}")
+                print(
+                    f"cut number {ncut} for imbalance {imbalance} and cost {costs_names[i]}"
+                )
                 G_kp = Graph(json=kp)
                 seed = rd.randint(0, 1044642763)
                 while seed in seen_seeds:
@@ -386,8 +419,12 @@ def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[
                 seen_seeds.append(seed)
                 G_kp.kaffpa_cut(2, imbalance, 0, seed, 3)
                 cut[str(ncut)] = G_kp.get_last_results
-            with open("./data/cuts/"+costs_names[i]+"_1000_"+str(imbalance)+".json", "w") as cut_file:
+            with open(
+                "./data/cuts/" + costs_names[i] + "_1000_" + str(imbalance) + ".json",
+                "w",
+            ) as cut_file:
                 json.dump(cut, cut_file)
+
 
 # Code samples for main
 def cpt_freq(freq, kcuts, G_kp):
@@ -422,11 +459,12 @@ def clustering_procedure():
         print(len(level))
     C.save_last_classes("data/clusters/CTS_" + str(n) + "_lanesmaxspeed.json")
 
+
 def clustering_display():
     print("loading graphs...")
     j = 3
     G_nx = ox.load_graphml(graphml_path[2])
-    G_kp = Graph(json=kp_paths[j+9])
+    G_kp = Graph(json=kp_paths[j + 9])
     print("loading cuts and clusters...")
     with open(cut_paths_2[j], "r") as read_file:
         kcuts = json.load(read_file)
@@ -450,13 +488,21 @@ def clustering_display():
             + str(len(levels[x][i]))
             + ", coût moyen: "
             + str(round(class_mean_cost(levels[x][i], cuts, G_nx))),
-            fontsize=6
+            fontsize=6,
         )
     axes[-1, -1].axis("off")
-    axes[-1, -2].axis("off") 
+    axes[-1, -2].axis("off")
     plt.savefig("presentations/images/clusters/CTS_lanesnobridge7500.pdf")
 
+
 def extend_attack_procedure(prev_attack: str, saving_fp: str, **kwargs):
+    """
+    Procedure for simplifying the extension of an attack (continuing the removal of edges from what was already done)
+
+    It requires the saving path of the original attack.
+    And a new saving path for the resulting extension.
+    All parameters of the first attack must be re-entered, only k the number of edges to remove is to change according to what's wanted.
+    """
     with open(prev_attack, "r") as read_file:
         metrics = json.load(read_file)
     for i in range(len(metrics)):

@@ -8,6 +8,7 @@ import numpy as np
 from typing import Any
 from copy import deepcopy
 
+
 def freq_attack(G: Graph, ncuts: int) -> Edge:
     cut_union = []
     seen_seeds = []
@@ -27,12 +28,15 @@ def freq_attack(G: Graph, ncuts: int) -> Edge:
             frequencies[edge] = 1
     return max(frequencies, key=frequencies.get)
 
+
 def betweenness_attack(G: Graph) -> Edge:
     bc = G.get_edge_bc()
     return max(bc, key=bc.get)
 
+
 def random_attack(G: Graph, n: int) -> list[Edge]:
     return rd.choices(list(G._nx.edges), k=n)
+
 
 def maxdegree_attack(G: Graph) -> Edge:
     maxdegree, chosen_edge = 0, None
@@ -42,8 +46,18 @@ def maxdegree_attack(G: Graph) -> Edge:
         chosen_edge = edge
     return chosen_edge
 
+
 def attack(
-    G: Graph, k: int, fp_save: str, order: str, metric_bc: bool, metric_cc: bool, ncuts: int = 1000, nrandoms: int = 100, save: bool = True
+    G: Graph,
+    k: int,
+    fp_save: str,
+    order: str,
+    metric_bc: bool,
+    metric_cc: bool,
+    ncuts: int = 1000,
+    nrandoms: int = 100,
+    save: bool = True,
+    extended: bool = False,
 ) -> RobustList | None:
     """
     Simulates an attack on a Graph with the following strategy:
@@ -67,6 +81,7 @@ def attack(
          - removed edge
          - 0, 1 or 2 metrics applied to the graph at this step
     """
+
     def not_rd_procedure(metrics, chosen_edge):
         bc = G.get_edge_bc(new=True) if metric_bc else None
         cc = G.get_size_biggest_cc if metric_cc else None
@@ -82,7 +97,14 @@ def attack(
                 cc_list.append(G_copy.get_size_biggest_cc)
             metrics.append((chosen_edges, bcs, cc_list))
         else:
-            metrics.append((None, np.mean(list(G.get_edge_bc(new=True).values())), G.get_size_biggest_cc))
+            metrics.append(
+                (
+                    None,
+                    np.mean(list(G.get_edge_bc(new=True).values())),
+                    G.get_size_biggest_cc,
+                )
+            )
+
     metrics, chosen_edge, chosen_edges = [], None, []
     for i in range(k):
         print(f"processing the {i+1}-th attack over {k}, order: {order}")
@@ -120,6 +142,7 @@ def attack(
     else:
         return metrics
 
+
 def avg_bc_edge_subset(G: nx.Graph, s: list[Edge]):
     """
     Returns the average BC of the all graph compared to the average of the listed edges,
@@ -135,12 +158,35 @@ def avg_bc_edge_subset(G: nx.Graph, s: list[Edge]):
             cpt2 += 1
     return avg1 / cpt1, avg2 / cpt2
 
-def extend_attack(G: Graph, metrics: RobustList, k: int, fp_save: str, order: str, metric_bc: bool, metric_cc: bool, ncuts: int, nrandoms: int, save: bool) -> RobustList | None:
+
+def extend_attack(
+    G: Graph,
+    metrics: RobustList,
+    k: int,
+    fp_save: str,
+    order: str,
+    metric_bc: bool,
+    metric_cc: bool,
+    ncuts: int,
+    nrandoms: int,
+    save: bool,
+) -> RobustList | None:
     # remove the already processed edges
     for edge, _, _ in metrics:
         G.remove_edge(edge)
     # launch attack on the new graph
-    tail = attack(G, k, fp_save, order, metric_bc, metric_cc, ncuts=ncuts, nrandoms=nrandoms, save=False)
+    tail = attack(
+        G,
+        k,
+        fp_save,
+        order,
+        metric_bc,
+        metric_cc,
+        ncuts=ncuts,
+        nrandoms=nrandoms,
+        save=False,
+        extended=True,
+    )
     # return the concat of the two metrics
     if save:
         with open(fp_save, "w") as saving_file:

@@ -445,19 +445,20 @@ def visualize_bc(
 ) -> None:
     def colorize(u, v, w):
         if (u, v) in bc:
-            return color_list[int((bc[(u, v)] / vmax)*color_levels)]
+            return color_list[int((bc[(u, v)] / vmax) * color_levels)]
         elif (u, v, w) in bc:
-            return color_list[int((bc[(u, v, w)] / vmax)*color_levels)]
+            return color_list[int((bc[(u, v, w)] / vmax) * color_levels)]
         else:
             return "#54545420"
 
     def thicken(u, v, w):
         if (u, v) in bc:
-            return (2*bc[(u, v)] / vmax)**2
+            return (2 * bc[(u, v)] / vmax) ** 2
         elif (u, v, w) in bc:
-            return (2*bc[(u, v, w)] / vmax)**2
+            return (2 * bc[(u, v, w)] / vmax) ** 2
         else:
             return 1
+
     vmax, vmin = max(bc.values()), min(bc.values())
     color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels)]
     edge_color = [colorize(u, v, w) for u, v, w in G.edges]
@@ -482,6 +483,7 @@ def visualize_bc(
     cb.set_label(title, fontsize=14)
     fig.savefig(fp)
 
+
 def visualize_Delta_bc(
     bc1: EdgeDict,
     bc2: EdgeDict,
@@ -493,18 +495,20 @@ def visualize_Delta_bc(
 ) -> None:
     def colorize(u, v, w):
         if (u, v) in bc1:
-            return color_list[(delta[(u, v)] / vmax)*color_levels]
+            return color_list[int((delta[(u, v)] / vmax) * color_levels)]
         elif (u, v, w) in bc1:
-            return color_list[(delta[(u, v, w)] / vmax)*color_levels]
+            return color_list[int((delta[(u, v, w)] / vmax) * color_levels)]
         else:
             return "#54545420"
+
     def thicken(u, v, w):
         if (u, v) in bc1:
-            return (2*delta[(u, v)] / vmax)**2
+            return (2 * delta[(u, v)] / vmax) ** 2
         elif (u, v, w) in bc1:
-            return (2*delta[(u, v, w)] / vmax)**2
+            return (2 * delta[(u, v, w)] / vmax) ** 2
         else:
             return 1
+
     f = lambda b1, b2: abs(b1 - b2) if abslt else b2 - b1
     delta = {k: f(bc1[k], bc2[k]) if k in bc1 and k in bc2 else 0 for k in bc1.keys()}
     vmax, vmin = max(delta.values()), min(delta.values())

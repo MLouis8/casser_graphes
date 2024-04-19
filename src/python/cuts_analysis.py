@@ -5,6 +5,7 @@ from Graph import Graph
 
 from typ import KCut, EdgeDict, EdgeDictStr, Classes, Cuts
 
+
 def determine_edge_frequency(G: Graph, C: dict[str, KCut]) -> EdgeDict:
     """
     Function for determining edge frequency in cuts
@@ -63,7 +64,10 @@ def get_n_biggest_freq(freq: EdgeDict, n: int) -> EdgeDict:
             chosen.pop(min(chosen, key=chosen.get))
     return chosen
 
-def classify_by_connected_components(cc: dict[str, list[int]], liberty: int=3) -> Classes:
+
+def classify_by_connected_components(
+    cc: dict[str, list[int]], liberty: int = 3
+) -> Classes:
     classes: Classes = []
     for cut_name, co_cpnts in cc.items():
         classified = False
@@ -76,6 +80,7 @@ def classify_by_connected_components(cc: dict[str, list[int]], liberty: int=3) -
         else:
             classes.append([cut_name])
     return classes
+
 
 def class_mean_cost(cls: list[str], cuts: Cuts, G: nx.Graph):
     weights = nx.get_edge_attributes(G, "weight")

@@ -1,6 +1,7 @@
 import networkx as nx
 import osmnx as ox
 import numpy as np
+
 # import kahip # to comment if ARM, uncomment to cut
 import json
 from typing import Optional, Any
@@ -9,7 +10,7 @@ from math import log, exp
 
 
 class Graph:
-    def __init__(   
+    def __init__(
         self,
         vwgt: list[int] = [],
         xadj: list[int] = [],
@@ -17,7 +18,7 @@ class Graph:
         adjncy: list[int] = [],
         nx: nx.Graph | None = None,
         json: str | None = None,
-        bc: EdgeDict | None = None
+        bc: EdgeDict | None = None,
     ) -> None:
         self._vertices_weight = vwgt
         self._xadjacency = xadj
@@ -121,7 +122,7 @@ class Graph:
             self._old_bc = True
         n1, n2 = edge if edge[0] < edge[1] else (edge[1], edge[0])
         new_xadj = []
-        for i in range(self._sizeV+1):
+        for i in range(self._sizeV + 1):
             if i <= n1:
                 new_xadj.append(self["xadj"][i])
             elif i <= n2:
@@ -129,26 +130,26 @@ class Graph:
             else:
                 new_xadj.append(self["xadj"][i] - 2)
         id1, id2 = 0, 0
-        for j in range(self["xadj"][n1], self["xadj"][n1+1]):
+        for j in range(self["xadj"][n1], self["xadj"][n1 + 1]):
             if self["adjncy"][j] == n2:
                 id1 = j
                 break
-        for j in range(self["xadj"][n2], self["xadj"][n2+1]):
+        for j in range(self["xadj"][n2], self["xadj"][n2 + 1]):
             if self["adjncy"][j] == n1:
                 id2 = j
                 break
         self._adjacency.pop(id1)
-        self._adjacency.pop(id2-1)
+        self._adjacency.pop(id2 - 1)
         self._xadjacency = new_xadj
         self._adjacency_weight.pop(id1)
-        self._adjacency_weight.pop(id2-1)
+        self._adjacency_weight.pop(id2 - 1)
 
     def closer_than_k_edges(
         self, e1: tuple[int, int], e2: tuple[int, int], k: int
     ) -> bool:
         """Return whether d(e1, e2) <= k"""
         for i in range(4):
-            closer = self.closer_k_nodes(e1[i//2], e2[i%2], k - 1)
+            closer = self.closer_k_nodes(e1[i // 2], e2[i % 2], k - 1)
             if closer:
                 return True
         return False
@@ -304,7 +305,7 @@ class Graph:
         return nx.connected_components(G_copy)
 
     def rmv_small_cc_from_cut(self, treshold: int) -> None:
-        """"
+        """ "
         Removes small connected components from the cut
         (the cost of cutting these small components)
         (in place)
@@ -335,11 +336,11 @@ class Graph:
     def get_edge_bc(self, new: bool = False) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()
-        if self._old_bc or new:    
+        if self._old_bc or new:
             self._bc = nx.edge_betweenness_centrality(self._nx)
             self._old_bc = False
         return self._bc
-    
+
     @property
     def get_avg_edge_bc(self) -> float:
         return np.mean(list(self.get_edge_bc().values()))
@@ -349,7 +350,7 @@ class Graph:
         if not self._nx:
             self._nx = self.to_nx()
         return nx.edge_current_flow_betweenness_centrality(self._nx)
-    
+
     @property
     def get_avg_edge_cf_bc(self) -> float:
         return np.mean(list(self.get_edge_cf_bc.values()))
@@ -359,7 +360,7 @@ class Graph:
         if not self._nx:
             self._nx = self.to_nx()
         return nx.average_shortest_path_length(self._nx)
-    
+
     def cpt_adj_spectrum(self) -> None:
         if not self._nx:
             self._nx = self.to_nx()
@@ -370,7 +371,7 @@ class Graph:
         if not self._adj_spectrum:
             self.cpt_adj_spectrum()
         return np.max(self._adj_spectrum)
-    
+
     @property
     def get_spectral_gap(self) -> float:
         if not self._adj_spectrum:
@@ -389,4 +390,4 @@ class Graph:
     def get_natural_co(self) -> float:
         if not self._nx:
             self._nx = self.to_nx()
-        return log(nx.subgraph_centrality(self._nx)/self._sizeV)
+        return log(nx.subgraph_centrality(self._nx) / self._sizeV)
