@@ -295,21 +295,23 @@ def visualize_edgeList(
     filepath: str | None = None,
     ax=None,
 ):
-    def colorize(u, v):
-        if (u, v) in edgeList:
+    def colorize(u, v, w):
+        if (u, v) in edgeList or (u, v, w) in edgeList:
             return "r"
         else:
             return "#54545430"
 
-    def thicken(u, v):
+    def thicken(u, v, w):
         if (u, v) in edgeList:
-            return thickness[(u, v)]
+            return 10#thickness[(u, v)]
+        elif (u, v, w) in edgeList:
+            return 10#thickness[(u, v, w)]
         else:
             return 1
 
-    edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
+    edge_color = [colorize(u, v, 0) for u, v in G_nx.edges]
     if bool(thickness):
-        edge_width = [thicken(u, v) for u, v, _ in G_nx.edges]
+        edge_width = [thicken(u, v, 0) for u, v in G_nx.edges]
     else:
         edge_width = 1
     print("edges colorized, starting display...")
