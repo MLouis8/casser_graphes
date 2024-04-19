@@ -10,6 +10,7 @@ import networkx as nx
 from cuts_analysis import get_n_biggest_freq
 from typ import Cuts, Edge, EdgeDict, KCut
 
+
 def imbalances_cut(G_kp):
     imbalances = np.linspace(0, 0.1, 30)
     used_seed = []
@@ -254,7 +255,8 @@ def visualize_class(
     edges_to_color = set()
     for cut_id, edges in cuts.items():
         if cut_id in cls:
-            edges_to_color |= set(edges) #.add(edges)
+            edges_to_color |= set(edges)  # .add(edges)
+
     def colorize(u, v):
         if (u, v) in edges_to_color:
             return "r"
@@ -263,10 +265,10 @@ def visualize_class(
 
     def thicken(u, v):
         if (u, v) in edges_to_color:
-            return 4 #1
+            return 4  # 1
         else:
             return 1
-        
+
     edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
     edge_width = [thicken(u, v) for u, v, _ in G_nx.edges]
     print("edges colorized, starting display...")
@@ -285,7 +287,14 @@ def visualize_class(
         edge_alpha=None,
     )
 
-def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict | None=None, filepath: str | None=None, ax=None):
+
+def visualize_edgeList(
+    edgeList: list[Edge],
+    G_nx: nx.Graph,
+    thickness: EdgeDict | None = None,
+    filepath: str | None = None,
+    ax=None,
+):
     def colorize(u, v):
         if (u, v) in edgeList:
             return "r"
@@ -297,7 +306,7 @@ def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict
             return thickness[(u, v)]
         else:
             return 1
-        
+
     edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
     if bool(thickness):
         edge_width = [thicken(u, v) for u, v, _ in G_nx.edges]
@@ -318,22 +327,27 @@ def visualize_edgeList(edgeList: list[Edge], G_nx: nx.Graph, thickness: EdgeDict
         edge_alpha=None,
     )
 
-def visualize_cost_heatmap(G_nx: nx.Graph, gradient: list[str], savefig: str | None=None):
+
+def visualize_cost_heatmap(
+    G_nx: nx.Graph, gradient: list[str], savefig: str | None = None
+):
     """
     Takes as parameter the city graph processed according to the desired cost
     (edges weight parameter should be set to the corresponding value)
     Saves of shows the plot
     """
     weight = nx.get_edge_attributes(G_nx, "weight")
+
     def colorize(u, v):
-        if weight[(u, v)]  <= 4:
+        if weight[(u, v)] <= 4:
             return "#001AFF"
         elif weight[(u, v)] <= 8:
             return "#BC00A0"
-        elif  weight[(u, v)] <= 20:
+        elif weight[(u, v)] <= 20:
             return "#EA0066"
         else:
             return "#FF3300"
+
     _, ax = plt.subplot()
     edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
     print("edges colorized, starting display...")
@@ -351,7 +365,8 @@ def visualize_cost_heatmap(G_nx: nx.Graph, gradient: list[str], savefig: str | N
         ax=ax,
         node_color="#54545420",
     )
-    
+
+
 def bar_plot(ax, data, colors=None, total_width=0.8, single_width=1):
     """Draws a bar plot with multiple bars per data point.
 
@@ -387,7 +402,7 @@ def bar_plot(ax, data, colors=None, total_width=0.8, single_width=1):
 
     # Check if colors where provided, otherwhise use the default color cycle
     if colors is None:
-        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     # Number of bars per group
     n_bars = len(data)
@@ -405,7 +420,12 @@ def bar_plot(ax, data, colors=None, total_width=0.8, single_width=1):
 
         # Draw a bar for every value of that type
         for x, y in enumerate(values):
-            bar = ax.bar(x + x_offset, y, width=bar_width * single_width, color=colors[i % len(colors)])
+            bar = ax.bar(
+                x + x_offset,
+                y,
+                width=bar_width * single_width,
+                color=colors[i % len(colors)],
+            )
 
         # Add a handle to the last drawn bar, which we'll need for the legend
         bars.append(bar[0])
@@ -414,116 +434,103 @@ def bar_plot(ax, data, colors=None, total_width=0.8, single_width=1):
     ax.set_ylabel("distribution")
     ax.set_xlabel("imbalances")
 
+
 def to_hex(c):
-    f = lambda x: int(255*x)
+    f = lambda x: int(255 * x)
     return "#{0:02x}{1:02x}{2:02x}".format(f(c[0]), f(c[1]), f(c[2]))
 
-def visualize_bc(bc: EdgeDict, G: nx.Graph, fp: str, color_levels: int=10) -> None:
-    etendue = max(bc.values()) - min(bc.values())
-    step = etendue / color_levels
-    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels)]
-    print(color_list)
-    def colorize(u, v, w):
-        edge = str((u, v))
-        if edge in bc:
-            bc_score = bc[edge]
-            return color_list[int(bc_score / step)]
-        edge = str((u, v, w))
-        if edge in bc:
-            bc_score = bc[edge]
-            return color_list[int(bc_score / step)]
-        else:
-            print(edge)
-            return "#54545420"
-    
-    def thicken(u, v, w):
-        edge = str((u, v))
-        if edge in bc:
-            bc_score = bc[edge]
-            return bc_score // (step*2)
-        edge = str((u, v, w))
-        if edge in bc:
-            bc_score = bc[edge]
-            return bc_score // (step*2)
-        else:
-            return 1
-        
-    edge_color = [colorize(u, v, w) for u, v, w in G.edges]
-    edge_width = [thicken(u, v, w) for u, v, w in G.edges]
-    print(len(edge_color), len(edge_width), len(G.edges))
-    l = []
-    for elem in edge_color:
-        if not type(elem) in l:
-            l.append(type(elem))
-    print(l)
-    l = []
-    for elem in edge_width:
-        if not type(elem) in l:
-            l.append(type(elem))
-    print(l)
-    print("edges colorized, starting display...")
-    return ox.plot_graph(
-        G,
-        bgcolor="white",
-        node_size=0.5,
-        edge_color=edge_color,
-        edge_linewidth=edge_width,
-        save=True,
-        filepath=fp,
-        show=False,
-        node_color="#54545420",
-    )
 
-def visualize_Delta_bc(bc1: EdgeDict, bc2: EdgeDict, G: nx.Graph, fp: str, abslt: bool, color_levels: int=10) -> None:
-    f = lambda b1, b2: abs(b1-b2) if abslt else b2-b1
-    etendue = 0
-    for k, v in bc1.items():
-        etendue = etendue if abs(bc2[k]-v) < etendue else abs(bc2[k]-v)
-    step = etendue * 2. / color_levels if not abslt else etendue / color_levels
-    color_list = ox.plot.get_colors(n=color_levels, cmap="viridis")
+def visualize_bc(
+    bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10
+) -> None:
     def colorize(u, v, w):
-        edge = str((u,v))
-        if edge in bc1:
-            if not edge in bc2:
-                raise ValueError(edge + " must be in the two dicts")
-            bc_score = f(bc1[edge], bc2[edge])
-            return color_list[int(bc_score / step)]
-        edge = str((u, v, w))
-        if edge in bc1:
-            if not edge in bc2:
-                raise ValueError(edge + " must be in the two dicts")
-            bc_score = f(bc1[edge], bc2[edge])
-            return color_list[int(bc_score / step)]
+        if (u, v) in bc:
+            return color_list[int((bc[(u, v)] / vmax)*color_levels)]
+        elif (u, v, w) in bc:
+            return color_list[int((bc[(u, v, w)] / vmax)*color_levels)]
         else:
             return "#54545420"
-    
+
     def thicken(u, v, w):
-        edge = str((u,v))
-        if edge in bc1:
-            bc_score = f(bc1[edge], bc2[edge])
-            return abs(bc_score) // (step*2)
-        edge = str((u, v, w))
-        if edge in bc1:
-            bc_score = f(bc1[edge], bc2[edge])
-            return abs(bc_score) // (step*2)
+        if (u, v) in bc:
+            return (2*bc[(u, v)] / vmax)**2
+        elif (u, v, w) in bc:
+            return (2*bc[(u, v, w)] / vmax)**2
         else:
             return 1
-        
+    vmax, vmin = max(bc.values()), min(bc.values())
+    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels)]
     edge_color = [colorize(u, v, w) for u, v, w in G.edges]
     edge_width = [thicken(u, v, w) for u, v, w in G.edges]
     print("edges colorized, starting display...")
-    return ox.plot_graph(
+    cmap = plt.cm.get_cmap("viridis")
+    norm = plt.Normalize(vmin=vmin, vmax=vmax)
+    sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    fig, ax = ox.plot_graph(
         G,
-        bgcolor="white",
+        node_color="#54545420",
         node_size=0.5,
         edge_color=edge_color,
         edge_linewidth=edge_width,
-        save=True,
-        filepath=fp,
+        bgcolor="white",
         show=False,
-        node_color="#54545420",
-        edge_alpha=None,
     )
+    cb = fig.colorbar(
+        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal"
+    )
+    cb.set_label(title, fontsize=14)
+    fig.savefig(fp)
+
+def visualize_Delta_bc(
+    bc1: EdgeDict,
+    bc2: EdgeDict,
+    G: nx.Graph,
+    fp: str,
+    abslt: bool,
+    title: str,
+    color_levels: int = 10,
+) -> None:
+    def colorize(u, v, w):
+        if (u, v) in bc1:
+            return color_list[(delta[(u, v)] / vmax)*color_levels]
+        elif (u, v, w) in bc1:
+            return color_list[(delta[(u, v, w)] / vmax)*color_levels]
+        else:
+            return "#54545420"
+    def thicken(u, v, w):
+        if (u, v) in bc1:
+            return (2*delta[(u, v)] / vmax)**2
+        elif (u, v, w) in bc1:
+            return (2*delta[(u, v, w)] / vmax)**2
+        else:
+            return 1
+    f = lambda b1, b2: abs(b1 - b2) if abslt else b2 - b1
+    delta = {k: f(bc1[k], bc2[k]) if k in bc1 and k in bc2 else 0 for k in bc1.keys()}
+    vmax, vmin = max(delta.values()), min(delta.values())
+    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels)]
+    edge_color = [colorize(u, v, w) for u, v, w in G.edges]
+    edge_width = [thicken(u, v, w) for u, v, w in G.edges]
+    print("edges colorized, starting display...")
+    cmap = plt.cm.get_cmap("viridis")
+    norm = plt.Normalize(vmin=vmin, vmax=vmax)
+    sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    fig, ax = ox.plot_graph(
+        G,
+        node_color="#54545420",
+        node_size=0.5,
+        edge_color=edge_color,
+        edge_linewidth=edge_width,
+        show=False,
+        bgcolor="white",
+    )
+    cb = fig.colorbar(
+        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal"
+    )
+    cb.set_label(title, fontsize=14)
+    fig.savefig(fp)
+
 
 def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str) -> None:
     n_bins = 25
@@ -535,20 +542,30 @@ def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str) -> None:
     ax.set_yscale("log")
     plt.savefig(fp)
 
-def visualize_Deltabc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str, abslt: bool) -> None:
+
+def visualize_Deltabc_distrs(
+    bc1: EdgeDict, bc2: EdgeDict, fp: str, abslt: bool
+) -> None:
     """
     Plots distribution of difference between two edge Betweenness Centrality dictionnaries
     asblt indicates whether the difference is to observe relatively or absolutely
     """
     n_bins = 25
-    f = lambda b1, b2: abs(b1-b2) if abslt else b2-b1
+    f = lambda b1, b2: abs(b1 - b2) if abslt else b2 - b1
     dist = [f(bc1[k], bc2[k]) for k in bc1.keys()]
     _, ax = plt.subplots()
     ax.hist(dist, bins=n_bins)
     ax.set_yscale("log")
     plt.savefig(fp)
 
-def visualize_attack_scores(attacks: list[list[list[float]] | list[EdgeDict]] | list[list[list[int]] | list[int]], fp: str, is_bc: bool) -> None:
+
+def visualize_attack_scores(
+    attacks: (
+        list[list[list[float]] | list[EdgeDict]] | list[list[list[int]] | list[int]]
+    ),
+    fp: str,
+    is_bc: bool,
+) -> None:
     """
     Function to visualize the evolution of metrics over multiple attacks
     is_bc indicates whether the observed scores are average eBC or biggest component size (if set to False)

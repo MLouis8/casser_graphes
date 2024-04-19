@@ -135,12 +135,12 @@ def avg_bc_edge_subset(G: nx.Graph, s: list[Edge]):
             cpt2 += 1
     return avg1 / cpt1, avg2 / cpt2
 
-def extend_attack(G: Graph, metrics: RobustList, k: int, fp_save: str, order: str, metric_bc: bool, metric_cc: bool, ncuts: int = 1000, nrandoms: int = 100, save = True) -> RobustList | None:
+def extend_attack(G: Graph, metrics: RobustList, k: int, fp_save: str, order: str, metric_bc: bool, metric_cc: bool, ncuts: int, nrandoms: int, save: bool) -> RobustList | None:
     # remove the already processed edges
     for edge, _, _ in metrics:
         G.remove_edge(edge)
     # launch attack on the new graph
-    tail = attack(G, k, fp_save, order, metric_bc, metric_cc, save=False)
+    tail = attack(G, k, fp_save, order, metric_bc, metric_cc, ncuts=ncuts, nrandoms=nrandoms, save=False)
     # return the concat of the two metrics
     if save:
         with open(fp_save, "w") as saving_file:

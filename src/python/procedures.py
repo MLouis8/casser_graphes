@@ -5,12 +5,13 @@ import json
 import math
 import matplotlib.pyplot as plt
 
-from python.Graph import Graph
-from python.typ import EdgeDict3
-from python.paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
-from python.visual import visualize_class
-from python.CutsClassification import CutsClassification
-from python.cuts_analysis import class_mean_cost
+from Graph import Graph
+from typ import EdgeDict3
+from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
+from visual import visualize_class
+from CutsClassification import CutsClassification
+from cuts_analysis import class_mean_cost
+from robustness import extend_attack
 
 def replace_parallel_edges(G):
     """
@@ -454,3 +455,25 @@ def clustering_display():
     axes[-1, -1].axis("off")
     axes[-1, -2].axis("off") 
     plt.savefig("presentations/images/clusters/CTS_lanesnobridge7500.pdf")
+
+def extend_attack_procedure(prev_attack: str, saving_fp: str, **kwargs):
+    with open(prev_attack, "r") as read_file:
+        metrics = json.load(read_file)
+    for i in range(len(metrics)):
+        for j in range(len(metrics[i][0])):
+            metrics[i][0][j] = eval(metrics[i][0][j])
+    kwargs["ncuts"] = kwargs["ncuts"] if "ncuts" in kwargs else 1000
+    kwargs["nrandoms"] = kwargs["nrandoms"] if "nrandoms" in kwargs else 100
+    kwargs["save"] = kwargs["save"] if "save" in kwargs else True
+    extend_attack(
+        G=kwargs["G"],
+        metrics=kwargs["metrics"],
+        k=kwargs["k"],
+        fp_save=kwargs["fp_save"],
+        order=kwargs["order"],
+        metric_bc=kwargs["metric_bc"],
+        metric_cc=kwargs["metric_cc"],
+        ncuts=kwargs["ncuts"],
+        nrandoms=kwargs["nrandoms"],
+        save=kwargs["save"],
+    )
