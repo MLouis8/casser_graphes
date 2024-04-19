@@ -339,7 +339,7 @@ class Graph:
             self._bc = nx.edge_betweenness_centrality(self._nx)
             self._old_bc = False
         return self._bc
-        
+    
     @property
     def get_avg_edge_bc(self) -> float:
         return np.mean(list(self.get_edge_bc().values()))

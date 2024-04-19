@@ -26,35 +26,36 @@ def freq_attack(G: Graph, ncuts: int) -> Edge:
             frequencies[edge] = 1
     return max(frequencies, key=frequencies.get)
 
-def betweenness_attack(G: Graph) -> Edge:
+def betweenness_attack(G: Graph, subset: list[Edge] | None) -> Edge:
     bc = G.get_edge_bc()
-    return max(bc, key=bc.get)
+    key = subset if subset else bc.get # to test
+    return max(bc, key=key)
 
-def random_attack(G: Graph, n: int) -> list[Edge]:
-    return rd.choices(G._nx.edges, k=n)
+def random_attack(G: Graph, n: int, subset: list[Edge] | None) -> list[Edge]:
+    edges = subset if subset else G._nx.edges
+    return rd.choices(edges, k=n)
 
-def maxdegree_attack(G: Graph) -> Edge:
+def maxdegree_attack(G: Graph, subset: list[Edge] | None) -> Edge:
     maxdegree, chosen_edge = 0, None
-    for edge in G._nx.edges:
+    edges = subset if subset else G._nx.edges
+    for edge in edges:
         degree = G._nx.degree[edge[0]] * G._nx.degree[edge[1]]
         maxdegree = maxdegree if maxdegree > degree else degree
         chosen_edge = edge
     return chosen_edge
 
 def attack(
-    G: Graph, k: int, fp_save: str, order: str, metric_bc: bool, metric_cc: bool, ncuts: int = 1000, nrandoms: int = 100, save: bool = True
+    G: Graph, k: int, fp_save: str, order: str, metric_bc: bool, metric_cc: bool, ncuts: int = 1000, nrandoms: int = 100, save: bool = True, subset: list[Edge] | None = None
 ) -> RobustList | None:
     """
-    Simulates an attack on a Graph with the following strategy:
-        repeat k times:
-        - cuts ncuts times G
-        - remove the most cut edge
-
+    Simulates an attack on a Graph with the different strategies.
+    If subset isn't None, then  only edges in subset are considered when chosing edges.
+    If subset then frequency attack not available (will raise exception)
     Parameters:
         G: Graph
         k: int, the number of edges to remove
         fp_save: str, the saving path
-        order: str, can be "bc", "freq" or "rd" depending on the strategy to apply for the attack
+        order: str, can be "bc", "freq", "deg" or "rd" depending on the strategy to apply for the attack
             (ex. bc will remove the highest Betweenness Centrality edge)
         metric_bc: bool, whether the Betweenness Centrality is computed at each step
         metric_cc: bool, whether the max size of the connected components is computed or not
@@ -82,22 +83,29 @@ def attack(
             metrics.append((chosen_edges, list(np.mean(bcs)), cc_list))
         else:
             not_rd_procedure(metrics)
+    if order == "freq" and not subset:
+        raise ValueError("subset must be None when frequency attack is chosen")
     metrics, chosen_edge, chosen_edges = [], None, []
     for i in range(k):
         print(f"processing the {i}-th attack over {k}, order: {order}")
         match order:
             case "bc":
                 not_rd_procedure(metrics)
-                chosen_edge = betweenness_attack(G)
+                chosen_edge = betweenness_attack(G, subset)
                 G.remove_edge(chosen_edge)
             case "freq":
                 not_rd_procedure(metrics)
                 chosen_edge = freq_attack(G, ncuts)
                 G.remove_edge(chosen_edge)
+            case "deg":
+                not_rd_procedure(metrics)
+                chosen_edge = maxdegree_attack(G, subset)
+                G.remove_edge(chosen_edge)
             case "rd":
                 rd_procedure(metrics)
-                chosen_edges = random_attack(G, nrandoms)
+                chosen_edges = random_attack(G, nrandoms, subset)
     if order != "rd":
+        pass
         not_rd_procedure(metrics)
     else:
         rd_procedure(metrics)
