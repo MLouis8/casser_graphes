@@ -19,9 +19,9 @@ def main():
     G = Graph(json=kp_paths[1])
     # G.set_last_results(cut[0], cut[1])
     # edges = G.process_cut()
-    # # attack on best cut types
-    n = 10
-    attack(G, n, "data/robust/nocost_graph_RD100_" + str(n) + ".json", "rd", True, True)
+    # attack on best cut types
+    n = 5
+    attack(G, n, "nocost_graph_bc_" + str(n) + ".json", "bc", True, True)
     
     # visualize
     # with open("data/ParisBClanes.json", "r") as read_file:
@@ -35,4 +35,9 @@ def main():
     # extend attack
     # G = Graph(json=kp_paths[1])
     # extend_attack_procedure(rpaths[0], rpaths[1], G=G, k=5, fp_save="", order="bc", metric_bc=True, metric_cc=True)
+
+    # correlation BC and osmid
+    # G_nx = ox.load_graphml(graphml_path[0])
+    # for edge in G_nx.edges(data=True):
+    #     print(edge[2])
 main()
