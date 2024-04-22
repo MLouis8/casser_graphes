@@ -569,8 +569,10 @@ def visualize_attack_scores(
     attacks: (
         list[list[list[float]] | list[EdgeDict]] | list[list[list[int]] | list[int]]
     ),
+    attacks_names: list[str],
     fp: str,
     is_bc: bool,
+    title: str
 ) -> None:
     """
     Function to visualize the evolution of metrics over multiple attacks
@@ -580,32 +582,36 @@ def visualize_attack_scores(
     for i, attack in enumerate(attacks):
         x = np.arange(len(attack))
         if is_bc:
-            if isinstance(attack, list[EdgeDict]):
+            if type(attack[0]) == dict:
                 # attack is a list of eBCs
                 y = [np.mean(list(bc_dict.values())) for bc_dict in attack]
-                plt.plot(x, y, label="bc " + str(i))
-            elif isinstance(attack, list[list[float]]):
+                ax.plot(x, y, label="bc " + attacks_names[i])
+            elif type(attack[0]) == list:
                 # attack is a list of lists of avg eBCs (coming from random attack)
                 y_moy = [np.mean(list(bc_dict.values())) for bc_dict in attack]
                 y_min = [np.min(list(bc_dict.values())) for bc_dict in attack]
                 y_max = [np.max(list(bc_dict.values())) for bc_dict in attack]
-                plt.plot(x, y_moy, label="bc moy " + str(i))
-                plt.plot(x, y_min, label="bc min " + str(i))
-                plt.plot(x, y_max, label="bc max" + str(i))
+                ax.plot(x, y_moy, label="bc moy " + attacks_names[i])
+                ax.plot(x, y_min, label="bc min " + attacks_names[i])
+                ax.plot(x, y_max, label="bc max" + attacks_names[i])
             else:
-                raise TypeError(f"Type {type(attack)} not recognized")
+                raise TypeError(f"Type {type(attack[0])} not recognized")
         else:
-            if isinstance(attack, list[list[int]]):
+            if type(attack[0]) == list:
                 # attack is a list of biggest size cc (coming from random attack)
                 y_moy = [np.mean(cc) for cc in attack]
                 y_min = [np.min(cc) for cc in attack]
                 y_max = [np.max(cc) for cc in attack]
-                plt.plot(x, y_moy, label="cc moy " + str(i))
-                plt.plot(x, y_min, label="cc min " + str(i))
-                plt.plot(x, y_max, label="cc max" + str(i))
-            elif isinstance(attack, list[int]):
+                ax.plot(x, y_moy, label="cc moy " + attacks_names[i])
+                ax.plot(x, y_min, label="cc min " + attacks_names[i])
+                ax.plot(x, y_max, label="cc max" + attacks_names[i])
+            elif type(attack[0]) == int:
                 # attack is a list of biggest size cc
-                plt.plot(x, attack, label="cc " + str(i))
+                ax.plot(x, attack, label="cc " + attacks_names[i])
             else:
-                raise TypeError(f"Type {type(attack)} not recognized")
+                raise TypeError(f"Type {type(attack[0])} not recognized")
+    plt.ylim(40000, 40500)
+    plt.autoscale(False)
+    ax.legend()
+    fig.suptitle(title)
     fig.savefig(fp)

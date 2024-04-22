@@ -105,8 +105,8 @@ def attack(
             for edge in chosen_edges:
                 G_copy = deepcopy(G)
                 G_copy.remove_edge(edge)
-                bcs.append(np.mean(list(G_copy.get_edge_bc(new=True).values())))
-                cc_list.append(G_copy.get_size_biggest_cc)
+                bcs.append(np.mean(list(G_copy.get_edge_bc(new=True).values())) if metric_bc else None)
+                cc_list.append(G_copy.get_size_biggest_cc if metric_cc else None)
             metrics.append((chosen_edges, bcs, cc_list))
         else:
             metrics.append(
@@ -210,3 +210,48 @@ def extend_attack(
             json.dump(metrics + tail, saving_file)
     else:
         return metrics + tail
+
+def verify_integrity(fp: str, order: str, size: int) -> None:
+    """"
+    Verifies intergrity of the robustness list
+    
+    Warning: Needs a complete robustness list (cc and bc saved)
+
+    Checks:
+    - size of the list
+    - that the removed edges are the good one (for bc)
+    - that the metrics (edge Betweenness Centrality and biggest Connected Component) are present and well-formed
+
+    Parameters:
+        fp: str, the filepath where the attack is stored
+        order: str, can be "bc", "freq", "deg" or "rd" is the criterion chosen for removing edges
+        size: int, the number of removed edges
+    
+    Returns nothing but raises exceptions when data isn't valid
+    """
+    with open(fp, "r") as read_file:
+        data = json.load(read_file)
+    # checking size
+    assert len(data) == size + 1
+    # verifying removed edges
+    removed_edges = []
+    for i, attack in enumerate(data):
+        edge, bc, cc = eval(attack[0]), attack[1], attack[2]
+        if i > 0:
+            if isinstance(edge, tuple) and isinstance(edge[0], int) and isinstance(edge[1], int):
+                removed_edges.append(edge)
+            else:
+                raise TypeError(f"First element of the attack tuple must be the removed edge. Instead type {type(edge)} found")
+        else:
+            assert edge == None
+        if type(bc) != dict:
+            raise TypeError(f"the betweenness centrality measures should be of type dict instead {type(bc)} is found")
+        for k, v in bc.items():
+            if not isinstance(k, str) or not isinstance(v, float):
+                raise TypeError(f"the betweenness centrality measures should be of type dict[str, float] instead {type(bc)}[{type(k)}, {type(v)}] is found")
+        if type(cc) != int:
+            raise TypeError(f"the biggest connected component measures should be of type int, instead {type(cc)} is found")
+    for j, edge in enumerate(removed_edges):
+        if order == "bc":
+            assert eval(max(data[j][1], key=data[j][1].get)) == edge
+        assert not edge in data[j+1][1]
