@@ -20,8 +20,8 @@ def main():
     # G.set_last_results(cut[0], cut[1])
     # edges = G.process_cut()
     # attack on best cut types
-    n = 5
-    attack(G, n, "nocost_graph_bc_" + str(n) + ".json", "bc", True, True)
+    n = 10
+    attack(G, n, "nocost_graph_freq_" + str(n) + ".json", "freq", True, True)
     
     # visualize
     # with open("data/ParisBClanes.json", "r") as read_file:
