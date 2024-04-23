@@ -522,7 +522,7 @@ def visualize_Delta_bc(
             return 1
 
     f = lambda b1, b2: abs(b1 - b2) if abslt else b2 - b1
-    g = lambda v: v if abslt else (2*v if v > 0 else -v)
+    g = lambda v: v if abslt else v+vmax
     delta = {k: f(bc1[k], bc2[k]) if k in bc1 and k in bc2 else 0 for k in bc1.keys()}
     if abslt:
         vmax, vmin = max(delta.values()), min(delta.values())

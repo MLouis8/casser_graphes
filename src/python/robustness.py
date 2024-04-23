@@ -189,7 +189,10 @@ def extend_attack(
     save: bool,
 ) -> RobustList | None:
     # remove the already processed edges
-    for edge, _, _ in metrics:
+    for e, _, _ in metrics:
+        edge = eval(e)
+        if edge is None:
+            continue
         G.remove_edge(edge)
     # launch attack on the new graph
     tail = attack(
