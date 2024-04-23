@@ -34,7 +34,7 @@ def betweenness_attack(G: Graph, subset: list[Edge] | None) -> Edge:
     if subset:
         res, max_bc = None, 0
         for edge in subset:
-            if bc[edge] > max_bc:
+            if edge in bc and bc[edge] > max_bc:
                 max_bc = bc[edge]
                 res = edge
         return res

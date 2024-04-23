@@ -1,7 +1,7 @@
 from Graph import Graph
 from paths import graphml_path, kp_paths, rpaths
 from robustness import attack, verify_integrity
-from visual import visualize_bc, visualize_edgeList, visualize_attack_scores
+from visual import visualize_bc, visualize_edgeList, visualize_attack_scores, visualize_bc_distrs, visualize_Delta_bc
 from procedures import extend_attack_procedure
 
 import json
@@ -14,36 +14,25 @@ from sys import setrecursionlimit
 setrecursionlimit(100000)
 
 def main():
-    # with open("data/cuts/nocost_1000_005.json", "r") as read_file:
-    #     data = json.load(read_file)
-    # cut = data["8"]
-    # G = Graph(json=kp_paths[1])
-    # G.set_last_results(cut[0], cut[1])
-    # edges = G.process_cut()
+    with open("data/nocost_1000_005.json", "r") as read_file:
+        data = json.load(read_file)
+    cut = data["8"]
+    G = Graph(json=kp_paths[1])
+    G.set_last_results(cut[0], cut[1])
+    edges = G.process_cut()
     # attack on best cut types
-    # n = 10
-    # attack(G, n, "nocost_graph_freq_" + str(n) + ".json", "freq", True, True)
+    n = 10
+    attack(G, n, "nocost_cut_bc_" + str(n) + ".json", "bc", True, True, subset=edges)
     
-    # visualize
-    # with open("data/robust/nocost_graph_bc.json", "r") as read_file:
+    # with open("data/robust/nocost_graph_bc_10.json", "r") as read_file:
     #     impt = json.load(read_file)
-    # bc = {}
-    # for k, v in impt.items():
-    #     bc[eval(k)] = v
-    # G_nx = ox.load_graphml(graphml_path[2])
-    # visualize_bc(bc, G_nx, "presentations/images/visubc.pdf", "bc")
-
-    # correlation BC and osmid
+    # bc1 = {}
+    # for k, v in impt[0][1].items():
+    #     bc1[eval(k)] = v
+    # bc2 = {}
+    # for k, v in impt[1][1].items():
+    #     bc2[eval(k)] = v
     # G_nx = ox.load_graphml(graphml_path[0])
-    # for edge in G_nx.edges(data=True):
-    #     print(edge[2])
-    with open("data/robust/nocost_graph_deg_10.json", "r") as deg_file:
-        deg = json.load(deg_file)
-
-    with open("data/robust/nocost_graph_bc_10.json", "r") as bc_file:
-        bc_graph = json.load(bc_file)
-
-    deg_attack = [attack[2] for attack in deg]
-    bc_graph_attack = [attack[2] for attack in bc_graph]
-    visualize_attack_scores([deg_attack, bc_graph_attack], ["max degree", "max bc on graph"], "data/biggest_cc.pdf", False, "biggest components size evolution: BC vs Deg")
+    # visualize_Delta_bc(bc1, bc2, G_nx, "data/visubc_0-1_bc_rel.pdf", False, "rel bc evolution after removing 1 edge", treshold=None)
+    
 main()

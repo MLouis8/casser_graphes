@@ -297,6 +297,7 @@ def visualize_edgeList(
 ):
     def colorize(u, v, w):
         if (u, v) in edgeList or (u, v, w) in edgeList:
+            print("found")
             return "r"
         else:
             return "#54545430"
@@ -309,9 +310,9 @@ def visualize_edgeList(
         else:
             return 1
 
-    edge_color = [colorize(u, v, 0) for u, v in G_nx.edges]
+    edge_color = [colorize(u, v, w) for u, v, w in G_nx.edges]
     if bool(thickness):
-        edge_width = [thicken(u, v, 0) for u, v in G_nx.edges]
+        edge_width = [thicken(u, v, w) for u, v, w in G_nx.edges]
     else:
         edge_width = 1
     print("edges colorized, starting display...")
@@ -494,26 +495,40 @@ def visualize_Delta_bc(
     abslt: bool,
     title: str,
     color_levels: int = 10,
+    treshold: int | None = None
 ) -> None:
     def colorize(u, v, w):
+        d = None
         if (u, v) in bc1:
-            return color_list[int((delta[(u, v)] / vmax) * color_levels)]
+            d = g(delta[(u, v)])
         elif (u, v, w) in bc1:
-            return color_list[int((delta[(u, v, w)] / vmax) * color_levels)]
+            d = g(delta[(u, v)])
         else:
-            return "#54545420"
+            return "#54545420" 
+        if treshold:
+            if d > treshold:
+                return color_list[int((d / (2*vmax)) * (color_levels-1))] 
+            else:
+                return "#54545420" 
+        else:
+            return color_list[int((d / (2*vmax)) * (color_levels-1))]
 
     def thicken(u, v, w):
         if (u, v) in bc1:
-            return (2 * delta[(u, v)] / vmax) ** 2
+            return (2 * g(delta[(u, v)]) / (2*vmax)) ** 2
         elif (u, v, w) in bc1:
-            return (2 * delta[(u, v, w)] / vmax) ** 2
+            return (2 * g(delta[(u, v, w)]) / (2*vmax)) ** 2
         else:
             return 1
 
     f = lambda b1, b2: abs(b1 - b2) if abslt else b2 - b1
+    g = lambda v: v if abslt else (2*v if v > 0 else -v)
     delta = {k: f(bc1[k], bc2[k]) if k in bc1 and k in bc2 else 0 for k in bc1.keys()}
-    vmax, vmin = max(delta.values()), min(delta.values())
+    if abslt:
+        vmax, vmin = max(delta.values()), min(delta.values())
+    else:
+        m = max(abs(min(delta.values())), abs(max(delta.values())))
+        vmin, vmax = -m, m
     color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels)]
     edge_color = [colorize(u, v, w) for u, v, w in G.edges]
     edge_width = [thicken(u, v, w) for u, v, w in G.edges]
@@ -538,14 +553,15 @@ def visualize_Delta_bc(
     fig.savefig(fp)
 
 
-def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str) -> None:
+def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str, names: tuple[str, str]) -> None:
     n_bins = 25
     dist1 = bc1.values()
     dist2 = bc2.values()
     _, ax = plt.subplots()
-    ax.hist(dist1, bins=n_bins)
-    ax.hist(dist2, bins=n_bins)
+    ax.hist(dist1, bins=n_bins, label=names[0], color="#ff0000a0")
+    ax.hist(dist2, bins=n_bins, label=names[1], color="#0000ffa0")
     ax.set_yscale("log")
+    ax.legend()
     plt.savefig(fp)
 
 
@@ -562,6 +578,7 @@ def visualize_Deltabc_distrs(
     _, ax = plt.subplots()
     ax.hist(dist, bins=n_bins)
     ax.set_yscale("log")
+    ax.legend()
     plt.savefig(fp)
 
 
