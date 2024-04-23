@@ -430,7 +430,7 @@ def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[
                 while seed in seen_seeds:
                     seed = rd.randint(0, 1044642763)
                 seen_seeds.append(seed)
-                G_kp.kaffpa_cut(2, imbalance, 0, seed, 3)
+                G_kp.kaffpa_cut(2, imbalance, 0, seed, 2)
                 cut[str(ncut)] = G_kp.get_last_results
             with open(
                 "./data/cuts/" + costs_names[i] + "_1000_" + str(imbalance) + ".json",
