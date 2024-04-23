@@ -6,7 +6,7 @@ import math
 import matplotlib.pyplot as plt
 
 from Graph import Graph
-from typ import EdgeDict3
+from typ import EdgeDict3, Edge
 from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
 from visual import visualize_class
 from CutsClassification import CutsClassification
@@ -193,6 +193,27 @@ def infer_lanes(G: nx.graph) -> EdgeDict3:
                     widths[(u, v, w)] = 2
     return widths
 
+def propagate_bridges(G: nx.Graph, bridge_dict: dict, k: int = 10) -> None:
+    """Changes bridge_dict in place for propagating each bridge to the k nearest neighbors"""
+    def rec_propagate_bridges(edge: Edge, G: nx.Graph, seen: list[Edge], bridge_dict: dict, k: int):
+        if edge in bridge_dict:
+            bridge_dict[edge] = "yes"
+            seen.append(edge)
+        else: # case (n2, n1) is not an edge (but (n1, n2) is)
+            return
+        if k == 0:
+            return
+        for neighbor1 in G.neighbors(edge[0]):
+            rec_propagate_bridges((edge[0], neighbor1), G, seen, bridge_dict, k-1)
+            rec_propagate_bridges((neighbor1, edge[0]), G, seen, bridge_dict, k-1)
+        for neighbor2 in G.neighbors(edge[1]):
+            rec_propagate_bridges((edge[1], neighbor2), G, seen, bridge_dict, k-1)
+            rec_propagate_bridges((neighbor2, edge[1]), G, seen, bridge_dict, k-1)
+
+    seen_edges = []
+    for edge, is_bridge in bridge_dict.items():
+        if is_bridge == "yes":
+            rec_propagate_bridges(edge, G, seen_edges, bridge_dict, k)
 
 def preprocessing(
     G: nx.Graph,
@@ -257,7 +278,8 @@ def preprocessing(
                 for k, v in edge_width.items()
             }
         case "width without bridge":
-            bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
+            bridge_dict = nx.get_edge_attributes(G, "bridge", default="no")
+            propagate_bridges(G, bridge_dict)
             edge_weight = {
                 k: inf if bridge_dict[k] == "yes" else v for k, v in edge_width.items()
             }
