@@ -14,29 +14,29 @@ from sys import setrecursionlimit
 setrecursionlimit(100000)
 
 def main():
-    # with open("data/nocost_1000_005.json", "r") as read_file:
-    #     data = json.load(read_file)
-    # cut = data["859"]
-    # G = Graph(json=kp_paths[1])
-    # G.set_last_results(cut[0], cut[1])
-    # edges = G.process_cut()
+    with open("data/lanes_1000_005.json", "r") as read_file:
+        data = json.load(read_file)
+    cut = data["24"] # 141
+    G = Graph(json=kp_paths[1])
+    G.set_last_results(cut[0], cut[1])
+    edges = G.process_cut()
     # attack on best cut types
-    # n = 10
-    # attack(G, n, "nocost_cut859_bc_" + str(n) + ".json", "bc", True, True, subset=edges)
+    n = 10
+    attack(G, n, "nocost_cut24_bc_" + str(n) + ".json", "bc", True, True, subset=edges)
     # with open("data/robust/nocost_graph_bc_10.json", "r") as read_file:
     #     metrics = json.load(read_file)
     # extend_attack(G, metrics, n, "nocost_graph_bc_" + str(n+10) + ".json", "bc", True, True, 1000, 100, True)
 
-    with open("data/robust/nocost_graph_freq_10.json", "r") as read_file:
-        impt = json.load(read_file)
-    bc1 = {}
-    for k, v in impt[0][1].items():
-        bc1[eval(k)] = v
-    bc2 = {}
-    for k, v in impt[1][1].items():
-        bc2[eval(k)] = v
-    G_nx = ox.load_graphml(graphml_path[0])
-    visualize_bc_distrs(bc1, bc2, "data/distrbc_0-1_freq.pdf", ["bc -0 edge", "bc -1 edge"])
+    # with open("data/robust/nocost_graph_bc_20.json", "r") as read_file:
+    #     impt = json.load(read_file)
+    # bc1 = {}
+    # for k, v in impt[0][1].items():
+    #     bc1[eval(k)] = v
+    # bc2 = {}
+    # for k, v in impt[20][1].items():
+    #     bc2[eval(k)] = v
+    # G_nx = ox.load_graphml(graphml_path[0])
+    # visualize_bc_distrs(bc1, bc2, "data/distrbc_0-20_bc.pdf", ["bc -0 edge", "bc -20 edges"])
     
     # prepare_instance("data/ParisPreprocessedL.graphml", "data/costs/laneswithoutzbridge2.json", "lanes without bridge")
     # G = Graph(json="data/costs/laneswithoutzbridge2.json")

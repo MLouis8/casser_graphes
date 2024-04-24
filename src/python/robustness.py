@@ -208,6 +208,18 @@ def extend_attack(
         #  extended=True, see attack for more details
     )
     # return the concat of the two metrics
+    if order != "rd":
+        temp = tail.copy()
+        tail = []
+        for step in temp:
+            str_d = {str(k): v for k, v in step[1].items()}
+            tail.append([str(step[0]), str_d, step[2]])
+    else:
+        temp = tail.copy()
+        tail = []
+        for step in temp:
+            edges = [str(e) for e in step[0]] if step[0] else None
+            tail.append([edges, step[1], step[2]])
     if save:
         with open(fp_save, "w") as saving_file:
             json.dump(metrics + tail, saving_file)

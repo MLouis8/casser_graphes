@@ -443,13 +443,15 @@ def to_hex(c):
 
 
 def visualize_bc(
-    bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10
+    removed_edges: list[Edge], bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10
 ) -> None:
     def colorize(u, v, w):
         if (u, v) in bc:
             return color_list[int((bc[(u, v)] / vmax) * color_levels)]
         elif (u, v, w) in bc:
             return color_list[int((bc[(u, v, w)] / vmax) * color_levels)]
+        elif (u, v) in removed_edges:
+            return "r"
         else:
             return "#54545420"
 
@@ -462,11 +464,11 @@ def visualize_bc(
             return 1
 
     vmax, vmin = max(bc.values()), min(bc.values())
-    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels)]
+    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")]
     edge_color = [colorize(u, v, w) for u, v, w in G.edges]
     edge_width = [thicken(u, v, w) for u, v, w in G.edges]
     print("edges colorized, starting display...")
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = plt.cm.get_cmap("RdPu")
     norm = plt.Normalize(vmin=vmin, vmax=vmax)
     sm = cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
@@ -480,13 +482,14 @@ def visualize_bc(
         show=False,
     )
     cb = fig.colorbar(
-        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal"
+        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.2
     )
     cb.set_label(title, fontsize=14)
     fig.savefig(fp)
 
 
 def visualize_Delta_bc(
+    removed_edges: list[Edge],
     bc1: EdgeDict,
     bc2: EdgeDict,
     G: nx.Graph,
@@ -502,6 +505,8 @@ def visualize_Delta_bc(
             d = g(delta[(u, v)])
         elif (u, v, w) in bc1:
             d = g(delta[(u, v)])
+        elif (u, v) in removed_edges:
+            return "r"
         else:
             return "#54545420" 
         if treshold:
@@ -528,11 +533,14 @@ def visualize_Delta_bc(
     else:
         m = max(abs(min(delta.values())), abs(max(delta.values())))
         vmin, vmax = -m, m
-    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels)]
+    if abslt:
+        color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")]
+    else:
+        color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="bwr")]
     edge_color = [colorize(u, v, w) for u, v, w in G.edges]
     edge_width = [thicken(u, v, w) for u, v, w in G.edges]
     print("edges colorized, starting display...")
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = plt.cm.get_cmap("RdPu") if abslt else plt.cm.get_cmap("bwr")
     norm = plt.Normalize(vmin=vmin, vmax=vmax)
     sm = cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
@@ -546,7 +554,7 @@ def visualize_Delta_bc(
         bgcolor="white",
     )
     cb = fig.colorbar(
-        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal"
+        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.2
     )
     cb.set_label(title, fontsize=14)
     fig.savefig(fp)
