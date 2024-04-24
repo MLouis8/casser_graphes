@@ -50,18 +50,19 @@
     \end{frame}
 
     \section{Étude sur le graphe non valué}
-    \subsection{Sur tout le graphe}
+    \subsection{Scores}
     \begin{frame}
         \frametitle{Score: moyenne eBC}
         \centering
-        \includegraphics[scale=0.6]{distribbc/avg_bc.pdf}
+        \includegraphics[scale=0.6]{distribbc/attack_scores.pdf}
     \end{frame}
     \begin{frame}
         \frametitle{Score: plus grande CC}
         \centering
-        \includegraphics[scale=0.6]{distribbc/biggest_cc.pdf}
+        \includegraphics[scale=0.6]{distribbc/attack_scores_cc.pdf}
     \end{frame}
 
+    \subsection{Carte de edge Betweenness Centrality}
     \begin{frame}
         \frametitle{edge Betweenness Centrality: Paris non valué}
         \centering
@@ -88,13 +89,41 @@
     
     \begin{frame}
         \frametitle{Ordre freq: Quelques cartes de eBC}
+        \includegraphics[scale=0.22]{visubc/visubc_1_freq.pdf}
+        \includegraphics[scale=0.22]{visubc/visubc_5_freq.pdf}
+        \includegraphics[scale=0.22]{visubc/visubc_10_freq.pdf}
     \end{frame}
 
     \begin{frame}
-        \frametitle{Ordre freq: $\Delta$-eBC absolue et relative}
+        \centering
+        \frametitle{Ordre freq: $\Delta$-eBC absolue}
+        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visuDeltabc/visubc_0-10_freq_abs.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \centering
+        \frametitle{Ordre freq: $\Delta$-eBC relative}
+        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visuDeltabc/visubc_0-10_freq_rel.pdf}
     \end{frame}
     
-    % i
+    \subsection{Distribution de edge Betweenness Centrality}
+    \begin{frame}
+        \frametitle{Ordre eBC: changements de distributions après 10 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{distribbc/distrbc_0-10_bc.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Ordre deg: changements de distributions après 10 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{distribbc/distrbc_0-10_deg.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Ordre freq: changements de distributions après 10 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{distribbc/distrbc_0-10_freq.pdf}    
+    \end{frame}
 
     % \section{Étude sur le graphe valué par le nb de voies}
     % \subsection{Sur tout le graphe}
