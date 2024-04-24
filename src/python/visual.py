@@ -297,7 +297,6 @@ def visualize_edgeList(
 ):
     def colorize(u, v, w):
         if (u, v) in edgeList or (u, v, w) in edgeList:
-            print("found")
             return "r"
         else:
             return "#54545430"

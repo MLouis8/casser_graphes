@@ -279,7 +279,7 @@ def preprocessing(
             }
         case "width without bridge":
             bridge_dict = nx.get_edge_attributes(G, "bridge", default="no")
-            propagate_bridges(G, bridge_dict)
+            propagate_bridges(G, bridge_dict, 20)
             edge_weight = {
                 k: inf if bridge_dict[k] == "yes" else v for k, v in edge_width.items()
             }
