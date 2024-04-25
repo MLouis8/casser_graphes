@@ -43,6 +43,8 @@ def betweenness_attack(G: Graph, subset: list[Edge] | None) -> Edge:
 
 
 def random_attack(G: Graph, n: int, subset: list[Edge] | None) -> list[Edge]:
+    if subset:
+        return rd.choice(subset)
     return rd.choices(list(G._nx.edges), k=n)
 
 
@@ -100,7 +102,7 @@ def attack(
         metrics.append((chosen_edge, bc, cc))
 
     def rd_procedure(metrics, chosen_edges):
-        if len(chosen_edges) > 0:
+        if len(chosen_edges) > 1:
             bcs, cc_list = [], []
             for edge in chosen_edges:
                 G_copy = deepcopy(G)
@@ -108,6 +110,8 @@ def attack(
                 bcs.append(np.mean(list(G_copy.get_edge_bc(new=True).values())) if metric_bc else None)
                 cc_list.append(G_copy.get_size_biggest_cc if metric_cc else None)
             metrics.append((chosen_edges, bcs, cc_list))
+        elif len(chosen_edges) == 1:
+            not_rd_procedure(metrics, chosen_edges[0])
         else:
             metrics.append(
                 (
