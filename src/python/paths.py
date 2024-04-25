@@ -138,11 +138,13 @@ clusters_paths_3 = [
 ]
 
 rpaths = [
-    "data/robust/nocost_graph_BC_5.json",
-    "data/robust/nocost_graph_BC_10.json",
-    "data/robust/nocost_graph_Freq_5.json",
-    "data/robust/nocost_graph_Freq_10.json",
-    "data/robust/nocost_graph_RD_5.json",
-    "data/robust/nocost_graph_RD_10.json",
-    "data/robust/nocost_graph_Deg_10.json",
+    "data/robust/nocost_graph_bc_10.json",
+    "data/robust/nocost_graph_freq_10.json",
+    "data/robust/nocost_graph_deg_10.json",
+    "data/robust/nocost_cut_bc_10.json",
+    "data/robust/nocost_cut267_bc_10.json",
+    "data/robust/nocost_cut859_bc_10.json",
+    "data/robust/lanes_graph_bc_25.json",
+    "data/robust/lanes_graph_deg_10.json",
+    "data/robust/lanes_graph_freq_10.json",
 ]

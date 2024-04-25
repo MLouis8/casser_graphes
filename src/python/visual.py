@@ -445,28 +445,38 @@ def to_hex(c):
 def visualize_bc(
     removed_edges: list[Edge], bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10
 ) -> None:
-    def colorize(u, v, w):
+    def colorize(u, v):        
         if (u, v) in bc:
-            return color_list[int((bc[(u, v)] / vmax) * color_levels)]
-        elif (u, v, w) in bc:
-            return color_list[int((bc[(u, v, w)] / vmax) * color_levels)]
-        elif (u, v) in removed_edges:
-            return "r"
+            return color_list[int((bc[(u, v)] / vmax) * (color_levels-1))]
+        elif (v, u) in bc:
+            return color_list[int((bc[(v, u)] / vmax) * (color_levels-1))]
+        # elif (u, v, w) in bc:
+        #     return color_list[int((bc[(u, v, w)] / vmax) * (color_levels-1))]
+        # elif (v, u, w) in bc:
+        #     return color_list[int((bc[(v, u, w)] / vmax) * (color_levels-1))]
+        elif (u, v) in removed_edges or (v, u) in removed_edges:
+            return "green"
         else:
-            return "#54545420"
+            raise ValueError(f"edge ({u}, {v}) not in the graph")
 
-    def thicken(u, v, w):
+    def thicken(u, v):
         if (u, v) in bc:
             return (2 * bc[(u, v)] / vmax) ** 2
-        elif (u, v, w) in bc:
-            return (2 * bc[(u, v, w)] / vmax) ** 2
+        elif (v, u) in bc:
+            return (2 * bc[(v, u)] / vmax) ** 2
+        # elif (u, v, w) in bc:
+        #     return (2 * bc[(u, v, w)] / vmax) ** 2
+        # elif (v, u, w) in bc:
+        #     return (2 * bc[(v, u, w)] / vmax) ** 2
+        elif (u, v) in removed_edges or (v, u) in removed_edges:
+            return 5
         else:
-            return 1
+            raise ValueError(f"edge ({u}, {v}) not in the graph")
 
     vmax, vmin = max(bc.values()), min(bc.values())
     color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")]
-    edge_color = [colorize(u, v, w) for u, v, w in G.edges]
-    edge_width = [thicken(u, v, w) for u, v, w in G.edges]
+    edge_color = [colorize(u, v) for u, v, _ in G.edges]
+    edge_width = [thicken(u, v) for u, v, _ in G.edges]
     print("edges colorized, starting display...")
     cmap = plt.cm.get_cmap("RdPu")
     norm = plt.Normalize(vmin=vmin, vmax=vmax)
@@ -482,9 +492,9 @@ def visualize_bc(
         show=False,
     )
     cb = fig.colorbar(
-        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.2
+        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.01
     )
-    cb.set_label(title, fontsize=14)
+    cb.set_label(title, fontsize=12)
     fig.savefig(fp)
 
 
@@ -497,37 +507,43 @@ def visualize_Delta_bc(
     abslt: bool,
     title: str,
     color_levels: int = 10,
-    treshold: int | None = None
 ) -> None:
-    def colorize(u, v, w):
+    def colorize(u, v):
         d = None
-        if (u, v) in bc1:
+        if (u, v) in delta.keys():
             d = g(delta[(u, v)])
-        elif (u, v, w) in bc1:
-            d = g(delta[(u, v)])
-        elif (u, v) in removed_edges:
-            return "r"
+        elif (v, u) in delta.keys():
+            d = g(delta[(v, u)])
+        elif (u, v) in removed_edges or (v, u) in removed_edges:
+            return "green"
         else:
-            return "#54545420" 
-        if treshold:
-            if d > treshold:
-                return color_list[int((d / (2*vmax)) * (color_levels-1))] 
-            else:
-                return "#54545420" 
-        else:
-            return color_list[int((d / (2*vmax)) * (color_levels-1))]
+            raise ValueError(f"edge ({u}, {v}) not in the graph")
+        return color_list[int((d / (2*vmax)) * (color_levels-1))]
 
-    def thicken(u, v, w):
-        if (u, v) in bc1:
-            return (2 * g(delta[(u, v)]) / (2*vmax)) ** 2
-        elif (u, v, w) in bc1:
-            return (2 * g(delta[(u, v, w)]) / (2*vmax)) ** 2
+    def thicken(u, v):
+        if (u, v) in delta.keys():
+            return (g(delta[(u, v)]) / vmax) ** 2
+        elif (v, u) in delta.keys():
+            return (g(delta[(v, u)]) / vmax) ** 2
+        elif (u, v) in removed_edges or (v, u) in removed_edges:
+            return 5
         else:
-            return 1
+            raise ValueError(f"edge ({u}, {v}) not in the graph")
 
     f = lambda b1, b2: abs(b1 - b2) if abslt else b2 - b1
     g = lambda v: v if abslt else v+vmax
-    delta = {k: f(bc1[k], bc2[k]) if k in bc1 and k in bc2 else 0 for k in bc1.keys()}
+    delta = {}
+    for n1, n2, _ in G.edges:
+        if (n1, n2) in bc1:
+            if (n1, n2) in bc2:
+                delta[(n1, n2)] = f(bc1[(n1, n2)], bc2[(n1, n2)])
+            elif (n2, n1) in bc2:
+                delta[(n1, n2)] = f(bc1[(n1, n2)], bc2[(n2, n1)])
+        elif (n2, n1) in bc1:
+            if (n1, n2) in bc2:
+                delta[(n2, n1)] = f(bc1[(n2, n1)], bc2[(n1, n2)])
+            elif (n2, n1) in bc2:
+                delta[(n2, n1)] = f(bc1[(n2, n1)], bc2[(n2, n1)])
     if abslt:
         vmax, vmin = max(delta.values()), min(delta.values())
     else:
@@ -537,8 +553,8 @@ def visualize_Delta_bc(
         color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")]
     else:
         color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="bwr")]
-    edge_color = [colorize(u, v, w) for u, v, w in G.edges]
-    edge_width = [thicken(u, v, w) for u, v, w in G.edges]
+    edge_color = [colorize(u, v) for u, v, _ in G.edges]
+    edge_width = [thicken(u, v) for u, v, _ in G.edges]
     print("edges colorized, starting display...")
     cmap = plt.cm.get_cmap("RdPu") if abslt else plt.cm.get_cmap("bwr")
     norm = plt.Normalize(vmin=vmin, vmax=vmax)
@@ -554,20 +570,21 @@ def visualize_Delta_bc(
         bgcolor="white",
     )
     cb = fig.colorbar(
-        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.2
+        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0
     )
-    cb.set_label(title, fontsize=14)
+    cb.set_label(title, fontsize=12)
     fig.savefig(fp)
 
 
 def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str, names: tuple[str, str]) -> None:
-    n_bins = 25
     dist1 = bc1.values()
     dist2 = bc2.values()
     _, ax = plt.subplots()
-    ax.hist(dist1, bins=n_bins, label=names[0], color="#ff0000a0")
-    ax.hist(dist2, bins=n_bins, label=names[1], color="#0000ffa0")
+    ax.hist(dist1, bins='scott', label=names[0], color="#ff0000a0")
+    ax.hist(dist2, bins='scott', label=names[1], color="#0000ffa0")
     ax.set_yscale("log")
+    ax.set_xlabel("bc")
+    ax.set_ylabel("number of edges")
     ax.legend()
     plt.savefig(fp)
 
@@ -634,8 +651,53 @@ def visualize_attack_scores(
                 ax.plot(x, attack, label="cc " + attacks_names[i])
             else:
                 raise TypeError(f"Type {type(attack[0])} not recognized")
-    plt.ylim(40000, 40500)
-    plt.autoscale(False)
+    if is_bc:
+        ax.set_ylabel("average edge BC")
+    else:
+        plt.ylim(40000, 40500)
+        plt.autoscale(False)
+        ax.set_ylabel("size of biggest connected component")
+    ax.set_xlabel("number of removed edges")
     ax.legend()
     fig.suptitle(title)
+    fig.savefig(fp)
+
+
+def visualize_edgeList_ordered(edgeList: list[Edge], G: nx.Graph, fp: str, title: str) -> None:
+    def colorize(u, v):        
+        if (u, v) in edgeList:
+            i = edgeList.index((u, v))
+            return color_list[i]
+        if (v, u) in edgeList:
+            i = edgeList.index((u, v))
+            return color_list[i]
+        else:
+            return "#54545420"
+
+    def thicken(u, v):
+        if (u, v) in edgeList or (v, u) in edgeList:
+            return 5
+        else:
+            return 1
+    color_list = [to_hex(elem) for elem in ox.plot.get_colors(len(edgeList), cmap="plasma")]
+    edge_color = [colorize(u, v) for u, v, _ in G.edges]
+    edge_width = [thicken(u, v) for u, v, _ in G.edges]
+    print("edges colorized, starting display...")
+    cmap = plt.cm.get_cmap("plasma")
+    norm = plt.Normalize(vmin=0, vmax=len(edgeList))
+    sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    fig, ax = ox.plot_graph(
+        G,
+        node_color="#54545420",
+        node_size=0.5,
+        edge_color=edge_color,
+        edge_linewidth=edge_width,
+        bgcolor="white",
+        show=False,
+    )
+    cb = fig.colorbar(
+        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.01
+    )
+    cb.set_label(title, fontsize=12)
     fig.savefig(fp)
