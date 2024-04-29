@@ -296,16 +296,16 @@ def visualize_edgeList(
     ax=None,
 ):
     def colorize(u, v, w):
-        if (u, v) in edgeList or (u, v, w) in edgeList:
+        if (u, v) in edgeList or (u, v, w) in edgeList or (v, u) in edgeList or (v, u, w) in edgeList:
             return "r"
         else:
             return "#54545430"
 
     def thicken(u, v, w):
-        if (u, v) in edgeList:
-            return 10#thickness[(u, v)]
-        elif (u, v, w) in edgeList:
-            return 10#thickness[(u, v, w)]
+        if (u, v) or (v, u) in edgeList:
+            return 10 # thickness[(u, v)] if (u, v) in edgeList else thickness[(v, u)]
+        elif (u, v, w) or (v, u, w) in edgeList:
+            return 10 # thickness[(u, v, w)] if (u, v, w) in edgeList else thickness[(v, u, w)]
         else:
             return 1
 
@@ -669,7 +669,7 @@ def visualize_edgeList_ordered(edgeList: list[Edge], G: nx.Graph, fp: str, title
             i = edgeList.index((u, v))
             return color_list[i]
         if (v, u) in edgeList:
-            i = edgeList.index((u, v))
+            i = edgeList.index((v, u))
             return color_list[i]
         else:
             return "#54545420"

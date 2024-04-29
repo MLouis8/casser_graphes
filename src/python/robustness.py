@@ -12,12 +12,12 @@ from copy import deepcopy
 def freq_attack(G: Graph, ncuts: int) -> Edge:
     cut_union = []
     seen_seeds = []
-    for ncut in range(ncuts):
+    for _ in range(ncuts):
         seed = rd.randint(0, 1044642763)
         while seed in seen_seeds:
             seed = rd.randint(0, 1044642763)
         seen_seeds.append(seed)
-        G.kaffpa_cut(2, 0.05, 0, seed, 3)
+        G.kaffpa_cut(2, 0.05, 0, seed, 2)
         cut_union += G.process_cut()
 
     frequencies = {}
@@ -150,8 +150,9 @@ def attack(
             temp = metrics.copy()
             metrics = []
             for step in temp:
+                edges = [str(e) for e in step[0]] if step[0] else None
                 str_d = {str(k): v for k, v in step[1].items()}
-                metrics.append([str(step[0]), str_d, step[2]])
+                metrics.append([edges, str_d, step[2]])
         else:
             temp = metrics.copy()
             metrics = []

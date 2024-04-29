@@ -20,7 +20,7 @@
 \newcommand{\N}{\mathbb{N}}
 \DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
 
-\title{Robustesse 1}
+\title{Analyses de Robustesse: Graphe non valué}
 \subtitle{Casser des Graphes}
 \author{Louis Milhaud}
 \institute{Complex Networks - LIP6}
@@ -49,64 +49,26 @@
         \tableofcontents
     \end{frame}
 
-    \section{Étude sur le graphe non valué}
-    \subsection{Scores}
+    \section{Quelques scores et distributions}
+
     \begin{frame}
-        \frametitle{Score: moyenne eBC}
+        \frametitle{Score: moyenne egde Betweenness Centrality}
         \centering
         \includegraphics[scale=0.6]{distribbc/attack_scores.pdf}
     \end{frame}
+
     \begin{frame}
-        \frametitle{Score: plus grande CC}
+        \frametitle{Score: plus grande composante connexe}
         \centering
         \includegraphics[scale=0.6]{distribbc/attack_scores_cc.pdf}
     \end{frame}
 
-    \subsection{Carte de edge Betweenness Centrality}
     \begin{frame}
         \frametitle{edge Betweenness Centrality: Paris non valué}
         \centering
-        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visubc/visubc.pdf}
-    \end{frame}
-    \begin{frame}
-        \frametitle{Ordre eBC: Quelques cartes de eBC}
-        \includegraphics[scale=0.22]{visubc/visubc_1_bc.pdf}
-        \includegraphics[scale=0.22]{visubc/visubc_5_bc.pdf}
-        \includegraphics[scale=0.22]{visubc/visubc_10_bc.pdf}
+        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visubc/visubc_0.pdf}
     \end{frame}
 
-    \begin{frame}
-        \centering
-        \frametitle{Ordre eBC: $\Delta$-eBC absolue}
-        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visuDeltabc/visubc_0-10_bc_abs.pdf}
-    \end{frame}
-
-    \begin{frame}
-        \centering
-        \frametitle{Ordre eBC: $\Delta$-eBC relative}
-        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visuDeltabc/visubc_0-10_bc_rel.pdf}
-    \end{frame}
-    
-    \begin{frame}
-        \frametitle{Ordre freq: Quelques cartes de eBC}
-        \includegraphics[scale=0.22]{visubc/visubc_1_freq.pdf}
-        \includegraphics[scale=0.22]{visubc/visubc_5_freq.pdf}
-        \includegraphics[scale=0.22]{visubc/visubc_10_freq.pdf}
-    \end{frame}
-
-    \begin{frame}
-        \centering
-        \frametitle{Ordre freq: $\Delta$-eBC absolue}
-        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visuDeltabc/visubc_0-10_freq_abs.pdf}
-    \end{frame}
-
-    \begin{frame}
-        \centering
-        \frametitle{Ordre freq: $\Delta$-eBC relative}
-        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visuDeltabc/visubc_0-10_freq_rel.pdf}
-    \end{frame}
-    
-    \subsection{Distribution de edge Betweenness Centrality}
     \begin{frame}
         \frametitle{Ordre eBC: changements de distributions après 10 arêtes enlevées}
         \centering
@@ -125,20 +87,33 @@
         \includegraphics[scale=0.65]{distribbc/distrbc_0-10_freq.pdf}    
     \end{frame}
 
-    % \section{Étude sur le graphe valué par le nb de voies}
-    % \subsection{Sur tout le graphe}
-    % \begin{frame}
-    %     \frametitle{Score: eBC}
-    % \end{frame}
-    % \begin{frame}
-    %     \frametitle{Score: plus grande CC}
-    % \end{frame}
+    \section{Ordre eBC}
 
-    % \subsection{Sur tout les deux types de coupe les plus présentes}
-    % \begin{frame}
-    %     \frametitle{Score: eBC}
-    % \end{frame}
-    % \begin{frame}
-    %     \frametitle{Score: plus grande CC}
-    % \end{frame}
+    \begin{frame}
+        \frametitle{Des influences locales}
+        \includegraphics[scale=0.22]{visubc/visubc_0-1_bc.pdf}
+        \includegraphics[scale=0.22]{visubc/visubc_0-2_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \centering
+        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines}
+        \includegraphics[scale=0.22]{visubc/visubc_1_bc.pdf}
+        \includegraphics[scale=0.22]{visubc/visubc_2_bc.pdf}
+        \includegraphics[scale=0.22]{visubc/visubc_3_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \centering
+        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines}
+        \includegraphics[scale=0.22]{visubc/visubc_0-2_bc.pdf}
+        \includegraphics[scale=0.22]{visubc/visubc_2-3_bc.pdf}
+    \end{frame}
+
+    \section{Ordre freq}
+   
+    \section{Ordre eBC dans une coupe}
+    \subsection{Type de coupe majoritaire}
+    \subsection{Un autre type de coupe}
+    
 \end{document}

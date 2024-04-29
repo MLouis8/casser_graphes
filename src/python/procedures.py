@@ -543,9 +543,10 @@ def bc_difference_map_procedure(i1: int, i2: int, read_fp: str, write_fp, graph_
     G_nx = ox.load_graphml(graph_fp)
     r_edges = []        
     bc1, bc2 = {}, {}
-    for k, v in impt[i2][1].items():
-        bc1[eval(k)] = v
     for k, v in impt[i1][1].items():
+        bc1[eval(k)] = v
+    for k, v in impt[i2][1].items():
         bc2[eval(k)] = v    
-    r_edges  = [eval(impt[j][0]) for j in range(i1+1)]
+    r_edges  = [eval(impt[j][0]) for j in range(i2+1)]
+    print(r_edges)
     visualize_Delta_bc(r_edges, bc1, bc2, G_nx, write_fp, abslt, "eBC diff map from " + str(i1) + "to "+ str(i2) +" edges removed in " + order_name)  
