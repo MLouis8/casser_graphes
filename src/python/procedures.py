@@ -193,33 +193,29 @@ def infer_lanes(G: nx.graph) -> EdgeDict3:
                     widths[(u, v, w)] = 2
     return widths
 
-def propagate_bridges(G: nx.Graph, bridge_dict: dict, k: int = 10) -> None:
-    """Changes bridge_dict in place for propagating each bridge to the k nearest neighbors"""
-    def rec_propagate_bridges(edge: Edge, G: nx.Graph, seen: list[Edge], bridge_dict: dict, k: int):
-        if edge in bridge_dict:
-            bridge_dict[edge] = "yes"
-            seen.append(edge)
-        else: # case (n2, n1) is not an edge (but (n1, n2) is)
-            return
-        if k == 0:
-            return
-        for neighbor1 in G.neighbors(edge[0]):
-            rec_propagate_bridges((edge[0], neighbor1), G, seen, bridge_dict, k-1)
-            rec_propagate_bridges((neighbor1, edge[0]), G, seen, bridge_dict, k-1)
-        for neighbor2 in G.neighbors(edge[1]):
-            rec_propagate_bridges((edge[1], neighbor2), G, seen, bridge_dict, k-1)
-            rec_propagate_bridges((neighbor2, edge[1]), G, seen, bridge_dict, k-1)
-
-    seen_edges = []
+def propagate_bridges(G: nx.Graph, bridge_dict: dict, neighborhood_fp: str) -> dict:
+    """Returns a new bridge_dict with bridges propagated to its geographical neighbors and removes the periph as a bridge"""
+    with open(neighborhood_fp, "r") as neighbors_file:
+        data = json.load(neighborhood_fp)
+    neighborhood = {}
+    for k, v in data.items():
+        neighborhood[eval(k)] = [eval(e) for e in v]
+    res_dict = {}
+    highways = nx.get_edge_attributes(G, "highway") # pour enlever le périph
     for edge, is_bridge in bridge_dict.items():
-        if is_bridge == "yes":
-            rec_propagate_bridges(edge, G, seen_edges, bridge_dict, k)
+        if is_bridge == "yes" and highways[edge] != "trunk":
+            for neighbor in neighborhood[edge]:
+                res_dict[neighbor] = "yes"
+        else:
+            res_dict[edge] = "no"
+    return res_dict
 
 def preprocessing(
     G: nx.Graph,
     cost_name: str,
     minmax: tuple[int, int] | None,
     distrib: dict[int, float] | None,
+    neighbor_fp: str | None
 ):
     """
     Does all the required preprocessing in place
@@ -278,10 +274,13 @@ def preprocessing(
                 for k, v in edge_width.items()
             }
         case "width without bridge":
+            if not neighbor_fp:
+                raise ValueError("The neighborhood file must be given for 'without bridge' computations")
             bridge_dict = nx.get_edge_attributes(G, "bridge", default="no")
-            propagate_bridges(G, bridge_dict, 20)
+            new_bridge_dict = propagate_bridges(G, bridge_dict, neighbor_fp)
+            nx.set_edge_attributes(G, new_bridge_dict, "bridge")
             edge_weight = {
-                k: inf if bridge_dict[k] == "yes" else v for k, v in edge_width.items()
+                k: inf if new_bridge_dict[k] == "yes" else v for k, v in edge_width.items()
             }
         case "width without tunnel":
             tunnel_dict = nx.get_edge_attributes(G, "tunnel", default=False)
@@ -318,9 +317,13 @@ def preprocessing(
                 for k, v in edge_lanes.items()
             }
         case "lanes without bridge":
-            bridge_dict = nx.get_edge_attributes(G, "bridge", default=False)
+            if not neighbor_fp:
+                raise ValueError("The neighborhood file must be given for 'without bridge' computations")
+            bridge_dict = nx.get_edge_attributes(G, "bridge", default="no")
+            new_bridge_dict = propagate_bridges(G, bridge_dict, neighbor_fp)
+            nx.set_edge_attributes(G, new_bridge_dict, "bridge")
             edge_weight = {
-                k: inf if bridge_dict[k] == "yes" else v for k, v in edge_lanes.items()
+                k: inf if new_bridge_dict[k] == "yes" else v for k, v in edge_lanes.items()
             }
         case "betweenness":
             edge_weight = nx.get_edge_attributes(G, "betweenness")

@@ -146,7 +146,7 @@ def attack(
     else:
         rd_procedure(metrics, chosen_edges)
     if save:
-        if order != "rd":
+        if order != "rd" or nrandoms == 1:
             temp = metrics.copy()
             metrics = []
             for step in temp:
@@ -154,11 +154,7 @@ def attack(
                 str_d = {str(k): v for k, v in step[1].items()}
                 metrics.append([edges, str_d, step[2]])
         else:
-            temp = metrics.copy()
-            metrics = []
-            for step in temp:
-                edges = [str(e) for e in step[0]] if step[0] else None
-                metrics.append([edges, step[1], step[2]])
+            raise ValueError("not done yet")
         with open(fp_save, "w") as save_file:
             json.dump(metrics, save_file)
     else:
@@ -275,3 +271,17 @@ def verify_integrity(fp: str, order: str, size: int) -> None:
         if order == "bc":
             assert eval(max(data[j][1], key=data[j][1].get)) == edge
         assert not edge in data[j+1][1]
+
+def measure_strong_connectivity(robust_dict: RobustList, G_nx: nx.Graph) -> list[list[int]]:
+    """Takes a robust dict and a graph and returns for each step the size of every connected component"""
+    res = []
+    G = G_nx.copy()
+    for attack in robust_dict:
+        edge = eval(attack[0])
+        if edge:
+            try:
+                G.remove_edge(edge[0], edge[1])
+            except:
+                G.remove_edge(edge[1], edge[0])
+        res.append(len(max(nx.strongly_connected_components(G), key=len)))
+    return res
