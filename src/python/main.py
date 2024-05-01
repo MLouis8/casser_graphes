@@ -31,30 +31,15 @@ def main():
     # extend_attack(G, metrics, n, "lanes_graph_deg_" + str(n+10) + ".json", "deg", True, True, 1000, 100, True)
     
     # create visubcs
-    # for i in range(1, 11):
-    # # i = 10
-    #     print(f"visualizing difference between {i-1} and {i}")
-    #     bc_difference_map_procedure(i-1, i, "data/robust/nocost_cut141_bc_10.json", "presentations/images/cuts_nocost?/visubc_"+str(i-1)+"-"+str(i)+"_cut141.pdf", graphml_path[0], "bc", False)
-    with open("data/robust/lanes_cut24_bc_10.json", "r") as read:
-        data = json.load(read)
-    bc = {}
-    for k, v in data[0][1].items():
-        bc[eval(k)] = v
-    visualize_bc([], bc, G_nx, "data/visubc_0.pdf", "Basic eBC for lane graph")
-    # with open("data/robust/nocost_cut_bc_10.json", "r") as read:
+    # for i in range(11, 26):
+    i = 7
+    print(f"visualizing difference between {3} and {i}")
+    bc_difference_map_procedure(3, i, "data/robust/lanes_cut141_bc_10.json", "presentations/images/lanes/cut141/visubc_"+str(3)+"-"+str(i)+"_cut141.pdf", graphml_path[2], "bc", False)
+    # with open("data/robust/lanes_cut24_bc_10.json", "r") as read:
     #     data = json.load(read)
-    # with open("data/robust/nocost_graph_freq_10.json", "r") as read:
-        # data2 = json.load(read)
-    # bc1 = data[10][1]
-    # bc2 = data2[10][1]
-    # visualize_bc_distrs(bc1, bc2, "data/nocostcut_bcdistr_cut-freqbc.pdf", ("cut then bc", "freq"))
-
-    # with open("data/robust/nocost_graph_bc_10.json", "r") as read:
-    #     data3 = json.load(read)
+    # bc = {}
+    # for k, v in data[0][1].items():
+    #     bc[eval(k)] = v
+    # visualize_bc([], bc, G_nx, "data/visubc_0.pdf", "Basic eBC for lane graph")
     
-    # attack1 = [a[1] for a in data]
-    # attack2 = [a[1] for a in data2]
-    # attack3 = [a[1] for a in data3]
-    # visualize_attack_scores([attack1, attack2, attack3], ["cut", "freq", "bc"], "data/avgbc_cutvsfreq_nocost.pdf", True, "Average eBC evolution for 3 different attacks")
-
 main()

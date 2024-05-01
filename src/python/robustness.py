@@ -281,7 +281,12 @@ def measure_strong_connectivity(robust_dict: RobustList, G_nx: nx.Graph) -> list
     res = []
     G = G_nx.copy()
     for attack in robust_dict:
-        edge = eval(attack[0])
+        if not attack[0]:
+            continue
+        try:
+            edge = (eval(attack[0][0]), eval(attack[0][1]))
+        except:
+            edge = eval(attack[0])
         if edge:
             try:
                 G.remove_edge(edge[0], edge[1])

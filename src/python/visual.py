@@ -548,7 +548,10 @@ def visualize_Delta_bc(
         vmax, vmin = max(delta.values()), min(delta.values())
     else:
         m = max(abs(min(delta.values())), abs(max(delta.values())))
-        vmin, vmax = -m, m
+        if m == 0:
+            vmin, vmax = -1e-7, 1e-7
+        else:
+            vmin, vmax = -m, m
     if abslt:
         color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")]
     else:
@@ -648,15 +651,15 @@ def visualize_attack_scores(
                 ax.plot(x, y_max, label="cc max" + attacks_names[i])
             elif type(attack[0]) == int:
                 # attack is a list of biggest size cc
-                ax.plot(x, attack, label="cc " + attacks_names[i])
+                ax.plot(x, attack, label="scc " + attacks_names[i])
             else:
                 raise TypeError(f"Type {type(attack[0])} not recognized")
     if is_bc:
         ax.set_ylabel("average edge BC")
     else:
-        plt.ylim(40360, 40420)
+        plt.ylim(38450, 38650)
         plt.autoscale(False)
-        ax.set_ylabel("size of biggest connected component")
+        ax.set_ylabel("size of biggest strongly connected component")
     ax.set_xlabel("number of removed edges")
     ax.legend()
     fig.suptitle(title)
