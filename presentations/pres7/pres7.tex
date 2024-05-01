@@ -52,9 +52,9 @@
     \section{Quelques scores et distributions}
 
     \begin{frame}
-        \frametitle{Score: moyenne egde Betweenness Centrality}
+        \frametitle{Score: moyenne edge Betweenness Centrality}
         \centering
-        \includegraphics[scale=0.6]{others/avg_bc_scores_lanes.pdf}
+        \includegraphics[scale=0.6]{others/avgbc_scores_lanes.pdf}
     \end{frame}
 
     \begin{frame}
@@ -66,7 +66,7 @@
     \begin{frame}
         \frametitle{Score: plus grande composante fortement connexe}
         \centering
-        \includegraphics[scale=0.6]{others/biggest_scc_lanes.pdf}
+        \includegraphics[scale=0.6]{others/scc_scores_lanes.pdf}
     \end{frame}
 
     \begin{frame}
@@ -76,9 +76,9 @@
     \end{frame}
 
     \begin{frame}
-        \frametitle{Ordre deg: changements de distributions après 10 arêtes enlevées}
+        \frametitle{Ordre deg: changements de distributions après 25 arêtes enlevées}
         \centering
-        \includegraphics[scale=0.65]{others/lanes_bcdistr_0-10_deg.pdf}    
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_0-25_deg.pdf}    
     \end{frame}
 
     \begin{frame}
@@ -101,24 +101,136 @@
 
     \section{Ordre eBC}
 
+    \begin{frame}
+        \frametitle{Des coupes similaires au nocost}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_0-10_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Et toujours les mêmes phénomènes observés}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_0-25_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Mais pas d'aggravation importante des perturbations}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_0-1_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Avant / après}
+        \includegraphics[scale=0.33]{others/visubc_0.pdf}
+        \includegraphics[scale=0.33]{bc/visubc_25.pdf}
+    \end{frame}
+
     \section{Ordre freq}
 
-    \section{Ordre eBC sur une coupe particulière}
+    \begin{frame}
+        \frametitle{Lorsque le blocage devient conséquent (1)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{freq/visubc_0-10_freq.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Lorsque le blocage devient conséquent (2)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{freq/visubc_0-25_freq.pdf}
+    \end{frame}
+
+    \section{Ordre eBC sur deux coupes particulières}
+    \subsection{Coupe 24}
+    
+    \begin{frame}
+        \frametitle{Similaire à ce qu'on connaît, mais efficace}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut24/visubc_0-10_cut24.pdf}
+    \end{frame}
+
+    \subsection{Coupe 141}
+    \begin{frame}
+        \frametitle{une coupe différente}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut141/visubc_0-10_cut141.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Touche des zones à forte eBC}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut141/visubc_1-2_cut141.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Stratégie d'engorgement d'un pont (1/4)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut141/visubc_3-4_cut141.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Stratégie d'engorgement d'un pont (2/4)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut141/visubc_4-5_cut141.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Stratégie d'engorgement d'un pont (3/4)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut141/visubc_5-6_cut141.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Stratégie d'engorgement d'un pont (4/4)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut141/visubc_6-7_cut141.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Stratégie d'engorgement d'un pont}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut141/visubc_3-7_cut141.pdf}
+    \end{frame}
+
+    \subsection{Comparaisons}
+
+    \begin{frame}
+        \frametitle{Score: moyenne edge Betweenness Centrality}
+        \centering
+        \includegraphics[scale=0.6]{others/avgbc_score_cut.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Score: plus grande composante fortement connexe}
+        \centering
+        \includegraphics[scale=0.6]{others/scc_scores_lanes_cuts.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{cut24: changements de distributions après 10 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_0-10_cut24.pdf}    
+    \end{frame}
+
+
+    \begin{frame}
+        \frametitle{cut24 vs freq: distributions après 10 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_10-10cut24vsfreq.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{cut141: changements de distributions après 10 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_0-10_cut141.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{cut141 vs freq: distributions après 10 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_10-10cut141vsfreq.pdf}    
+    \end{frame}
 
     \section{zones sans pont}
     \begin{frame}
         \frametitle{Quelques essais de zones: 100m (1)}
-        \includegraphics{../other/test100.pdf}
+        \includegraphics[scale=0.9]{../other/test100.pdf}
     \end{frame}
 
     \begin{frame}
         \frametitle{Quelques essais de zones: 200m (2)}
-        \includegraphics{../other/test200.pdf}
+        \includegraphics[scale=0.9]{../other/test200.pdf}
     \end{frame}
 
     \begin{frame}
         \frametitle{Quelques essais de zones: 300m (3)}
-        \includegraphics{../other/test300.pdf}
+        \includegraphics[scale=0.9]{../other/test300.pdf}
     \end{frame}
 
     \end{document}
