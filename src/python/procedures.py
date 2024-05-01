@@ -203,9 +203,14 @@ def propagate_bridges(G: nx.Graph, bridge_dict: dict, neighborhood_fp: str) -> d
     res_dict = {}
     highways = nx.get_edge_attributes(G, "highway") # pour enlever le périph
     for edge, is_bridge in bridge_dict.items():
-        if is_bridge == "yes" and highways[edge] != "trunk":
-            for neighbor in neighborhood[edge]:
-                res_dict[neighbor] = "yes"
+        not_periph = not highways[edge] in ["trunk", "motorway", "motorway_link", "trunk_link"]
+        if is_bridge == "yes" and not_periph:
+            try:
+                for neighbor in neighborhood[edge]:
+                    res_dict[neighbor] = "yes"
+            except:
+                for neighbor in neighborhood[edge[1], edge[0]]:
+                    res_dict[neighbor] = "yes"
         else:
             res_dict[edge] = "no"
     return res_dict

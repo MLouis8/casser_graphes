@@ -150,6 +150,10 @@ def attack(
             temp = metrics.copy()
             metrics = []
             for step in temp:
+                try:
+                    print(step[0], type(step[1]), len(step[1]), step[2])
+                except:
+                    print(step[0], type(step[1]), step[2])
                 edges = [str(e) for e in step[0]] if step[0] else None
                 str_d = {str(k): v for k, v in step[1].items()}
                 metrics.append([edges, str_d, step[2]])

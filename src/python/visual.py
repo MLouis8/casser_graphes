@@ -648,13 +648,13 @@ def visualize_attack_scores(
                 ax.plot(x, y_max, label="cc max" + attacks_names[i])
             elif type(attack[0]) == int:
                 # attack is a list of biggest size cc
-                ax.plot(x, attack, label="scc " + attacks_names[i])
+                ax.plot(x, attack, label="cc " + attacks_names[i])
             else:
                 raise TypeError(f"Type {type(attack[0])} not recognized")
     if is_bc:
         ax.set_ylabel("average edge BC")
     else:
-        plt.ylim(38200, 38800)
+        plt.ylim(40360, 40420)
         plt.autoscale(False)
         ax.set_ylabel("size of biggest connected component")
     ax.set_xlabel("number of removed edges")
