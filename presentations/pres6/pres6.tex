@@ -13,7 +13,7 @@
 \usepackage{algorithm}
 \usepackage{multicol}
 
-\graphicspath{ {../images/} }
+\graphicspath{ {../images/nocost/} }
 \setbeamertemplate{navigation symbols}{}
 \setbeamercolor{background canvas}{bg=}
 
@@ -54,66 +54,144 @@
     \begin{frame}
         \frametitle{Score: moyenne egde Betweenness Centrality}
         \centering
-        \includegraphics[scale=0.6]{distribbc/attack_scores.pdf}
+        \includegraphics[scale=0.6]{others/avg_bc_scores_nocost.pdf}
     \end{frame}
 
     \begin{frame}
         \frametitle{Score: plus grande composante connexe}
         \centering
-        \includegraphics[scale=0.6]{distribbc/attack_scores_cc.pdf}
+        \includegraphics[scale=0.6]{others/cc_scores_nocost.pdf}
     \end{frame}
 
     \begin{frame}
-        \frametitle{edge Betweenness Centrality: Paris non valué}
+        \frametitle{Score: plus grande composante fortement connexe}
         \centering
-        \includegraphics[trim=0 0 0 4.7cm, scale=0.6]{visubc/visubc_0.pdf}
+        \includegraphics[scale=0.6]{others/biggest_scc_nocost.pdf}
     \end{frame}
 
     \begin{frame}
         \frametitle{Ordre eBC: changements de distributions après 10 arêtes enlevées}
         \centering
-        \includegraphics[scale=0.65]{distribbc/distrbc_0-10_bc.pdf}    
+        \includegraphics[scale=0.65]{others/nocost_bcdistr_0-10_bc.pdf}    
     \end{frame}
 
     \begin{frame}
         \frametitle{Ordre deg: changements de distributions après 10 arêtes enlevées}
         \centering
-        \includegraphics[scale=0.65]{distribbc/distrbc_0-10_deg.pdf}    
+        \includegraphics[scale=0.65]{others/nocost_bcdistr_0-10_deg.pdf}    
     \end{frame}
 
     \begin{frame}
         \frametitle{Ordre freq: changements de distributions après 10 arêtes enlevées}
         \centering
-        \includegraphics[scale=0.65]{distribbc/distrbc_0-10_freq.pdf}    
+        \includegraphics[scale=0.65]{others/nocost_bcdistr_0-10_freq.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Visuel des eBC de base}
+        \centering
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{others/visubc_0.pdf}
     \end{frame}
 
     \section{Ordre eBC}
 
     \begin{frame}
-        \frametitle{Des influences locales}
-        \includegraphics[scale=0.22]{visubc/visubc_0-1_bc.pdf}
-        \includegraphics[scale=0.22]{visubc/visubc_0-2_bc.pdf}
+        \frametitle{Des influences locales (1)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_0-1_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Des influences locales (2)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_0-2_bc.pdf}
     \end{frame}
 
     \begin{frame}
         \centering
-        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines}
-        \includegraphics[scale=0.22]{visubc/visubc_1_bc.pdf}
-        \includegraphics[scale=0.22]{visubc/visubc_2_bc.pdf}
-        \includegraphics[scale=0.22]{visubc/visubc_3_bc.pdf}
+        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines (1)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_1_bc.pdf}
     \end{frame}
 
     \begin{frame}
         \centering
-        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines}
-        \includegraphics[scale=0.22]{visubc/visubc_0-2_bc.pdf}
-        \includegraphics[scale=0.22]{visubc/visubc_2-3_bc.pdf}
+        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines (2)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_2_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \centering
+        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines (3)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_3_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \centering
+        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines (1)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_0-2_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \centering
+        \frametitle{intéret de la eBC itérative: chaque attaque influence les prochaines (2)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_2-3_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Contrairement a une attaque qui ne s'adapterai pas}
+        \centering
+        \includegraphics[trim=0 0 0 7cm,scale=0.7]{others/noniterativeBC.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{eBC: un ordre efficace... quand on mesure en eBC}
+        \includegraphics[trim=0 0 0 7cm,scale=0.7]{deg/visubc_0-10_deg.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \centering
+        \frametitle{Des perturbations qui s'aggrave (1)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_0-5_bc.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \centering
+        \frametitle{Des perturbations qui s'aggrave (2)}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{bc/visubc_0-10_bc.pdf}
     \end{frame}
 
     \section{Ordre freq}
-   
+
+    \begin{frame}
+        \frametitle{La fréquence: des pertubations locales assez faibles}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{freq/visubc_0-1_freq.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{La fréquence: un indicateur biaisé mais apparition d'une stratégie de coupe}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{freq/visubc_0-10_freq.pdf}
+    \end{frame}
+
     \section{Ordre eBC dans une coupe}
-    \subsection{Type de coupe majoritaire}
-    \subsection{Un autre type de coupe}
     
+    \begin{frame}
+        \frametitle{Type de coupe majoritaire}
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{cut/visubc_0-10_cut.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Evolutions des distributions des eBC}
+        \centering
+        \includegraphics[scale=0.6]{others/nocostcut_bcdistr_0-10_bc.pdf}
+    \end{frame}
+    
+    \begin{frame}
+        \frametitle{Comparaison des distributions: cut (eBC) vs freq}
+        \centering
+        \includegraphics[scale=0.6]{others/nocostcut_bcdistr_cut-freq.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Comparaison des scores: average eBC}
+        \centering
+        \includegraphics[scale=0.6]{others/avgbc_cutvsfreq_nocost.pdf}
+    \end{frame}
 \end{document}

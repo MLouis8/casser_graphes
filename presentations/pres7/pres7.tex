@@ -1,0 +1,124 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+\usepackage{pdfpages}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{multicol}
+
+\graphicspath{ {../images/lanes/} }
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Analyses de Robustesse: Graphe valué par le nombre de voies et zone sans pont}
+\subtitle{Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \AtBeginSection[]{
+    \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+        \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+    \end{frame}
+    }
+    % frame 1
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    % frame 2
+    \begin{frame}
+        \frametitle{Outline}
+        \tableofcontents
+    \end{frame}
+
+    \section{Quelques scores et distributions}
+
+    \begin{frame}
+        \frametitle{Score: moyenne egde Betweenness Centrality}
+        \centering
+        \includegraphics[scale=0.6]{others/avg_bc_scores_lanes.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Score: plus grande composante connexe}
+        \centering
+        \includegraphics[scale=0.6]{others/cc_scores_lanes.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Score: plus grande composante fortement connexe}
+        \centering
+        \includegraphics[scale=0.6]{others/biggest_scc_lanes.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Ordre eBC: changements de distributions après 25 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_0-25_bc.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Ordre deg: changements de distributions après 10 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_0-10_deg.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Ordre freq: changements de distributions après 12 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_0-12_freq.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Ordre freq: changements de distributions après 25 arêtes enlevées}
+        \centering
+        \includegraphics[scale=0.65]{others/lanes_bcdistr_0-25_freq.pdf}    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Visuel eBC de base}
+        \centering
+        \includegraphics[trim=0 0 0 7cm, scale=0.7]{others/visubc_0.pdf}
+    \end{frame}
+
+    \section{Ordre eBC}
+
+    \section{Ordre freq}
+
+    \section{Ordre eBC sur une coupe particulière}
+
+    \section{zones sans pont}
+    \begin{frame}
+        \frametitle{Quelques essais de zones: 100m (1)}
+        \includegraphics{../other/test100.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Quelques essais de zones: 200m (2)}
+        \includegraphics{../other/test200.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Quelques essais de zones: 300m (3)}
+        \includegraphics{../other/test300.pdf}
+    \end{frame}
+
+    \end{document}
