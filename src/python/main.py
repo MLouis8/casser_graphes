@@ -5,7 +5,7 @@ from visual import visualize_bc, visualize_edgeList, visualize_attack_scores, vi
 from procedures import extend_attack_procedure, prepare_instance, init_city_graph, bc_difference_map_procedure, thousand_cuts, clustering_procedure
 from geo import neighborhood_procedure
 
-import random as rd
+from time import time
 
 import json
 import networkx as nx
@@ -98,11 +98,14 @@ def main():
     bcs = []
     for k in [50, 100, 250, 500, 1000, 2000, 5000, 10000]:
         print("computing bc approx with sample of size ", k)
+        start = time()
         bc = nx.edge_betweenness_centrality(G_nx, k, weight=True)
+        end = time()
+        print("computing bc took ", end-start, "seconds")
         res = {}
         for key, v in bc.items():
             res[str(key)] = v
-        bcs.append((k, res))
+        bcs.append((k, end-start, res))
     with open("data/eBC_approx_quality", "w") as bc_file:
         json.dump(bcs, bc_file)
 main()
