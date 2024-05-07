@@ -97,6 +97,7 @@ def main():
 
     bcs = []
     for k in [50, 100, 250, 500, 1000, 2000, 5000, 10000]:
+        print("computing bc approx with sample of size ", k)
         bc = nx.edge_betweenness_centrality(G_nx, k, weight=True)
         res = {}
         for key, v in bc.items():
