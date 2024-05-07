@@ -95,17 +95,8 @@ def main():
     # print("then")
     # print(bc_diff2)
 
-    bcs = []
-    for k in [50, 100, 250, 500, 1000, 2000, 5000, 10000]:
-        print("computing bc approx with sample of size ", k)
-        start = time()
-        bc = nx.edge_betweenness_centrality(G_nx, k, weight=True)
-        end = time()
-        print("computing bc took ", end-start, "seconds")
-        res = {}
-        for key, v in bc.items():
-            res[str(key)] = v
-        bcs.append((k, end-start, res))
-    with open("data/eBC_approx_quality", "w") as bc_file:
-        json.dump(bcs, bc_file)
+    start = time()
+    nx.edge_betweenness_centrality(G_nx, weight=True)
+    end = time()
+    print("computing bc took ", end-start, "seconds")
 main()
