@@ -2,7 +2,7 @@ import networkx as nx
 import osmnx as ox
 import numpy as np
 
-# import kahip  # to comment if ARM, uncomment to cut
+import kahip  # to comment if ARM, uncomment to cut
 import json
 from typing import Optional, Any
 from typ import EdgeDict
@@ -224,18 +224,17 @@ class Graph:
         Configurations with a social in their name should be used for social
         networks and web graphs.
         """
-        pass
-        # self._edgecut, self._blocks = kahip.kaffpa(
-        #     self["vwgt"],
-        #     self["xadj"],
-        #     self["adjcwgt"],
-        #     self["adjncy"],
-        #     nblocks,
-        #     imbalance,
-        #     suppress_output,
-        #     seed,
-        #     mode,
-        # )
+        self._edgecut, self._blocks = kahip.kaffpa(
+            self["vwgt"],
+            self["xadj"],
+            self["adjcwgt"],
+            self["adjncy"],
+            nblocks,
+            imbalance,
+            suppress_output,
+            seed,
+            mode,
+        )
 
     def process_cut(self) -> list[tuple[int, int]]:
         edges = []
@@ -349,11 +348,11 @@ class Graph:
             self._nx = self.to_nx()
         return len(sorted(nx.connected_components(self._nx), key=len, reverse=True)[0])
 
-    def get_edge_bc(self, new: bool = False) -> EdgeDict:
+    def get_edge_bc(self, weighted: bool, new: bool = False) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()
         if self._old_bc or new:
-            self._bc = nx.edge_betweenness_centrality(self._nx)
+            self._bc = nx.edge_betweenness_centrality(self._nx, weight="weight" if weighted else None)
             self._old_bc = False
         return self._bc
 

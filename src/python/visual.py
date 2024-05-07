@@ -8,7 +8,7 @@ import pandas as pd
 import networkx as nx
 
 from cuts_analysis import get_n_biggest_freq
-from typ import Cuts, Edge, EdgeDict, KCut
+from typ import Cuts, Edge, EdgeDict, KCut, RobustList
 
 
 def imbalances_cut(G_kp):
@@ -474,11 +474,12 @@ def visualize_bc(
             raise ValueError(f"edge ({u}, {v}) not in the graph")
 
     vmax, vmin = max(bc.values()), min(bc.values())
-    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")]
+    # vmax, vmin = 0.1, 0
+    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="jet")] # RdPu for bicolor
     edge_color = [colorize(u, v) for u, v, _ in G.edges]
     edge_width = [thicken(u, v) for u, v, _ in G.edges]
     print("edges colorized, starting display...")
-    cmap = plt.cm.get_cmap("RdPu")
+    cmap = plt.cm.get_cmap("jet") # RdPu for bicolor
     norm = plt.Normalize(vmin=vmin, vmax=vmax)
     sm = cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
@@ -579,12 +580,13 @@ def visualize_Delta_bc(
     fig.savefig(fp)
 
 
-def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str, names: tuple[str, str]) -> None:
+def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str, names: tuple[str, str], cumulative: bool = False) -> None:
     dist1 = bc1.values()
     dist2 = bc2.values()
     _, ax = plt.subplots()
-    ax.hist(dist1, bins='scott', label=names[0], color="#ff0000a0")
-    ax.hist(dist2, bins='scott', label=names[1], color="#0000ffa0")
+    htype = "step" if cumulative else "bar"
+    ax.hist(dist1, bins='scott', label=names[0], color="#ff0000a0", histtype=htype, cumulative=cumulative)
+    ax.hist(dist2, bins='scott', label=names[1], color="#0000ffa0", histtype=htype, cumulative=cumulative)
     ax.set_yscale("log")
     ax.set_xlabel("bc")
     ax.set_ylabel("number of edges")
@@ -703,4 +705,39 @@ def visualize_edgeList_ordered(edgeList: list[Edge], G: nx.Graph, fp: str, title
         cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.01
     )
     cb.set_label(title, fontsize=12)
+    fig.savefig(fp)
+
+def visualize_biggest_scc(G_nx: nx.Graph, fp: str, robust_list: RobustList | None) -> None:
+    """
+    Saves in fp the city graph with biggest connected component highlighted
+    If robust_list is set to None, it doesn't remove any edge from G_nx
+    If a robust_list is given, it removes all corresponding edges (assumes it's the last attack)
+    """
+    def colorize(u, v):        
+        if (u, v) in biggest_scc or (v, u) in biggest_scc:
+            return "r"
+        else:
+            return "#54545420"
+    if robust_list:
+        for attack in robust_list:
+            if eval(attack[0]) is None:
+                continue
+            try:
+                u, v = eval(attack[0])
+            except:
+                if eval(attack[0][0]) is None:
+                    continue
+                u, v = eval(attack[0][0]), eval(attack[0][1])
+            G_nx.remove_edge(u, v)
+    biggest_scc = max(nx.strongly_connected_components(G_nx), key=len)
+    edge_color = [colorize(u, v) for u, v, _ in G_nx.edges]
+    fig, _ = ox.plot_graph(
+        G_nx,
+        node_color="#54545420",
+        node_size=0.5,
+        edge_color=edge_color,
+        edge_linewidth=1,
+        bgcolor="white",
+        show=False,
+    )
     fig.savefig(fp)

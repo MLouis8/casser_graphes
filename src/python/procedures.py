@@ -1,6 +1,7 @@
 import networkx as nx
 import osmnx as ox
 import random as rd
+import numpy as np
 import json
 import math
 import matplotlib.pyplot as plt
@@ -196,23 +197,23 @@ def infer_lanes(G: nx.graph) -> EdgeDict3:
 def propagate_bridges(G: nx.Graph, bridge_dict: dict, neighborhood_fp: str) -> dict:
     """Returns a new bridge_dict with bridges propagated to its geographical neighbors and removes the periph as a bridge"""
     with open(neighborhood_fp, "r") as neighbors_file:
-        data = json.load(neighborhood_fp)
+        data = json.load(neighbors_file)
     neighborhood = {}
     for k, v in data.items():
         neighborhood[eval(k)] = [eval(e) for e in v]
     res_dict = {}
     highways = nx.get_edge_attributes(G, "highway") # pour enlever le périph
-    for edge, is_bridge in bridge_dict.items():
-        not_periph = not highways[edge] in ["trunk", "motorway", "motorway_link", "trunk_link"]
+    for (u, v, w), is_bridge in bridge_dict.items():
+        not_periph = not highways[(u, v, w)] in ["trunk", "motorway", "motorway_link", "trunk_link"]
         if is_bridge == "yes" and not_periph:
             try:
-                for neighbor in neighborhood[edge]:
-                    res_dict[neighbor] = "yes"
+                for (a, b) in neighborhood[(u, v)]:
+                    res_dict[(a, b, 0)] = "yes"
             except:
-                for neighbor in neighborhood[edge[1], edge[0]]:
-                    res_dict[neighbor] = "yes"
+                for (a, b) in neighborhood[(v, u)]:
+                    res_dict[(a, b, 0)] = "yes"
         else:
-            res_dict[edge] = "no"
+            res_dict[(u, v, 0)] = "no"
     return res_dict
 
 def preprocessing(
@@ -385,6 +386,7 @@ def prepare_instance(
     val_name: str,
     minmax: tuple[int, int] | None = None,
     distr: dict[int, float] | None = None,
+    fp_neighbors: str | None = None
 ):
     """ "
     Prepare a json KaHIP Graph instance according to the required cost function.
@@ -406,7 +408,7 @@ def prepare_instance(
     print("Loading instance")
     G_nx = ox.load_graphml(read_filename)
     print(f"preprocessing the graph...")
-    preprocessing(G_nx, val_name, minmax, distr)
+    preprocessing(G_nx, val_name, minmax, distr, fp_neighbors)
     print("Conversion into KaHIP format...")
     G_kp = Graph(nx=G_nx)
     G_kp.save_graph(write_filename)
@@ -460,11 +462,11 @@ def cpt_freq(freq, kcuts, G_kp):
         cuts[k] = G_kp.process_cut()
 
 
-def clustering_procedure():
+def clustering_procedure(graph_path: str, kp_path: str, cut_path: str, cost_name: str, treshold: int):
     print("import stuff...")
-    G_nx = ox.load_graphml(graphml_path[2])
-    G_kp = Graph(json=kp_paths[11])
-    with open(cut_paths_2[2], "r") as read_file:
+    G_nx = ox.load_graphml(graph_path)
+    G_kp = Graph(json=kp_path)
+    with open(cut_path, "r") as read_file:
         kcuts = json.load(read_file)
     cuts = {}
     for k, (edgecut, blocks) in kcuts.items():
@@ -473,12 +475,12 @@ def clustering_procedure():
 
     print("clustering...")
     C = CutsClassification(cuts, G_nx)
-    n = 7500
+    n = treshold
     C.cluster_louvain("sum", n)
     print(f"for n = {n}")
     for level in C._levels:
         print(len(level))
-    C.save_last_classes("data/clusters/CTS_" + str(n) + "_lanesmaxspeed.json")
+    C.save_last_classes("data/clusters/CTS_" + str(n) + "_"+ cost_name + ".json")
 
 
 def clustering_display():
@@ -559,4 +561,38 @@ def bc_difference_map_procedure(i1: int, i2: int, read_fp: str, write_fp, graph_
     except:
         r_edges = [(eval(impt[j][0][0]), eval(impt[j][0][1])) if impt[j][0] else impt[j][0] for j in range(i2+1)]
     print(r_edges)
-    visualize_Delta_bc(r_edges, bc1, bc2, G_nx, write_fp, abslt, "eBC diff map from " + str(i1) + "to "+ str(i2) +" edges removed in " + order_name)  
+    visualize_Delta_bc(r_edges, bc1, bc2, G_nx, write_fp, abslt, "eBC diff map from " + str(i1) + "to "+ str(i2) +" edges removed in " + order_name)
+
+def analyse_bcimpacts_procedure(robust_fps: list[str], eval_criterions: list[str], save_fp: str, names: list[str], titles: list[str]):
+    match len(eval_criterions):
+        case 1:
+            nlines, ncols = 1, 1
+        case 2:
+            nlines, ncols = 1, 2
+        case 3:
+            nlines, ncols = 1, 3
+        case 4:
+            nlines, ncols = 2, 2
+        case _:
+            raise ValueError("Only 1, 2, 3 or 4 evaluation criterions are allowed")
+    fig, axes = plt.subplot(nlines, ncols)
+    data = tuple([] for _ in range(len(eval_criterions)))
+    for fp in robust_fps:
+        with open(fp, "r") as read_file:
+            robust_dicts = json.load(read_file)
+        for i, criterion in enumerate(eval_criterions):
+            data[i].append([dict[criterion] for dict in robust_dicts])
+    x = np.arange(len(eval_criterions))
+    if nlines == 1:
+        for i in range(len(eval_criterions)):
+            for j in range(len(fp)):
+                axes[i].plot(x, data[i][j], label=names[j])
+                axes[i].legend()
+            axes[i].set_title(titles[i])
+    else:
+        for i in range(len(eval_criterions)):
+            for j in range(len(fp)):
+                axes[i//2, i%2].plot(x, data[i][j], label=names[j])
+                axes[i//2, i%2].legend()
+            axes[i//2, i%2].set_title(titles[i])
+    fig.savefig(save_fp)

@@ -1,12 +1,18 @@
 import networkx as nx
 import osmnx as ox
 import json
-import math
 
-from typ import Edge, Coord
+from typ import EdgeCoord
 
-def euclidian_dist(e1: Coord, e2: Coord) -> float:
-    return math.dist(e1, e2)
+
+def dist(e1: EdgeCoord, e2: EdgeCoord) -> float:
+    return min([
+        ox.distance.great_circle(e1[0][0], e1[0][1], e2[0][0], e2[0][1]),
+        ox.distance.great_circle(e1[0][0], e1[0][1], e2[1][0], e2[1][1]),
+        ox.distance.great_circle(e1[1][0], e1[1][1], e2[0][0], e2[0][1]),
+        ox.distance.great_circle(e1[1][0], e1[1][1], e2[1][0], e2[1][1])
+    ])
+
 
 def neighborhood_procedure(G_nx: nx.Graph, k: int, fp: str) -> None:
     """
@@ -23,15 +29,18 @@ def neighborhood_procedure(G_nx: nx.Graph, k: int, fp: str) -> None:
     neighborhoods = {}
     xs = nx.get_node_attributes(G_nx, "x")
     ys = nx.get_node_attributes(G_nx, "y")
-    edge_coord = lambda n1, n2: (xs[n1] + xs[n2] / 2, ys[n1] + ys[n2] / 2)
-    for n1, n2, _ in G_nx.edges:
-        if str((n2, n1)) in neighborhoods.keys():
+    within_range = lambda x, y: ox.distance.great_circle(xs[x], ys[x], xs[y], ys[y]) < k
+    for a, b, _ in G_nx.edges:
+        if str((a, b)) in neighborhoods.keys():
             continue
-        neighborhoods[str((n1, n2))] = []
-        lat1, long1 = edge_coord(n1, n2)
-        for possible_neighbor in G_nx.edges:
-            lat2, long2 = edge_coord(possible_neighbor[0], possible_neighbor[1])
-            if ox.distance.great_circle(lat1, long1, lat2, long2) < k:
-                neighborhoods[str((n1, n2))].append(str((possible_neighbor[0], possible_neighbor[1])))
+        neighborhoods[str((a, b))] = []
+        for c, d, _ in G_nx.edges:
+            if (
+                within_range(a, c)
+                or within_range(a, d)
+                or within_range(b, c)
+                or within_range(b, d)
+            ):
+                neighborhoods[str((a, b))].append(str((c, d)))
     with open(fp, "w") as save_file:
         json.dump(neighborhoods, save_file)

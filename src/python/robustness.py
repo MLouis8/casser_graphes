@@ -1,13 +1,12 @@
 from Graph import Graph
-from typ import RobustList, Cuts, Edge, EdgeDict
+from typ import RobustList, Edge, EdgeDict
+from geo import dist
 
 import json
 import random as rd
 import networkx as nx
 import numpy as np
-from typing import Any
 from copy import deepcopy
-
 
 def freq_attack(G: Graph, ncuts: int) -> Edge:
     cut_union = []
@@ -26,11 +25,13 @@ def freq_attack(G: Graph, ncuts: int) -> Edge:
             frequencies[edge] += 1
         else:
             frequencies[edge] = 1
-    return max(frequencies, key=frequencies.get)
+    try:
+        return max(frequencies, key=frequencies.get)
+    except:
+        return None
 
-
-def betweenness_attack(G: Graph, subset: list[Edge] | None) -> Edge:
-    bc = G.get_edge_bc()
+def betweenness_attack(G: Graph, weighted: bool, subset: list[Edge] | None) -> Edge:
+    bc = G.get_edge_bc(weighted=weighted)
     if subset:
         res, max_bc = None, 0
         for edge in subset:
@@ -57,6 +58,26 @@ def maxdegree_attack(G: Graph, subset: list[Edge] | None) -> Edge:
     return chosen_edge
 
 
+def best_pertubation(G: Graph, pertubation: tuple[str, float], subset: list[Edge] | None) -> Edge:
+    """
+    Try to remove each edge, computing the resulting pertubation.
+    Returns the edge with the highest perturbation score
+
+    Available perturbations:
+        - ('dmax', treshold)
+        - ('nimpacts', treshold)
+        - ('sumdiffs', treshold)
+        - ('maxdiff', treshold)
+        # - ('sumbydist', treshold)
+        # - ('sumbyinvdist', treshold)
+    See measure_bc_impact for more information about perturbations.
+    """
+    
+    measure_bc_impact()
+
+
+# def cascading_attack(G: Graph, treshold):
+
 def attack(
     G: Graph,
     k: int,
@@ -68,6 +89,7 @@ def attack(
     nrandoms: int = 100,
     save: bool = True,
     subset: list[Edge] | None = None,
+    weighted: bool = True
     # extended: bool = False, TODO: don't recalculate first bc when extended
 ) -> RobustList | None:
     """
@@ -97,7 +119,7 @@ def attack(
     """
 
     def not_rd_procedure(metrics, chosen_edge):
-        bc = G.get_edge_bc(new=True) if metric_bc else None
+        bc = G.get_edge_bc(weighted=weighted, new=True) if metric_bc else None
         cc = G.get_size_biggest_cc if metric_cc else None
         metrics.append((chosen_edge, bc, cc))
 
@@ -107,32 +129,37 @@ def attack(
             for edge in chosen_edges:
                 G_copy = deepcopy(G)
                 G_copy.remove_edge(edge)
-                bcs.append(np.mean(list(G_copy.get_edge_bc(new=True).values())) if metric_bc else None)
-                cc_list.append(G_copy.get_size_biggest_cc if metric_cc else None)
+                if metric_bc:
+                    bcs.append(np.mean(list(G_copy.get_edge_bc(weighted=weighted, new=True).values())))
+                if metric_cc:
+                    cc_list.append(G_copy.get_size_biggest_cc if metric_cc else None)
             metrics.append((chosen_edges, bcs, cc_list))
-        elif len(chosen_edges) == 1:
-            not_rd_procedure(metrics, chosen_edges[0])
+        elif len(chosen_edges) == 1 or len(chosen_edges) == 0:
+            not_rd_procedure(metrics, chosen_edges[0] if len(chosen_edges) == 1 else None)
         else:
             metrics.append(
                 (
                     None,
-                    np.mean(list(G.get_edge_bc(new=True).values())),
-                    G.get_size_biggest_cc,
+                    np.mean(list(G.get_edge_bc(weighted=weighted, new=True).values())) if metric_bc else None,
+                    G.get_size_biggest_cc if metric_cc else None,
                 )
             )
     if order == "freq" and subset:
         raise ValueError("Freq attack not available when considering only a subset of edges")
-    metrics, chosen_edge, chosen_edges = [], None, []
+    metrics, chosen_edge, chosen_edges, direct_save = [], None, [], False
     for i in range(k):
         print(f"processing the {i+1}-th attack over {k}, order: {order}")
         match order:
             case "bc":
                 not_rd_procedure(metrics, chosen_edge)
-                chosen_edge = betweenness_attack(G, subset)
+                chosen_edge = betweenness_attack(G, weighted, subset)
                 G.remove_edge(chosen_edge)
             case "freq":
                 not_rd_procedure(metrics, chosen_edge)
                 chosen_edge = freq_attack(G, ncuts)
+                if not chosen_edge:
+                    direct_save = True
+                    break
                 G.remove_edge(chosen_edge)
             case "deg":
                 not_rd_procedure(metrics, chosen_edge)
@@ -140,23 +167,21 @@ def attack(
                 G.remove_edge(chosen_edge)
             case "rd":
                 rd_procedure(metrics, chosen_edges)
+                G._nx = G.to_nx()
                 chosen_edges = random_attack(G, nrandoms, subset)
-    if order != "rd":
+    if order != "rd" and not direct_save:
         not_rd_procedure(metrics, chosen_edge)
-    else:
+    elif not direct_save:
         rd_procedure(metrics, chosen_edges)
     if save:
         if order != "rd" or nrandoms == 1:
             temp = metrics.copy()
             metrics = []
             for step in temp:
-                try:
-                    print(step[0], type(step[1]), len(step[1]), step[2])
-                except:
-                    print(step[0], type(step[1]), step[2])
                 edges = [str(e) for e in step[0]] if step[0] else None
-                str_d = {str(k): v for k, v in step[1].items()}
-                metrics.append([edges, str_d, step[2]])
+                str_d = {str(k): v for k, v in step[1].items()} if step[1] else None
+                cc = step[2] if step[2] else None
+                metrics.append([edges, str_d, cc])
         else:
             raise ValueError("not done yet")
         with open(fp_save, "w") as save_file:
@@ -192,6 +217,8 @@ def extend_attack(
     ncuts: int,
     nrandoms: int,
     save: bool,
+    subset: list[Edge] | None = None,
+    weighted: bool = False
 ) -> RobustList | None:
     # remove the already processed edges
     for e, _, _ in metrics:
@@ -204,6 +231,8 @@ def extend_attack(
                 continue
             edge = (eval(e[0]), eval(e[1]))
         G.remove_edge(edge)
+        if subset:
+            subset.remove(edge)
     # launch attack on the new graph
     tail = attack(
         G,
@@ -215,6 +244,8 @@ def extend_attack(
         ncuts=ncuts,
         nrandoms=nrandoms,
         save=False,
+        subset=subset,
+        weighted=weighted
         #  extended=True, see attack for more details
     )
     # return the concat of the two metrics
@@ -281,11 +312,11 @@ def verify_integrity(fp: str, order: str, size: int) -> None:
             assert eval(max(data[j][1], key=data[j][1].get)) == edge
         assert not edge in data[j+1][1]
 
-def measure_strong_connectivity(robust_dict: RobustList, G_nx: nx.Graph) -> list[list[int]]:
+def measure_strong_connectivity(robust_list: RobustList, G_nx: nx.Graph) -> list[list[int]]:
     """Takes a robust dict and a graph and returns for each step the size of every connected component"""
     res = []
     G = G_nx.copy()
-    for attack in robust_dict:
+    for attack in robust_list:
         if not attack[0]:
             continue
         try:
@@ -299,3 +330,93 @@ def measure_strong_connectivity(robust_dict: RobustList, G_nx: nx.Graph) -> list
                 G.remove_edge(edge[1], edge[0])
         res.append(len(max(nx.strongly_connected_components(G), key=len)))
     return res
+
+def measure_diameter(robust_list: RobustList, G_nx: nx.Graph) -> list[int]:
+    """Takes a robust dict and a graph and returns for each step the diameter of the graph"""
+    res = []
+    for attack in robust_list:
+        if attack[0] is None:
+           res.append(nx.diameter(G_nx))
+        else:
+            try:
+                e = eval(attack[0])
+                G_nx.remove_edge(e[0], e[1])
+            except:
+                G_nx.remove_edge(eval(attack[0][0]), eval(attack[0][1]))
+            res.append(nx.diameter(G_nx))
+    return res
+
+def measure_bc_impact(bc1: EdgeDict, bc2: EdgeDict, r_edge: Edge, G_nx: nx.Graph, impact_treshold: float = 1e-5) -> dict[str, float]:
+    """
+    Takes two bc dictionnaries and measures the differences
+    Warning they must have the same keys except from the r_edge
+
+    Metrics:
+        - max distance from impact, key: "dmax"
+        - number of impacted edges, key: "nimpacts"
+        - absolute differences sum, key: "sumdiffs"
+        - neg differences sum,      key: "sumnegs"
+        - pos differences sum,      key: "sumpos"
+        - biggest pos change,       key: "maxdiff"
+        - biggest neg change,       key: "mindiff"
+        (res["sumdiffs"] = res["neg"] + res["sumpos"])
+        - absolute dif sum divided by dist,     key: "sumbydist"
+        - absolute dif sum divided by dist**-1, key: "sumbyinvdist"
+    """
+    res = {
+        "dmax": 0,
+        "nimpacts": 0,
+        "sumdiffs": 0,
+        "sumnegs": 0,
+        "sumpos": 0,
+        "maxdiff": 0,
+        "mindiff": 0,
+        "sumbydist": 0,
+        "sumbyinvdist": 0
+    }
+    xs = nx.get_node_attributes(G_nx, "x")
+    ys = nx.get_node_attributes(G_nx, "y")
+    r_edge_coord = ((xs[r_edge[0]], ys[r_edge[0]]), (xs[r_edge[1]], ys[r_edge[1]]))
+    for edge, v in bc1.items():
+        if edge == r_edge:
+            continue
+        delta = bc2[edge] - v
+        if abs(delta) > impact_treshold:
+            edge_coord = ((xs[edge[0]], ys[edge[0]]), (xs[edge[1]], ys[edge[1]]))
+            if delta > 0:
+                res["sumpos"] += delta
+                res["maxdiff"] = max(delta, res["maxdiff"])
+            else:
+                res["mindiff"] = min(delta, res["maxdiff"])
+                delta = -delta
+                res["sumnegs"] += delta
+            res["sumdiffs"] += delta
+            res["nimpacts"] += 1
+            d = dist(r_edge_coord, edge_coord)
+            res["dmax"] = max(d, res["dmax"])
+            res["sumbydist"] += delta / (d+1e-5)
+            res["sumbyinvdist"] += delta * d      
+    print(res) 
+    return res
+
+def cpt_eBC_without_div(G_nx):
+    """Returns for each edge, the number of shortest paths passing through it"""
+    res = {}
+    cpt, E = 0, len(G_nx.nodes)
+    for s in G_nx.nodes:
+        print(f"processing {cpt} out of {E}")
+        for t in G_nx.nodes:
+            if s == t:
+                continue
+            path_gen = nx.all_shortest_paths(G_nx, s, t, weight="weight")
+            for path in path_gen:
+                n1 = s
+                for n2 in path[1:]:
+                    res[(n1, n2)] = res[(n1, n2)] + 1 if (n1, n2) in res else 1
+    return res
+
+def efficiency(robust_list: RobustList, G_nx: nx.Graph):
+    for attack in robust_list:
+        n1, n2 = eval(attack[0])
+        G_nx.remove_edge(n1, n2)
+    return nx.global_efficiency(G_nx)
