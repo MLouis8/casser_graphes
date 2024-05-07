@@ -447,30 +447,9 @@ def measure_bc_impact(
 
 def cpt_eBC_without_div(G_nx):
     """Returns for each edge, the number of shortest paths passing through it"""
-    nx.set_edge_attributes(
-        G_nx,
-        {k: eval(v) for k, v in nx.get_edge_attributes(G_nx, "weight").items()},
-        "weight",
-    )
-    res = {}
-    cpt, E = 0, len(G_nx.nodes)
-    for s in G_nx.nodes:
-        print(f"processing {cpt} out of {E}")
-        for t in G_nx.nodes:
-            if s == t:
-                continue
-            path_gen = nx.all_shortest_paths(G_nx, s, t, weight="weight")
-            try:
-                for path in path_gen:
-                    n1 = s
-                    for n2 in path[1:]:
-                        res[str((n1, n2))] = res[str((n1, n2))] + 1 if str((n1, n2)) in res else 1
-            except:
-                print(f"{t} not reachable from {s}")
-                continue
-        cpt += 1
-    return res
-
+    # sp = nx.all_pairs_shortest_path
+    # return res
+    pass
 
 def efficiency(G_nx: nx.Graph):
     efficiency = {}

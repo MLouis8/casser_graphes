@@ -450,7 +450,7 @@ def visualize_bc(
             return color_list[int((bc[(u, v)] / vmax) * (color_levels-1))]
         elif (v, u) in bc:
             return color_list[int((bc[(v, u)] / vmax) * (color_levels-1))]
-        # elif (u, v, w) in bc:
+        # if (u, v, w) in bc:
         #     return color_list[int((bc[(u, v, w)] / vmax) * (color_levels-1))]
         # elif (v, u, w) in bc:
         #     return color_list[int((bc[(v, u, w)] / vmax) * (color_levels-1))]
@@ -464,7 +464,7 @@ def visualize_bc(
             return (2 * bc[(u, v)] / vmax) ** 2
         elif (v, u) in bc:
             return (2 * bc[(v, u)] / vmax) ** 2
-        # elif (u, v, w) in bc:
+        # if (u, v, w) in bc:
         #     return (2 * bc[(u, v, w)] / vmax) ** 2
         # elif (v, u, w) in bc:
         #     return (2 * bc[(v, u, w)] / vmax) ** 2

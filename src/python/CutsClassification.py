@@ -1,79 +1,60 @@
-from typ import Cuts, Cut, Classes, Edge
+from typ import Cuts, Cut, Classes
 from Graph import Graph
 from typing import Any, Optional
+from geo import dist
 
 import json
 import networkx as nx
 import random as rd
 import numpy as np
-from math import inf, sqrt
+import scipy.stats as stats
+from math import inf
 
 class CutsClassification:
     def __init__(self, cuts: Cuts, G_nx: nx.Graph) -> None:
         self._cuts = cuts
         self._levels = None
         self._nodes = G_nx.nodes(data=True)
+        self._latitudes = nx.get_node_attributes(G_nx, "x")
+        self._longitudes = nx.get_node_attributes(G_nx, "y")
 
     def save_last_classes(self, filepath: str):
         with open(filepath, "w") as write_path:
             json.dump(self._levels, write_path)
 
-    def distance(self, c1: Cut, c2: Cut, tdistance: str) -> float:
-        """
-        Distance between two cuts based on geographical proximity.
-        First for each edge of c1 we find the closest (Euclidially) corresponding edge in c2.
-        Then distance is defined as:
-            - max: the largest value found
-            - sum: sum of the values
-            - sum squarred: sum of the squarred values
-            - inter: only distance of 0 is kept
-        """
-        match tdistance:
-            case "max": d_cut = lambda l: max(l)
-            case "sum": d_cut = lambda l: sum(l)
-            case "squared sum": d_cut = lambda l: sum([e**2 for e in l])
-            case "inter":
-                inter = 0
-                for ele in c2:
-                    if ele in c1:
-                        inter += 1
-                return int((inter / (len(c1) + len(c2)))*100)
-            case "var": d_cut = lambda l: int(np.var(l))
-            case _: raise ValueError("wrong distance parameter")
-        seen: list[Edge] = []
+    def chamfer_distance(self, c1: Cut, c2: Cut) -> float:
+        """Chamfer Distance between two cuts based on geographical distance."""
         l = []
-        for edge1 in c1:
+        for e1 in c1:
             best_distance = inf
-            x1 = self._nodes[edge1[0]]["x"] + self._nodes[edge1[1]]["x"] / 2
-            y1 = self._nodes[edge1[0]]["y"] + self._nodes[edge1[1]]["y"] / 2
-            for edge2 in c2:
-                if not edge2 in seen:
-                    x2 = self._nodes[edge2[0]]["x"] + self._nodes[edge2[1]]["x"] / 2
-                    y2 = self._nodes[edge2[0]]["y"] + self._nodes[edge2[1]]["y"] / 2
-                    d_edge = sqrt((x1-x2)**2 + (y1-y2)**2)
-                    if d_edge < best_distance:
-                        best_distance = d_edge
-                    seen.append(edge2)
-            if best_distance == inf:
-                l.append(0)
-            elif best_distance == 0:
-                l.append(-1)
-            else:
-                l.append(int(best_distance**(-1)))
-        return d_cut([1000 if e == -1 else e for e in l])
-
-    def cluster_louvain(self, distance_type: str, treshold: int | None=None) -> None:
+            e1n1 = (self._latitudes[e1[0]], self._longitudes[e1[0]])
+            e1n2 = (self._latitudes[e1[1]], self._longitudes[e1[1]])
+            for e2 in c2:
+                e2n1 = (self._latitudes[e2[0]], self._longitudes[e2[0]])
+                e2n2 = (self._latitudes[e2[1]], self._longitudes[e2[1]])
+                d_edge = dist((e1n1, e1n2), (e2n1, e2n2))
+                if d_edge < best_distance:
+                    best_distance = d_edge
+        return sum(l)
+    #TODO: approx chamfer distance
+    #TODO: BIRCH algorithm for clustering
+    
+    def wassersteine_distance(self, c1: Cut, c2: Cut) -> float:
+        u = [[(self._latitudes[edge[0]]+self._latitudes[edge[1]])/2, (self._longitudes[edge[0]]+self._longitudes[edge[1]])/2] for edge in c1]
+        v = [[(self._latitudes[edge[0]]+self._latitudes[edge[1]])/2, (self._longitudes[edge[0]]+self._longitudes[edge[1]])/2] for edge in c2]
+        return stats.wasserstein_distance_nd(u, v)
+    
+    def cluster_louvain(self, treshold: int | None=None) -> None:
         G = nx.Graph()
         weights = []
         for e1, e2 in self._cuts.items():
             for e3, e4 in self._cuts.items():
                 if not (e3, e1) in G.edges and e1 != e3:
-                    w = self.distance(e2, e4, distance_type)
+                    w = self.chamfer_distance(e2, e4)
                     weights.append(w)
                     if not treshold or w >= treshold:
                         G.add_edge(e1, e3, weight=w)
-        # print(min(weights), max(weights), np.mean(weights), np.var(weights))
-        self._levels = gen_to_list(nx.community.louvain_partitions(G))
+        self._levels = gen_to_list(nx.community.louvain_partitions(G, weight="weight"))
 
     def get_class_level(self):
         if not self._levels:

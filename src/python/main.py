@@ -1,7 +1,7 @@
 from Graph import Graph
 from paths import graphml_path, kp_paths, rpaths
 from robustness import attack
-from visual import visualize_edgeList
+from visual import visualize_edgeList, visualize_bc
 from procedures import efficiency_procedure
 from geo import neighborhood_procedure
 
@@ -45,13 +45,13 @@ def main():
     # i = 7
     # print(f"visualizing difference between {3} and {i}")
     # bc_difference_map_procedure(3, i, "data/robust/lanes_cut141_bc_10.json", "presentations/images/lanes/cut141/visubc_"+str(3)+"-"+str(i)+"_cut141.pdf", graphml_path[2], "bc", False)
-    # with open("data/robust/lanes_cut141_bc_10.json", "r") as read:
+
+    # with open("data/robust/lanes_graph_bc_10_new.json", "r") as read:
     #     data = json.load(read)
     # bc = {}
-    # for k, v in data[10][1].items():
+    # for k, v in data[0][1].items():
     #     bc[eval(k)] = v
-    # visualize_bc([(eval(a[0][0]), eval(a[0][1])) if a[0] else None for a in data], bc, G_nx, "data/visubc_10_cut141.pdf", "eBC after 10 removals for lane graph")#"base eBC for lane graph"
-    
+    # visualize_bc([], bc, G_nx, "data/visubclanes_0new.pdf", "basic Paris eBC lanes weighted")
     
     # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 2000)
     # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 3000)
@@ -59,6 +59,10 @@ def main():
     
     # with open("data/robust/lanes_graph_bc_50.json", "r") as robust_file:
     #     attacks = json.load(robust_file)
-    efficiency_procedure(G_nx, "data/robust/lanes_graph_deg_50.json", "data/robust/lanesgraphdeg_efficiency_50.json")
+    # efficiency_procedure(G_nx, "data/robust/lanes_graph_deg_50.json", "data/robust/lanesgraphdeg_efficiency_50.json")
+    G = nx.Graph()
+    G.add_edge(1, 0)
+    sp = nx.all_pairs_shortest_path(G)
+    print(sp)
 
 main()
