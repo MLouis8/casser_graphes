@@ -58,22 +58,22 @@ def maxdegree_attack(G: Graph, subset: list[Edge] | None) -> Edge:
     return chosen_edge
 
 
-def best_pertubation(G: Graph, pertubation: tuple[str, float], subset: list[Edge] | None) -> Edge:
-    """
-    Try to remove each edge, computing the resulting pertubation.
-    Returns the edge with the highest perturbation score
+# def best_pertubation(G: Graph, pertubation: tuple[str, float], subset: list[Edge] | None) -> Edge:
+#     """
+#     Try to remove each edge, computing the resulting pertubation.
+#     Returns the edge with the highest perturbation score
 
-    Available perturbations:
-        - ('dmax', treshold)
-        - ('nimpacts', treshold)
-        - ('sumdiffs', treshold)
-        - ('maxdiff', treshold)
-        # - ('sumbydist', treshold)
-        # - ('sumbyinvdist', treshold)
-    See measure_bc_impact for more information about perturbations.
-    """
-    
-    measure_bc_impact()
+#     Available perturbations:
+#         - ('dmax', treshold)
+#         - ('nimpacts', treshold)
+#         - ('sumdiffs', treshold)
+#         - ('maxdiff', treshold)
+#         # - ('sumbydist', treshold)
+#         # - ('sumbyinvdist', treshold)
+#     See measure_bc_impact for more information about perturbations.
+#     """
+
+#     measure_bc_impact()
 
 
 # def cascading_attack(G: Graph, treshold):
@@ -415,8 +415,8 @@ def cpt_eBC_without_div(G_nx):
                     res[(n1, n2)] = res[(n1, n2)] + 1 if (n1, n2) in res else 1
     return res
 
-def efficiency(robust_list: RobustList, G_nx: nx.Graph):
-    for attack in robust_list:
-        n1, n2 = eval(attack[0])
-        G_nx.remove_edge(n1, n2)
-    return nx.global_efficiency(G_nx)
+def efficiency(G_nx: nx.Graph):
+    efficiency = {}
+    for edge in G_nx.edges:
+        efficiency[edge] = nx.efficiency(G_nx, edge[0], edge[1])
+    return efficiency

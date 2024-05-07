@@ -1,6 +1,6 @@
 from Graph import Graph
 from paths import graphml_path, kp_paths, rpaths
-from robustness import attack, verify_integrity, extend_attack, measure_strong_connectivity, cpt_eBC_without_div, measure_bc_impact
+from robustness import attack, verify_integrity, extend_attack, measure_strong_connectivity, cpt_eBC_without_div, measure_bc_impact, efficiency
 from visual import visualize_bc, visualize_edgeList, visualize_attack_scores, visualize_bc_distrs, visualize_Delta_bc, visualize_edgeList_ordered
 from procedures import extend_attack_procedure, prepare_instance, init_city_graph, bc_difference_map_procedure, thousand_cuts, clustering_procedure
 from geo import neighborhood_procedure
@@ -58,45 +58,10 @@ def main():
     # with open("data/robust/lanes_graph_bc_50.json", "r") as robust_file:
     #     attacks = json.load(robust_file)
 
-    # bc1 = attacks[0][1]
-    # bc2 = attacks[1][1]
-    # bc_diff = {}
-    # for k, v in bc1.items():
-    #     if k == '(4886, 4895)':
-    #         continue
-    #     try:
-    #         if abs(v-bc2[k]) > 0.05:
-    #             bc_diff[eval(k)] = abs(v-bc2[k])
-    #     except:
-    #         edge = (eval(k)[1], eval(k)[0])
-    #         if abs(v-bc2[edge]) > 0.05:
-    #             bc_diff[edge] = abs(v-bc2[edge])
-    # nodes = set()
-    # for edge in bc_diff.keys():
-    #     nodes.add(edge[0])
-    #     nodes.add(edge[1])
-    
-    # print("computing subset bc 1")
-    # primebc1 = nx.edge_betweenness_centrality_subset(G_nx, nodes.union({4886, 4895}), nodes.union({4886, 4895}))
-    # print("computing subset bc 2")
-    # primebc2 = nx.edge_betweenness_centrality_subset(G_nx, nodes, nodes)
-    # bc_diff2 = {}
-    # for k, v in primebc1.items():
-    #     if k == '(4886, 4895)':
-    #         continue
-    #     try:
-    #         if abs(v-primebc2[k]) > 0.001:
-    #             bc_diff2[k] = abs(v-primebc2[k])
-    #     except:
-    #         edge = (k[1], k[0])
-    #         if abs(v-primebc2[edge]) > 0.001:
-    #             bc_diff2[edge] = abs(v-primebc2[edge])
-    # print(bc_diff)
-    # print("then")
-    # print(bc_diff2)
-
-    start = time()
-    nx.edge_betweenness_centrality(G_nx, weight=True)
-    end = time()
-    print("computing bc took ", end-start, "seconds")
+    bc = cpt_eBC_without_div(G_nx)
+    #e = efficiency(G_nx)
+    with open("data/eBCnodiv_base.json", "w") as nodiv_file:
+        json.dump(bc, nodiv_file)
+    # with open("data/efficiency_base.json", "w") as e_file:
+    #     json.dump(e, e_file)
 main()
