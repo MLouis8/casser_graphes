@@ -459,7 +459,11 @@ def cpt_eBC_without_div(G_nx):
         for t in G_nx.nodes:
             if s == t:
                 continue
-            path_gen = nx.all_shortest_paths(G_nx, s, t, weight="weight")
+            try:
+                path_gen = nx.all_shortest_paths(G_nx, s, t, weight="weight")
+            except:
+                print(f"{t} not reachable from {s}")
+                continue
             for path in path_gen:
                 n1 = s
                 for n2 in path[1:]:
