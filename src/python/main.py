@@ -53,8 +53,8 @@ def main():
     # visualize_bc([(eval(a[0][0]), eval(a[0][1])) if a[0] else None for a in data], bc, G_nx, "data/visubc_10_cut141.pdf", "eBC after 10 removals for lane graph")#"base eBC for lane graph"
     
     
-    # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 7500)
-    
+    # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 10000)
+    # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 5000)
     # with open("data/robust/lanes_graph_bc_50.json", "r") as robust_file:
     #     attacks = json.load(robust_file)
 
@@ -62,6 +62,6 @@ def main():
     #e = efficiency(G_nx)
     with open("data/eBCnodiv_base.json", "w") as nodiv_file:
         json.dump(bc, nodiv_file)
-    # with open("data/efficiency_base.json", "w") as e_file:
-    #     json.dump(e, e_file)
+    #with open("data/efficiency_base.json", "w") as e_file:
+    #   json.dump(e, e_file)
 main()
