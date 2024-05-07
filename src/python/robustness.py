@@ -467,13 +467,17 @@ def cpt_eBC_without_div(G_nx):
             for path in path_gen:
                 n1 = s
                 for n2 in path[1:]:
-                    res[(n1, n2)] = res[(n1, n2)] + 1 if (n1, n2) in res else 1
+                    res[str((n1, n2))] = res[str((n1, n2))] + 1 if str((n1, n2)) in res else 1
+        cpt += 1
     return res
 
 
 def efficiency(G_nx: nx.Graph):
     efficiency = {}
     G = G_nx.to_undirected() if G_nx.is_directed() else G_nx
-    for edge in G_nx.edges:
-        efficiency[edge] = nx.efficiency(G, edge[0], edge[1])
+    cpt, E = 0, len(G.edges)
+    for edge in G.edges:
+        print(f"processing {cpt} out of {E}")
+        efficiency[str(edge)] = nx.efficiency(G, edge[0], edge[1])
+        cpt += 1
     return efficiency
