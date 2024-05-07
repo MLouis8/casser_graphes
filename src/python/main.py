@@ -17,7 +17,7 @@ from sys import setrecursionlimit
 setrecursionlimit(100000)
 
 def main():
-    # G_nx = ox.load_graphml(graphml_path[2])
+    G_nx = ox.load_graphml(graphml_path[2])
     # G = Graph(json="data/costs/lanes.json")
     # with open("data/cuts/lanes_1000_005.json", "r") as read_file:
     #     data = json.load(read_file)
@@ -55,7 +55,53 @@ def main():
     
     # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 7500)
     
+    # with open("data/robust/lanes_graph_bc_50.json", "r") as robust_file:
+    #     attacks = json.load(robust_file)
+
+    # bc1 = attacks[0][1]
+    # bc2 = attacks[1][1]
+    # bc_diff = {}
+    # for k, v in bc1.items():
+    #     if k == '(4886, 4895)':
+    #         continue
+    #     try:
+    #         if abs(v-bc2[k]) > 0.05:
+    #             bc_diff[eval(k)] = abs(v-bc2[k])
+    #     except:
+    #         edge = (eval(k)[1], eval(k)[0])
+    #         if abs(v-bc2[edge]) > 0.05:
+    #             bc_diff[edge] = abs(v-bc2[edge])
+    # nodes = set()
+    # for edge in bc_diff.keys():
+    #     nodes.add(edge[0])
+    #     nodes.add(edge[1])
     
-    
-    pass
+    # print("computing subset bc 1")
+    # primebc1 = nx.edge_betweenness_centrality_subset(G_nx, nodes.union({4886, 4895}), nodes.union({4886, 4895}))
+    # print("computing subset bc 2")
+    # primebc2 = nx.edge_betweenness_centrality_subset(G_nx, nodes, nodes)
+    # bc_diff2 = {}
+    # for k, v in primebc1.items():
+    #     if k == '(4886, 4895)':
+    #         continue
+    #     try:
+    #         if abs(v-primebc2[k]) > 0.001:
+    #             bc_diff2[k] = abs(v-primebc2[k])
+    #     except:
+    #         edge = (k[1], k[0])
+    #         if abs(v-primebc2[edge]) > 0.001:
+    #             bc_diff2[edge] = abs(v-primebc2[edge])
+    # print(bc_diff)
+    # print("then")
+    # print(bc_diff2)
+
+    bcs = []
+    for k in [50, 100, 250, 500, 1000, 2000, 5000, 10000]:
+        bc = nx.edge_betweenness_centrality(G_nx, k, weight=True)
+        res = {}
+        for key, v in bc.items():
+            res[str(key)] = v
+        bcs.append((k, res))
+    with open("data/eBC_approx_quality", "w") as bc_file:
+        json.dump(bcs, bc_file)
 main()
