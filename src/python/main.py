@@ -1,8 +1,8 @@
 from Graph import Graph
 from paths import graphml_path, kp_paths, rpaths
-from robustness import attack, verify_integrity, extend_attack, measure_strong_connectivity, cpt_eBC_without_div, measure_bc_impact, efficiency
-from visual import visualize_bc, visualize_edgeList, visualize_attack_scores, visualize_bc_distrs, visualize_Delta_bc, visualize_edgeList_ordered
-from procedures import extend_attack_procedure, prepare_instance, init_city_graph, bc_difference_map_procedure, thousand_cuts, clustering_procedure
+from robustness import attack
+from visual import visualize_edgeList
+from procedures import efficiency_procedure
 from geo import neighborhood_procedure
 
 from time import time
@@ -53,15 +53,12 @@ def main():
     # visualize_bc([(eval(a[0][0]), eval(a[0][1])) if a[0] else None for a in data], bc, G_nx, "data/visubc_10_cut141.pdf", "eBC after 10 removals for lane graph")#"base eBC for lane graph"
     
     
-    # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 10000)
-    # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 5000)
+    # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 2000)
+    # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 3000)
+    # clustering_procedure(graphml_path[2], "data/costs/laneswithoutbridges200.json", "data/cuts/laneswithoutbridges200_1000_005.json", "laneswithoutbridges200", 4000)
+    
     # with open("data/robust/lanes_graph_bc_50.json", "r") as robust_file:
     #     attacks = json.load(robust_file)
+    efficiency_procedure(G_nx, "data/robust/lanes_graph_deg_50.json", "data/robust/lanesgraphdeg_efficiency_50.json")
 
-    bc = cpt_eBC_without_div(G_nx)
-    #e = efficiency(G_nx)
-    with open("data/eBCnodiv_base.json", "w") as nodiv_file:
-        json.dump(bc, nodiv_file)
-    #with open("data/efficiency_base.json", "w") as e_file:
-    #   json.dump(e, e_file)
 main()

@@ -477,7 +477,6 @@ def efficiency(G_nx: nx.Graph):
     G = G_nx.to_undirected() if G_nx.is_directed() else G_nx
     cpt, E = 0, len(G.edges)
     for edge in G.edges:
-        print(f"processing {cpt} out of {E}")
         efficiency[str(edge)] = nx.efficiency(G, edge[0], edge[1])
         cpt += 1
     return efficiency

@@ -12,7 +12,7 @@ from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
 from visual import visualize_class, visualize_Delta_bc
 from CutsClassification import CutsClassification
 from cuts_analysis import class_mean_cost
-from robustness import extend_attack
+from robustness import extend_attack, efficiency
 
 
 def replace_parallel_edges(G):
@@ -596,3 +596,21 @@ def analyse_bcimpacts_procedure(robust_fps: list[str], eval_criterions: list[str
                 axes[i//2, i%2].legend()
             axes[i//2, i%2].set_title(titles[i])
     fig.savefig(save_fp)
+
+def efficiency_procedure(G_nx: nx.Graph, robust_path: str, efficiency_path: str):
+    with open(robust_path, "r") as read_file:
+        robustlist = json.load(read_file)
+    efficiencies = []
+    for attack in robustlist:
+        efficiencies.append(efficiency(G_nx))
+        if eval(attack[0]) and attack[0]:
+            try:
+                n1, n2 = eval(attack[0])
+            except:
+                n1, n2 = eval(attack[0][0]), eval(attack[0][1])
+            try:
+                G_nx.remove_edge(n1, n2)
+            except:
+                G_nx.remove_edge(n2, n1)
+    with open(efficiency_path, "w") as save_file:
+        json.dump(efficiencies, save_file)
