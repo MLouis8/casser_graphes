@@ -22,20 +22,24 @@ class CutsClassification:
         with open(filepath, "w") as write_path:
             json.dump(self._levels, write_path)
 
+    def chamfer_routine(self, c1: Cut, c2: Cut) -> float:
+            l = []
+            for e1 in c1:
+                best_distance = inf
+                e1n1 = (self._latitudes[e1[0]], self._longitudes[e1[0]])
+                e1n2 = (self._latitudes[e1[1]], self._longitudes[e1[1]])
+                for e2 in c2:
+                    e2n1 = (self._latitudes[e2[0]], self._longitudes[e2[0]])
+                    e2n2 = (self._latitudes[e2[1]], self._longitudes[e2[1]])
+                    d_edge = dist((e1n1, e1n2), (e2n1, e2n2))
+                    if d_edge < best_distance:
+                        best_distance = d_edge
+            return sum(l)
+    
     def chamfer_distance(self, c1: Cut, c2: Cut) -> float:
         """Chamfer Distance between two cuts based on geographical distance."""
-        l = []
-        for e1 in c1:
-            best_distance = inf
-            e1n1 = (self._latitudes[e1[0]], self._longitudes[e1[0]])
-            e1n2 = (self._latitudes[e1[1]], self._longitudes[e1[1]])
-            for e2 in c2:
-                e2n1 = (self._latitudes[e2[0]], self._longitudes[e2[0]])
-                e2n2 = (self._latitudes[e2[1]], self._longitudes[e2[1]])
-                d_edge = dist((e1n1, e1n2), (e2n1, e2n2))
-                if d_edge < best_distance:
-                    best_distance = d_edge
-        return sum(l)
+        return self.chamfer_routine(c1, c2) + self.chamfer_routine(c2, c1)
+        
     #TODO: approx chamfer distance
     #TODO: BIRCH algorithm for clustering
     

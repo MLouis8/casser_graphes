@@ -6,7 +6,7 @@ from procedures import efficiency_procedure
 from geo import neighborhood_procedure
 
 from time import time
-
+import random as rd
 import json
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -60,8 +60,23 @@ def main():
     # with open("data/robust/lanes_graph_bc_50.json", "r") as robust_file:
     #     attacks = json.load(robust_file)
     # efficiency_procedure(G_nx, "data/robust/lanes_graph_deg_50.json", "data/robust/lanesgraphdeg_efficiency_50.json")
-    # G = nx.Graph()
-    # G.add_edge(1, 0)
-    # sp = nx.all_pairs_shortest_path(G)
-    # print(sp)
+    weigths = nx.get_edge_attributes(G_nx, "weight")
+    new_weights = {}
+    for k, v in weigths.items():
+        new_weights[k] = int(v)
+    nx.set_edge_attributes(G_nx, new_weights, "weight")
+
+    for i in range(0, 51):
+        print(f"computing {i}th bc")
+        bc = nx.edge_betweenness_centrality(G_nx, weight="weight")
+        if i > 0:
+            edge = max(bc, key=bc.get)
+            G_nx.remove_edge(edge[0], edge[1])
+        else:
+            edge = None
+        with open("data/robust/lanes_graphdir_bc_50.json", "r") as rfile:
+            data = json.load(rfile)
+        data.append((edge, bc))
+        with open("data/robust/lanes_graphdir_bc_50.json", "w") as wfile:
+            json.dump(data, wfile)
 main()
