@@ -614,3 +614,18 @@ def efficiency_procedure(G_nx: nx.Graph, robust_path: str, efficiency_path: str)
                 G_nx.remove_edge(n2, n1)
     with open(efficiency_path, "w") as save_file:
         json.dump(efficiencies, save_file)
+
+def hundred_samples_eBC(G_nx: nx.Graph, save_path: str, part: float):
+    d = []
+    print(f"sample of size {int(len(G_nx.nodes)*part)}")
+    for _ in range(100):
+        nodes = rd.choices(list(G_nx.nodes), k=int(len(G_nx.nodes)*part))
+        d.append(nx.edge_betweenness_centrality_subset(G_nx, nodes, nodes))
+    data = []
+    for bc_dict in d:
+        save = {}
+        for k, v in bc_dict.items():
+            save[str(k)] = v
+        data.append(save)
+    with open(save_path, "w") as wfile:
+        json.dump(data, wfile)

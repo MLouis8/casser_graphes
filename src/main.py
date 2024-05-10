@@ -1,8 +1,8 @@
 from Graph import Graph
 from paths import graphml_path, kp_paths, rpaths
-from robustness import attack
+from robustness import attack, extend_attack
 from visual import visualize_edgeList, visualize_bc
-from procedures import efficiency_procedure
+from procedures import efficiency_procedure, hundred_samples_eBC
 from geo import neighborhood_procedure
 
 from time import time
@@ -22,16 +22,16 @@ def main():
     # with open("data/cuts/lanes_1000_005.json", "r") as read_file:
     #     data = json.load(read_file)
     # cut = data["141"] # 24
-    G = Graph(json=kp_paths[9])
+    # G = Graph(json=kp_paths[9])
     # G.set_last_results(cut[0], cut[1])
     # edges = G.process_cut()
     # with open("data/robust/lanes_graph_deg_10_new.json", "r") as robust_file:
     #     metrics = json.load(robust_file)
     # attack(G, 10, "data/robust/lanes_graph_rd_10_new.json", "rd", True, True, nrandoms=1)
     # bcmodif = cpt_eBC_without_div(G_nx)
-    # with open("data/robust/lanes_cut24_bc_25.json", "r") as freq_file:
-    #     metrics = json.load(freq_file)
-    # extend_attack(G, metrics, 40, "data/robust/lanes_graph_deg_50_new.json", "deg", True, True, 1000, 1, True, weighted=True)
+    # with open("data/robust/weighted/lanes_graph_bc_20_new.json", "r") as rfile:
+    #     metrics = json.load(rfile)
+    # extend_attack(G, metrics, 30, "data/robust/weighted/lanes_graph_bc_50_new.json", "bc", True, True, 1000, 1, True, weighted=True)
     # with open("data/robust/lanes_graph_bc_25.json", "r") as read_file:
     #     data1 = json.load(read_file)
     # r_edge = eval(data1[1][0])
@@ -60,23 +60,9 @@ def main():
     # with open("data/robust/lanes_graph_bc_50.json", "r") as robust_file:
     #     attacks = json.load(robust_file)
     # efficiency_procedure(G_nx, "data/robust/lanes_graph_deg_50.json", "data/robust/lanesgraphdeg_efficiency_50.json")
-    weigths = nx.get_edge_attributes(G_nx, "weight")
-    new_weights = {}
-    for k, v in weigths.items():
-        new_weights[k] = int(v)
-    nx.set_edge_attributes(G_nx, new_weights, "weight")
-
-    for i in range(0, 51):
-        print(f"computing {i}th bc")
-        bc = nx.edge_betweenness_centrality(G_nx, weight="weight")
-        if i > 0:
-            edge = max(bc, key=bc.get)
-            G_nx.remove_edge(edge[0], edge[1])
-        else:
-            edge = None
-        with open("data/robust/lanes_graphdir_bc_50.json", "r") as rfile:
-            data = json.load(rfile)
-        data.append((edge, bc))
-        with open("data/robust/lanes_graphdir_bc_50.json", "w") as wfile:
-            json.dump(data, wfile)
+    
+    hundred_samples_eBC(G_nx, "data/quality005.json", 0.05)
+    # hundred_samples_eBC(G_nx, "data/quality001.json", 0.01)
+    # hundred_samples_eBC(G_nx, "data/quality01.json", 0.1)
+    # hundred_samples_eBC(G_nx, "data/quality0005.json", 0.005)
 main()

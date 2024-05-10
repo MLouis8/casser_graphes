@@ -179,7 +179,7 @@ src/notebooks
 osmnx-examples/
 etc/
 cache/
-src/python/kahip.cpp
+src/storage.py
 package-lock.json
 
 # latex
