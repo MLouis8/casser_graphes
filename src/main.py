@@ -22,7 +22,7 @@ def main():
     # with open("data/cuts/lanes_1000_005.json", "r") as read_file:
     #     data = json.load(read_file)
     # cut = data["141"] # 24
-    # G = Graph(json=kp_paths[9])
+    G = Graph(json=kp_paths[9])
     # G.set_last_results(cut[0], cut[1])
     # edges = G.process_cut()
     # with open("data/robust/lanes_graph_deg_10_new.json", "r") as robust_file:
@@ -60,9 +60,8 @@ def main():
     # with open("data/robust/lanes_graph_bc_50.json", "r") as robust_file:
     #     attacks = json.load(robust_file)
     # efficiency_procedure(G_nx, "data/robust/lanes_graph_deg_50.json", "data/robust/lanesgraphdeg_efficiency_50.json")
-    G = nx.Graph()
-    G.add_edge(1, 0)
-    sp = nx.all_pairs_shortest_path(G)
-    print(sp)
-
+    # G = nx.Graph()
+    # G.add_edge(1, 0)
+    # sp = nx.all_pairs_shortest_path(G)
+    # print(sp)
 main()
