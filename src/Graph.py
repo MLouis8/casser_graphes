@@ -2,7 +2,7 @@ import networkx as nx
 import osmnx as ox
 import numpy as np
 
-import kahip  # to comment if ARM, uncomment to cut
+# import kahip  # to comment if ARM, uncomment to cut
 import json
 from typing import Optional, Any
 from typ import EdgeDict
@@ -100,7 +100,7 @@ class Graph:
                         dict_edges_attributes[(self._adjacency[j], i - 1, 0)]
                     )
 
-    def to_nx(self):
+    def to_nx(self, directed: bool = False):
         """Conversion du type KaHIP (adjacency) au type networkx.graph"""
         G = nx.Graph()
 
@@ -111,9 +111,9 @@ class Graph:
         for i in range(1, len(self["xadj"])):
             for j in range(self["xadj"][i - 1], self["xadj"][i]):
                 aretes.append((i - 1, self["adjncy"][j], self["adjcwgt"][j]))
-        G.add_weighted_edges_from(aretes)
+        G.add_weighted_edges_from(aretes, weight="weight")
 
-        return G
+        return G.to_directed() if directed else G
 
     def remove_edge(self, edge: tuple[int, int]) -> None:
         if self._nx:
@@ -224,17 +224,18 @@ class Graph:
         Configurations with a social in their name should be used for social
         networks and web graphs.
         """
-        self._edgecut, self._blocks = kahip.kaffpa(
-            self["vwgt"],
-            self["xadj"],
-            self["adjcwgt"],
-            self["adjncy"],
-            nblocks,
-            imbalance,
-            suppress_output,
-            seed,
-            mode,
-        )
+        pass
+        # self._edgecut, self._blocks = kahip.kaffpa(
+        #     self["vwgt"],
+        #     self["xadj"],
+        #     self["adjcwgt"],
+        #     self["adjncy"],
+        #     nblocks,
+        #     imbalance,
+        #     suppress_output,
+        #     seed,
+        #     mode,
+        # )
 
     def process_cut(self) -> list[tuple[int, int]]:
         edges = []

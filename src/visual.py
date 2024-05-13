@@ -741,3 +741,44 @@ def visualize_biggest_scc(G_nx: nx.Graph, fp: str, robust_list: RobustList | Non
         show=False,
     )
     fig.savefig(fp)
+
+def visualize_impact_evolution(impact_path: str, impact_crit: str, title: str, save_path: str) -> None:
+    with open(impact_path, "r") as rfile:
+        data = json.load(rfile)
+    x, y = np.arange(len(data)), []
+    for impact in data:
+        y.append(impact[impact_crit])
+    fig, ax = plt.subplots()
+    ax.plot(x, y, label=impact_crit)
+    ax.set_ylabel("number of impacted edges")
+    ax.set_xlabel("edge removal")
+    ax.legend()
+    fig.suptitle(title)
+    fig.savefig(save_path)
+
+def visualize_impacts_comparison(impact_paths: str | list[str], impact_crit: str | list[str], labels: str | list[str], title: str, save_path: str) -> None:
+    fig, axes = plt.subplots()
+    if isinstance(impact_paths, list):
+        assert isinstance(impact_crit, str)
+        for i, impact_path in enumerate(impact_paths):
+            with open(impact_path, "r") as rfile:
+                data = json.load(rfile)
+            x, y = np.arange(len(data)), []
+            for impact in data:
+                y.append(impact[impact_crit])
+            axes.plot(x, y, label=str(impact_crit) + " " + labels[i])
+    else:
+        with open(impact_paths, "r") as rfile:
+            data = json.load(rfile)
+        assert isinstance(impact_crit, list)
+        for i, crit in enumerate(impact_crit):
+            x, y = np.arange(len(data)), []
+            for impact in data:
+                y.append(impact[crit])
+            axes.plot(x, y, label=str(crit) + " " + labels[i])
+    axes.set_ylabel("number of impacted edges")
+    axes.set_yscale("log")
+    axes.set_xlabel("edge removal")
+    axes.legend()
+    fig.suptitle(title)
+    fig.savefig(save_path)

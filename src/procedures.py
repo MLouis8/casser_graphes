@@ -5,6 +5,7 @@ import numpy as np
 import json
 import math
 import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
 
 from Graph import Graph
 from typ import EdgeDict3, Edge
@@ -12,7 +13,7 @@ from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
 from visual import visualize_class, visualize_Delta_bc
 from CutsClassification import CutsClassification
 from cuts_analysis import class_mean_cost
-from robustness import extend_attack, efficiency
+from robustness import extend_attack, efficiency, measure_bc_impact
 
 
 def replace_parallel_edges(G):
@@ -597,6 +598,23 @@ def analyse_bcimpacts_procedure(robust_fps: list[str], eval_criterions: list[str
             axes[i//2, i%2].set_title(titles[i])
     fig.savefig(save_fp)
 
+def bc_impact_procedure(G_nx: nx.Graph, robust_path: str, impact_path: str, tresh: float = 1e-7) -> None:
+    with open(robust_path, "r") as rfile:
+        robustlist = json.load(rfile)
+    impacts = []
+    bc1 = {}
+    for k, v in robustlist[0][1].items():
+        bc1[eval(k)] = v
+    for i in range(1, len(robustlist)):
+        r_edge = eval(robustlist[i][0]) if isinstance(robustlist[i][0], str) else (eval(robustlist[i][0][0]), eval(robustlist[i][0][1]))
+        bc2 = {}
+        for k, v in robustlist[i][1].items():
+            bc2[eval(k)] = v
+        impacts.append(measure_bc_impact(bc1, bc2, r_edge, G_nx, tresh))
+        bc1 = bc2.copy()
+    with open(impact_path, "w") as wfile:
+        json.dump(impacts, wfile)
+        
 def efficiency_procedure(G_nx: nx.Graph, robust_path: str, efficiency_path: str):
     with open(robust_path, "r") as read_file:
         robustlist = json.load(read_file)
@@ -629,3 +647,13 @@ def hundred_samples_eBC(G_nx: nx.Graph, save_path: str, part: float):
         data.append(save)
     with open(save_path, "w") as wfile:
         json.dump(data, wfile)
+
+def quality_bc_eval(real_bc: dict[str, float], bc_approxs: list[dict[str, float]]) -> list[float]:
+    corr = []
+    for bc in bc_approxs:
+        x, y = [], []
+        for k, v in bc.items():
+            x.append(v)
+            y.append(real_bc[k])
+        corr.append(pearsonr(x, y))
+    return corr

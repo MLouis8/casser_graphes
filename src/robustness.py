@@ -59,28 +59,6 @@ def maxdegree_attack(G: Graph, subset: list[Edge] | None) -> Edge:
         chosen_edge = edge
     return chosen_edge
 
-
-# def best_pertubation(G: Graph, pertubation: tuple[str, float], subset: list[Edge] | None) -> Edge:
-#     """
-#     Try to remove each edge, computing the resulting pertubation.
-#     Returns the edge with the highest perturbation score
-
-#     Available perturbations:
-#         - ('dmax', treshold)
-#         - ('nimpacts', treshold)
-#         - ('sumdiffs', treshold)
-#         - ('maxdiff', treshold)
-#         # - ('sumbydist', treshold)
-#         # - ('sumbyinvdist', treshold)
-#     See measure_bc_impact for more information about perturbations.
-#     """
-
-#     measure_bc_impact()
-
-
-# def cascading_attack(G: Graph, perturbations: dict[Edge, float], treshold: float):
-
-
 def attack(
     G: Graph,
     k: int,
@@ -406,7 +384,6 @@ def measure_bc_impact(
         - biggest neg change,       key: "mindiff"
         (res["sumdiffs"] = res["neg"] + res["sumpos"])
         - absolute dif sum divided by dist,     key: "sumbydist"
-        - absolute dif sum divided by dist**-1, key: "sumbyinvdist"
     """
     res = {
         "dmax": 0,
@@ -416,8 +393,7 @@ def measure_bc_impact(
         "sumpos": 0,
         "maxdiff": 0,
         "mindiff": 0,
-        "sumbydist": 0,
-        "sumbyinvdist": 0,
+        "sumbydist": 0
     }
     xs = nx.get_node_attributes(G_nx, "x")
     ys = nx.get_node_attributes(G_nx, "y")
@@ -440,7 +416,6 @@ def measure_bc_impact(
             d = dist(r_edge_coord, edge_coord)
             res["dmax"] = max(d, res["dmax"])
             res["sumbydist"] += delta / (d + 1e-5)
-            res["sumbyinvdist"] += delta * d
     print(res)
     return res
 
@@ -459,3 +434,31 @@ def efficiency(G_nx: nx.Graph):
         efficiency[str(edge)] = nx.efficiency(G, edge[0], edge[1])
         cpt += 1
     return efficiency
+
+def cascading_failure(G_nx: nx.Graph, redges: list[Edge], rtreshold: float, ltreshold: tuple[int, int] = (0, None), bc_dict: EdgeDict | None = None, approx: int | None= None) -> list[tuple[list[Edge], EdgeDict]]:
+    """
+    Simulates cascading failures, removes the edges in the list, computes the corresponding eBC
+    and removes the edges with a eBC above the rthreshold.
+    Repeats untill less than ltreshold edges are concerned.
+    If bc_dict is set, than it's used as the first eBC
+    """
+    def cpt_fails(bc):
+        l = []
+        for k, v in bc.items():
+            if v > rtreshold:
+                l.append(k)
+        return l
+    def remove_edges(G, edgelist):
+        for edge in edgelist:
+            G.remove_edge(edge[0], edge[1])
+    remove_edges(G_nx, redges)
+    last_bc = bc_dict if bc_dict else nx.edge_betweenness_centrality(G_nx, approx, weight="weight")
+    res = [(redges, last_bc)]
+    fails = cpt_fails(last_bc)
+    rounds = ltreshold[1] if ltreshold[1] else 1000
+    while len(fails) > ltreshold[0] or rounds > 0:
+        rounds -= 1
+        remove_edges(G_nx, fails)
+        last_bc = nx.edge_betweenness_centrality(G_nx, approx, weight="weight")
+        res.append((fails, last_bc))
+    return res
