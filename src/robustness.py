@@ -450,7 +450,14 @@ def cascading_failure(G_nx: nx.Graph, redges: list[Edge], rtreshold: float, ltre
         return l
     def remove_edges(G, edgelist):
         for edge in edgelist:
-            G.remove_edge(edge[0], edge[1])
+            try:
+                e = eval(edge)
+            except:
+                e = (eval(edge[0]), eval(edge[1]))
+            try:
+                G.remove_edge(e[0], e[1])
+            except:
+                G.remove_edge(e[1], e[0])
     remove_edges(G_nx, redges)
     last_bc = bc_dict if bc_dict else nx.edge_betweenness_centrality(G_nx, approx, weight="weight")
     res = [(redges, last_bc)]

@@ -18,9 +18,15 @@ setrecursionlimit(100000)
 
 def main():
     G_nx = ox.load_graphml(graphml_path[2])
+    weigths = nx.get_edge_attributes(G_nx, "weight")
+    new_weights = {}
+    for k, v in weigths.items():
+        new_weights[k] = int(v)
+    nx.set_edge_attributes(G_nx, new_weights, "weight")
     with open("data/robust/weighted/lanes_graph_bc_10_new.json", "r") as rfile:
         data = json.load(rfile)
-    maxbc = max(data[0][1], key=data[0][1].get)
-    cascading_failure(G_nx, [data[1][0]], maxbc, (0, 2), data[1][1])
-    
+    maxbc = max(data[0][1].values())
+    results = cascading_failure(G_nx, [data[1][0]], maxbc, (0, None), data[1][1])
+    with open("data/test_cascading_bc.json", "w") as wfile:
+        json.dump(results, wfile)
 main()
