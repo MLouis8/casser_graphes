@@ -9,6 +9,7 @@ import random as rd
 import numpy as np
 import scipy.stats as stats
 from math import inf
+from sklearn.cluster import Birch
 
 class CutsClassification:
     def __init__(self, cuts: Cuts, G_nx: nx.Graph) -> None:
@@ -43,6 +44,18 @@ class CutsClassification:
     #TODO: approx chamfer distance
     #TODO: BIRCH algorithm for clustering
     
+    def birch_clustering(self, cuts: Cuts, n: int = 2, treshold: float = 0.5, branching_factor: int = 50, n_clusters: int | None = None) -> list[int]:
+        axis = rd.choices(cuts.keys(), k=2)
+        points = []
+        for v in cuts.values():
+            points.append([self.chamfer_distance(x, v) for x in axis])
+        brc = Birch(threshold=treshold, branching_factor=branching_factor, n_clusters=n_clusters)
+        clusters = brc.fit_predict(points)
+        result = [[] * max(clusters)]
+        for i, cut in enumerate(list(cuts.keys())):
+            result[clusters[i]].append(cut)
+        return result
+
     def wassersteine_distance(self, c1: Cut, c2: Cut) -> float:
         u = [[(self._latitudes[edge[0]]+self._latitudes[edge[1]])/2, (self._longitudes[edge[0]]+self._longitudes[edge[1]])/2] for edge in c1]
         v = [[(self._latitudes[edge[0]]+self._latitudes[edge[1]])/2, (self._longitudes[edge[0]]+self._longitudes[edge[1]])/2] for edge in c2]
