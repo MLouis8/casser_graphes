@@ -29,12 +29,18 @@ def main():
     for k, v in weigths.items():
         new_weights[k] = int(v)
     nx.set_edge_attributes(G_nx, new_weights, "weight")
-    for i in range(0, 10):
+    for i in range(0, 40):
         print(f"computing {i}th cut24")
         bc = nx.edge_betweenness_centrality(G_nx, weight="weight")
         if i > 0:
             print(edges)
-            chosen_edge = edges.pop(rd.randint(0, len(edges)-1))
+            chosen_edge, max_bc = None, 0
+            for edge in edges:
+                if edge in bc and bc[edge] > max_bc:
+                    max_bc = bc[edge]
+                    chosen_edge = edge
+            edges.remove(chosen_edge)
+            # chosen_edge = edges.pop(rd.randint(0, len(edges)-1))
             G_nx.remove_edge(chosen_edge[0], chosen_edge[1])
         else:
             edge = None
