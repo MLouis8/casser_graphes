@@ -1,0 +1,67 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+\usepackage{pdfpages}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{multicol}
+
+\graphicspath{ {../images/} }
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Analyses de Robustesse: procédure pour analyser et comparer les stratégies}
+\subtitle{Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \AtBeginSection[]{
+    \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+        \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+    \end{frame}
+    }
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Outline}
+        \tableofcontents
+    \end{frame}
+
+    \section{Stratégies}
+    \subsection{Stratégie edge Betweenness Centrality (eBC)}
+    \begin{frame}
+        \frametitle{Stratégie edge Betweenness Centrality (eBC): Définition}
+        \begin{algorithmic}
+            de
+        \end{algorithmic}
+    \end{frame}
+    \subsection{Stratégie fréquence (freq)}
+    \subsection{Stratégie random (rd)}
+    \subsection{Stratégie coupe (cut)}
+    \section{Comparaison globale}
+    \subsection{Métriques de robustesse classique}
+    \subsection{Dérivées de l'eBC}
+    \section{Visualisation de l'attaque}
+    \subsection{Attaque entière}
+    \subsection{Une attaque plus réaliste}
+    \end{document}
