@@ -419,12 +419,48 @@ def measure_bc_impact(
     print(res)
     return res
 
+def measure_bc_impact_cumulative(
+    bcs: list[EdgeDict],
+    r_edges: list[Edge],
+    G_nx: nx.Graph,
+    impact_treshold: float = 1e-5,
+) -> list[dict[str, float]]:
+    """
+    Takes two bc dictionnaries and measures the differences
+    Warning they must have the same keys except from the r_edge
 
-def cpt_eBC_without_div(G_nx):
-    """Returns for each edge, the number of shortest paths passing through it"""
-    # sp = nx.all_pairs_shortest_path
-    # return res
-    pass
+    Metrics:
+        - max distance from impact, key: "dmax"
+        - number of impacted edges, key: "nimpacts"
+        - absolute differences sum, key: "sumdiffs"
+        - absolute dif sum divided by dist,     key: "sumbydist"
+    """
+    res = {
+        "dmax": 0,
+        "nimpacts": 0,
+        "sumdiffs": 0,
+        "sumbydist": 0
+    }
+    xs = nx.get_node_attributes(G_nx, "x")
+    ys = nx.get_node_attributes(G_nx, "y")
+    r_edges_coord = [((xs[r_edge[0]], ys[r_edge[0]]), (xs[r_edge[1]], ys[r_edge[1]])) for r_edge in r_edges]
+    impacted_edges = set()
+    prev_bc = bcs[0]
+    for bc in bcs[1:]:
+        for edge, v in bc.items():
+            if edge in r_edges:
+                continue
+            delta = prev_bc[edge] - v
+            if abs(delta) > impact_treshold:
+                impacted_edges.add(edge)
+                edge_coord = ((xs[edge[0]], ys[edge[0]]), (xs[edge[1]], ys[edge[1]]))
+                res["sumdiffs"] += delta
+                res["nimpacts"] += 1
+                d = dist(r_edge_coord, edge_coord)/1000 # in kilometers
+                res["dmax"] = max(d, res["dmax"])
+                res["sumbydist"] += delta / (d + 1e-5)
+        prev_bc = bc
+    return res
 
 def efficiency(G_nx: nx.Graph):
     efficiency = {}

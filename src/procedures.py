@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
 from Graph import Graph
-from typ import EdgeDict3, Edge
+from typ import EdgeDict3, Edge, EdgeDict
 from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
 from visual import visualize_class, visualize_Delta_bc
 from CutsClassification import CutsClassification
@@ -657,3 +657,19 @@ def quality_bc_eval(real_bc: dict[str, float], bc_approxs: list[dict[str, float]
             y.append(real_bc[k])
         corr.append(pearsonr(x, y))
     return corr
+
+def preprocess_robust_import(fp: str) -> tuple[list[Edge], list[EdgeDict]]:
+    with open(fp, "r") as rfile:
+        data = json.load(rfile)
+    redges, bc_dicts = [], []
+    for attack in data:
+        if attack[0] and attack[0] != 'None':
+            try:
+                redges.append(eval(attack[0]))
+            except:
+                redges.append((eval(attack[0][0]), attack[0][1]))
+        d = {}
+        for k, v in attack[1].items():
+            d[eval(k)] = v
+        bc_dicts.append(d)
+    return (redges, bc_dicts)

@@ -443,7 +443,7 @@ def to_hex(c):
 
 
 def visualize_bc(
-    removed_edges: list[Edge], bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10
+    removed_edges: list[Edge], bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10, ax = None
 ) -> None:
     def colorize(u, v):        
         if (u, v) in bc:
@@ -480,7 +480,7 @@ def visualize_bc(
     edge_width = [thicken(u, v) for u, v, _ in G.edges]
     print("edges colorized, starting display...")
     cmap = plt.cm.get_cmap("jet") # RdPu for bicolor
-    norm = plt.Normalize(vmin=vmin, vmax=vmax)
+    norm = plt.Normalize(vmin=0, vmax=0.1) #(vmin=vmin, vmax=vmax)
     sm = cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
     fig, ax = ox.plot_graph(
@@ -489,13 +489,16 @@ def visualize_bc(
         node_size=0.5,
         edge_color=edge_color,
         edge_linewidth=edge_width,
+        edge_alpha=0.7,
         bgcolor="white",
         show=False,
+        ax=ax
     )
     cb = fig.colorbar(
         cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.01
     )
     cb.set_label(title, fontsize=12)
+    fig.tight_layout()
     fig.savefig(fp)
 
 
@@ -508,6 +511,7 @@ def visualize_Delta_bc(
     abslt: bool,
     title: str,
     color_levels: int = 10,
+    ax = None
 ) -> None:
     def colorize(u, v):
         d = None
@@ -552,7 +556,7 @@ def visualize_Delta_bc(
         if m == 0:
             vmin, vmax = -1e-7, 1e-7
         else:
-            vmin, vmax = -m, m
+            vmin, vmax = -0.1, 0.1 #-m, m
     if abslt:
         color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")]
     else:
@@ -572,11 +576,13 @@ def visualize_Delta_bc(
         edge_linewidth=edge_width,
         show=False,
         bgcolor="white",
+        ax=ax
     )
     cb = fig.colorbar(
         cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0
     )
     cb.set_label(title, fontsize=12)
+    fig.tight_layout()
     fig.savefig(fp)
 
 
@@ -659,9 +665,9 @@ def visualize_attack_scores(
     if is_bc:
         ax.set_ylabel("average edge BC")
     else:
-        plt.ylim(38450, 38650)
-        plt.autoscale(False)
-        ax.set_ylabel("size of biggest strongly connected component")
+        # plt.ylim(38450, 38650)
+        # plt.autoscale(False)
+        ax.set_ylabel("biggest strongly connected component size")
     ax.set_xlabel("number of removed edges")
     ax.legend()
     fig.suptitle(title)
@@ -756,7 +762,7 @@ def visualize_impact_evolution(impact_path: str, impact_crit: str, title: str, s
     fig.suptitle(title)
     fig.savefig(save_path)
 
-def visualize_impacts_comparison(impact_paths: str | list[str], impact_crit: str | list[str], labels: str | list[str], title: str, save_path: str) -> None:
+def visualize_impacts_comparison(impact_paths: str | list[str], impact_crit: str | list[str], labels: str | list[str], title: str, save_path: str, cumulative: bool = False) -> None:
     fig, axes = plt.subplots()
     if isinstance(impact_paths, list):
         assert isinstance(impact_crit, str)
@@ -782,3 +788,18 @@ def visualize_impacts_comparison(impact_paths: str | list[str], impact_crit: str
     axes.legend()
     fig.suptitle(title)
     fig.savefig(save_path)
+
+def cumulative_impact_comparison(impacts_fp: list[str], crit: str, attack_names: list[str], save_fp: str):
+    impacts = []
+    for fp in impacts_fp:
+        with open(fp, "r") as rfile:
+            impact = json.load(rfile)
+        impacts.append([d[crit] for d in impact])
+    fig, ax = plt.subplots()
+    for i, impact in enumerate(impacts):
+        t = np.arange(len(impact))
+        ax.plot(t, impact, label=attack_names[i])
+    ax.legend()
+    ax.set_xlabel("number of removed edges")
+    fig.suptitle("Cumulative evolution of "+crit)
+    fig.savefig(save_fp)
