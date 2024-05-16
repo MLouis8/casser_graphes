@@ -10,7 +10,7 @@
 \usepackage{svg}
 \usepackage{pdfpages}
 \usepackage{algpseudocode}
-\usepackage{algorithm}
+\usepackage{algorithm2e}
 \usepackage{multicol}
 
 \graphicspath{ {../images/} }
@@ -48,20 +48,133 @@
     \end{frame}
 
     \section{Stratégies}
-    \subsection{Stratégie edge Betweenness Centrality (eBC)}
     \begin{frame}
-        \frametitle{Stratégie edge Betweenness Centrality (eBC): Définition}
-        \begin{algorithmic}
-            de
-        \end{algorithmic}
+        \frametitle{Stratégies d'attaque de base}
+        \begin{itemize}
+            \item \textbf{Ordre edge Betweenness Centrality (eBC):}\\
+            On calcule la eBC de tout le graphe, on enlève l'arête à plus grande eBC et on recommence.
+            \item \textbf{Ordre degré max (deg):}\\
+            On enlève l'arête de plus fort degré ($deg(a, b) = deg(a) \times deg(b)$) et on recommence.
+            \item \textbf{Ordre random (rd):}\\
+            On enlève une arête au hasard et on recommence. 
+        \end{itemize}
     \end{frame}
-    \subsection{Stratégie fréquence (freq)}
-    \subsection{Stratégie random (rd)}
-    \subsection{Stratégie coupe (cut)}
+
+    \begin{frame}
+        \frametitle{Stratégies d'attaque basées sur KaHIP}
+        \begin{itemize}
+            \item \textbf{Ordre fréquence (freq):}\\
+            On coupe $1000$ fois le graph avec Kaffpa, on enlève l'arête la plus coupée et on recommence.
+            \item \textbf{Attaque sur une coupe (cut):}\\
+            On applique un ordre de base (slide précédente) sur une coupe du graphe.
+            \item \textbf{Ordre fréquence amélioré (cluster):}\\
+            On applique l'ordre fréquence sur un cluster de coupe.
+        \end{itemize}
+    \end{frame}
     \section{Comparaison globale}
+
+    \begin{frame}
+        \frametitle{Métriques de robustesse classique}
+        \begin{itemize}
+            \item eBC moyenne \textbf{(avg eBC)}
+            \vspace{20pt}
+            \item efficacité \textbf{(global efficiency)}
+            \vspace{20pt}
+            \item taille de la plus grande composante connexe \textbf{(scc)}
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Métriques de robustesse dérivées de l'eBC}
+        \textbf{\textit{Perturbation:}} changement de valeur de eBC.
+        \begin{itemize}
+            \item nombre d'arêtes perturbées \textbf{(nimpacts)}
+            \vspace{5pt}
+            \item distance de l'arête la plus loin de l'attaque \textbf{(dist)}
+            \vspace{5pt}
+            \item somme des perturbations (en valeur absolue) \textbf{(sumdiffs)}
+            \vspace{5pt}
+            \item somme des perturbations / distance \textbf{(sumbydist)}
+        \end{itemize}
+        \vspace{10pt}
+        Ces métriques d'impacts sont adaptable avec toute métrique valuant les arêtes.
+    \end{frame}
+
     \subsection{Métriques de robustesse classique}
+    
+    \begin{frame}
+        \frametitle{Comparaison de l'avg eBC et efficiency sur quelques stratégies}
+        \centering
+        \includegraphics[scale=0.6]{other/avgbc_efficiency_NW.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Comparaison de la scc sur quelques stratégies}
+        \centering
+        \includegraphics[scale=0.6]{other/scc_NW.pdf}
+    \end{frame}
+
     \subsection{Dérivées de l'eBC}
-    \section{Visualisation de l'attaque}
+    
+    \begin{frame}
+        \frametitle{Comparaison de nimpacts sur quelques stratégies}
+        \centering
+        \includegraphics[scale=0.6]{impacts/nimpacts_NW.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Comparaison de dmax sur quelques stratégies}
+        \centering
+        \includegraphics[scale=0.6]{impacts/dmax_NW.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Comparaison de sumdiffs sur quelques stratégies}
+        \centering
+        \includegraphics[scale=0.6]{impacts/sumdiffs_NW.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Comparaison de sumbydist sur quelques stratégies}
+        \centering
+        \includegraphics[scale=0.6]{impacts/sumbydist_NW.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Comparaison sumdiffs non cumulée et la distance}
+        \centering
+        \includegraphics[scale=0.6]{impacts/scatterplot_NW.pdf}
+    \end{frame}
+
+    \section{Analyse locale}
     \subsection{Attaque entière}
+    
+    \begin{frame}
+        \frametitle{Avant / Après stratégie eBC}
+        \includegraphics[scale=0.22]{lanes/bc/triplevisu1.pdf}
+        \includegraphics[scale=0.22]{lanes/bc/triplevisu3.pdf}
+        \includegraphics[scale=0.22]{lanes/bc/triplevisu2.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Avant / Après stratégie freq}
+        \includegraphics[scale=0.22]{lanes/freq/triplevisu1.pdf}
+        \includegraphics[scale=0.22]{lanes/freq/triplevisu3.pdf}
+        \includegraphics[scale=0.22]{lanes/freq/triplevisu2.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Avant / Après stratégie deg}
+        \includegraphics[scale=0.22]{lanes/deg/triplevisu1.pdf}
+        \includegraphics[scale=0.22]{lanes/deg/triplevisu3.pdf}
+        \includegraphics[scale=0.22]{lanes/deg/triplevisu2.pdf}
+    \end{frame}
+
     \subsection{Une attaque plus réaliste}
+    \begin{frame}
+        \frametitle{3 premières arêtes: comparaison des stratégie de base}
+        \includegraphics[scale=0.22]{lanes/bc/triplevisubis3.pdf}
+        \includegraphics[scale=0.22]{lanes/freq/triplevisubis3.pdf}
+        \includegraphics[scale=0.22]{lanes/deg/triplevisubis3.pdf}
+    \end{frame}
     \end{document}

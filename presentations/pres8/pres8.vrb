@@ -1,0 +1,9 @@
+\frametitle{Stratégie edge Betweenness Centrality (eBC): Définition}
+        \begin{algorithm}[H]
+            \begin{algorithmic}[1]
+                \For{$i=0$ to $n$}
+                    \STATE pr
+                \EndFor
+            \end{algorithmic}
+            \caption{Attaque de taille $n$ du réseau avec ordre eBC}
+        \end{algorithm}
