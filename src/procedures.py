@@ -13,7 +13,7 @@ from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
 from visual import visualize_class, visualize_Delta_bc
 from CutsClassification import CutsClassification
 from cuts_analysis import class_mean_cost
-from robustness import extend_attack, efficiency, measure_bc_impact
+from robustness import extend_attack, efficiency
 
 
 def replace_parallel_edges(G):
@@ -597,23 +597,6 @@ def analyse_bcimpacts_procedure(robust_fps: list[str], eval_criterions: list[str
                 axes[i//2, i%2].legend()
             axes[i//2, i%2].set_title(titles[i])
     fig.savefig(save_fp)
-
-def bc_impact_procedure(G_nx: nx.Graph, robust_path: str, impact_path: str, tresh: float = 1e-7) -> None:
-    with open(robust_path, "r") as rfile:
-        robustlist = json.load(rfile)
-    impacts = []
-    bc1 = {}
-    for k, v in robustlist[0][1].items():
-        bc1[eval(k)] = v
-    for i in range(1, len(robustlist)):
-        r_edge = eval(robustlist[i][0]) if isinstance(robustlist[i][0], str) else (eval(robustlist[i][0][0]), eval(robustlist[i][0][1]))
-        bc2 = {}
-        for k, v in robustlist[i][1].items():
-            bc2[eval(k)] = v
-        impacts.append(measure_bc_impact(bc1, bc2, r_edge, G_nx, tresh))
-        bc1 = bc2.copy()
-    with open(impact_path, "w") as wfile:
-        json.dump(impacts, wfile)
         
 def efficiency_procedure(G_nx: nx.Graph, robust_path: str, efficiency_path: str):
     with open(robust_path, "r") as read_file:
@@ -661,15 +644,28 @@ def quality_bc_eval(real_bc: dict[str, float], bc_approxs: list[dict[str, float]
 def preprocess_robust_import(fp: str) -> tuple[list[Edge], list[EdgeDict]]:
     with open(fp, "r") as rfile:
         data = json.load(rfile)
-    redges, bc_dicts = [], []
+    redges, bc_dicts = [None], []
     for attack in data:
         if attack[0] and attack[0] != 'None':
             try:
                 redges.append(eval(attack[0]))
             except:
-                redges.append((eval(attack[0][0]), attack[0][1]))
+                redges.append((eval(attack[0][0]), eval(attack[0][1])))
         d = {}
         for k, v in attack[1].items():
             d[eval(k)] = v
         bc_dicts.append(d)
     return (redges, bc_dicts)
+
+def procedure_global_efficiency(G_nx: nx.Graph, robust_path: str, save_path: str):
+    redges, _ = preprocess_robust_import(robust_path)
+    with open(save_path, "w") as file:
+        json.dump([], file)
+    for edge in redges:
+        if edge:
+            G_nx.remove_edge(edge[0], edge[1])
+        with open(save_path, "r") as file:
+            globeff = json.load(file)
+        globeff.append(nx.global_efficiency(G_nx))
+        with open(save_path, "w") as file:
+            json.dump(globeff, file)

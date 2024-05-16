@@ -362,71 +362,17 @@ def measure_diameter(robust_list: RobustList, G_nx: nx.Graph) -> list[int]:
             res.append(nx.diameter(G_nx))
     return res
 
-
-def measure_bc_impact(
-    bc1: EdgeDict,
-    bc2: EdgeDict,
-    r_edge: Edge,
-    G_nx: nx.Graph,
-    impact_treshold: float = 1e-5,
-) -> dict[str, float]:
-    """
-    Takes two bc dictionnaries and measures the differences
-    Warning they must have the same keys except from the r_edge
-
-    Metrics:
-        - max distance from impact, key: "dmax"
-        - number of impacted edges, key: "nimpacts"
-        - absolute differences sum, key: "sumdiffs"
-        - neg differences sum,      key: "sumnegs"
-        - pos differences sum,      key: "sumpos"
-        - biggest pos change,       key: "maxdiff"
-        - biggest neg change,       key: "mindiff"
-        (res["sumdiffs"] = res["neg"] + res["sumpos"])
-        - absolute dif sum divided by dist,     key: "sumbydist"
-    """
-    res = {
-        "dmax": 0,
-        "nimpacts": 0,
-        "sumdiffs": 0,
-        "sumnegs": 0,
-        "sumpos": 0,
-        "maxdiff": 0,
-        "mindiff": 0,
-        "sumbydist": 0
-    }
-    xs = nx.get_node_attributes(G_nx, "x")
-    ys = nx.get_node_attributes(G_nx, "y")
-    r_edge_coord = ((xs[r_edge[0]], ys[r_edge[0]]), (xs[r_edge[1]], ys[r_edge[1]]))
-    for edge, v in bc1.items():
-        if edge == r_edge:
-            continue
-        delta = bc2[edge] - v
-        if abs(delta) > impact_treshold:
-            edge_coord = ((xs[edge[0]], ys[edge[0]]), (xs[edge[1]], ys[edge[1]]))
-            if delta > 0:
-                res["sumpos"] += delta
-                res["maxdiff"] = max(delta, res["maxdiff"])
-            else:
-                res["mindiff"] = min(delta, res["maxdiff"])
-                delta = -delta
-                res["sumnegs"] += delta
-            res["sumdiffs"] += delta
-            res["nimpacts"] += 1
-            d = dist(r_edge_coord, edge_coord)
-            res["dmax"] = max(d, res["dmax"])
-            res["sumbydist"] += delta / (d + 1e-5)
-    print(res)
-    return res
-
 def measure_bc_impact_cumulative(
-    bcs: list[EdgeDict],
     r_edges: list[Edge],
+    bcs: list[EdgeDict],
     G_nx: nx.Graph,
-    impact_treshold: float = 1e-5,
+    save_path: str,
+    impact_treshold: float = 1e-3,
 ) -> list[dict[str, float]]:
     """
-    Takes two bc dictionnaries and measures the differences
+    Takes output from preprocess_robust_import and measures the impacts
+    In a cumulative way (aggregates the pertubated edges)
+    impact_treshold: float, determines the threshold for a eBC difference to be considered as a pertubation
     Warning they must have the same keys except from the r_edge
 
     Metrics:
@@ -435,7 +381,8 @@ def measure_bc_impact_cumulative(
         - absolute differences sum, key: "sumdiffs"
         - absolute dif sum divided by dist,     key: "sumbydist"
     """
-    res = {
+    res = []
+    impact_dict = {
         "dmax": 0,
         "nimpacts": 0,
         "sumdiffs": 0,
@@ -443,24 +390,27 @@ def measure_bc_impact_cumulative(
     }
     xs = nx.get_node_attributes(G_nx, "x")
     ys = nx.get_node_attributes(G_nx, "y")
-    r_edges_coord = [((xs[r_edge[0]], ys[r_edge[0]]), (xs[r_edge[1]], ys[r_edge[1]])) for r_edge in r_edges]
-    impacted_edges = set()
+    r_edges_coord = [((xs[r_edge[0]], ys[r_edge[0]]), (xs[r_edge[1]], ys[r_edge[1]])) for r_edge in r_edges[1:]]
+    impacted_edges = []
     prev_bc = bcs[0]
-    for bc in bcs[1:]:
+    for i, bc in enumerate(bcs[1:]):
         for edge, v in bc.items():
-            if edge in r_edges:
+            if edge == r_edges[i]:
                 continue
-            delta = prev_bc[edge] - v
-            if abs(delta) > impact_treshold:
-                impacted_edges.add(edge)
-                edge_coord = ((xs[edge[0]], ys[edge[0]]), (xs[edge[1]], ys[edge[1]]))
-                res["sumdiffs"] += delta
-                res["nimpacts"] += 1
-                d = dist(r_edge_coord, edge_coord)/1000 # in kilometers
-                res["dmax"] = max(d, res["dmax"])
-                res["sumbydist"] += delta / (d + 1e-5)
+            delta = abs(prev_bc[edge] - v)
+            if delta > impact_treshold:
+                if not edge in impacted_edges:    
+                    impacted_edges.append(edge)
+                    edge_coord = ((xs[edge[0]], ys[edge[0]]), (xs[edge[1]], ys[edge[1]]))
+                    impact_dict["sumdiffs"] += delta
+                    impact_dict["nimpacts"] += 1
+                    d = dist(r_edges_coord[i], edge_coord)/1000 # in kilometers
+                    impact_dict["dmax"] = max(d, impact_dict["dmax"])
+                    impact_dict["sumbydist"] += delta / (d + 1e-5)
+        res.append(impact_dict.copy())
         prev_bc = bc
-    return res
+    with open(save_path, "w") as wfile:
+        json.dump(res, wfile)
 
 def efficiency(G_nx: nx.Graph):
     efficiency = {}

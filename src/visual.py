@@ -74,7 +74,7 @@ def exempleBastien(G_nx: nx.Graph):
     # get the color for each edge based on its highway type
     ec = [color_mapper[d["length"]] for u, v, k, d in G_nx.edges(keys=True, data=True)]
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = cm.get_cmap("viridis")
     norm = plt.Normalize(vmin=edges["length"].min(), vmax=edges["length"].max())
     sm = cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
@@ -789,7 +789,7 @@ def visualize_impacts_comparison(impact_paths: str | list[str], impact_crit: str
     fig.suptitle(title)
     fig.savefig(save_path)
 
-def cumulative_impact_comparison(impacts_fp: list[str], crit: str, attack_names: list[str], save_fp: str):
+def cumulative_impact_comparison(impacts_fp: list[str], crit: str, label: str, attack_names: list[str], save_fp: str):
     impacts = []
     for fp in impacts_fp:
         with open(fp, "r") as rfile:
@@ -800,6 +800,32 @@ def cumulative_impact_comparison(impacts_fp: list[str], crit: str, attack_names:
         t = np.arange(len(impact))
         ax.plot(t, impact, label=attack_names[i])
     ax.legend()
+    ax.set_ylabel(label)
     ax.set_xlabel("number of removed edges")
     fig.suptitle("Cumulative evolution of "+crit)
     fig.savefig(save_fp)
+
+def compare_avgebc_efficiency(robust_paths: list[str], efficiency_paths: list[str], labels: list[str], save_path: str):
+    colors = cm.get_cmap("hsv", len(labels))
+    fig, ax1 = plt.subplots()
+    for i, path in enumerate(robust_paths):
+        with open(path, "r") as rfile:
+            robust_dict = json.load(rfile)
+        if labels[i] == "freq":
+            x, y = np.arange(len(robust_dict))-1, [np.mean(list(attack[1].values())) for attack in robust_dict]
+            ax1.plot(x, y[:len(robust_dict)-1])
+        else:
+            x, y = np.arange(len(robust_dict)), [np.mean(list(attack[1].values())) for attack in robust_dict]
+            ax1.plot(x, y, label=labels[i], color=colors[i])
+    ax2 = ax1.twinx()
+    for i, path in enumerate(efficiency_paths):
+        with open(path, "r") as rfile:
+            efficiency = json.load(rfile)
+        ax2.plot(np.arange(len(efficiency)), efficiency, label=labels[i], color=colors[i], linestyle='dotted')
+
+    ax1.set_xlabel('number of removed edges')
+    ax1.set_ylabel('(-) avg eBC')
+    ax2.set_ylabel('efficiency (.)')
+    ax1.legend()
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    fig.savefig(save_path)

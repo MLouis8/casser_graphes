@@ -137,14 +137,18 @@ clusters_paths_3 = [
     "./data/clusters/CTS_60000_lanesnobridge.json",
 ]
 
-rpaths = [
-    "data/robust/nocost_graph_bc_10.json",
-    "data/robust/nocost_graph_freq_10.json",
-    "data/robust/nocost_graph_deg_10.json",
-    "data/robust/nocost_cut_bc_10.json",
-    "data/robust/nocost_cut267_bc_10.json",
-    "data/robust/nocost_cut859_bc_10.json",
-    "data/robust/lanes_graph_bc_25.json",
-    "data/robust/lanes_graph_deg_10.json",
-    "data/robust/lanes_graph_freq_10.json",
+robust_paths_impacts = [
+    "./data/robust/other/impacts/lanesgraphbc_NW_impacts(e-3).json",
+    "./data/robust/other/impacts/lanesgraphfreq_NW_impacts(e-3).json",
+    "./data/robust/other/impacts/lanesgraphdeg_NW_impacts(e-3).json",
+    "./data/robust/other/impacts/lanescut24_NW_impacts(e-3)_50.json",
+    "./data/robust/other/impacts/lanescut141_NW_impacts(e-3)_50.json"
+]
+
+robust_paths_notweighted = [
+    "./data/robust/notweighted/lanes_graph_bc_50p.json",
+    "./data/robust/notweighted/lanes_graph_freq_50p.json",
+    "./data/robust/notweighted/lanes_graph_deg_50p.json",
+    "./data/robust/notweighted/lanes_cut24_bc_25p.json",
+    "./data/robust/notweighted/lanes_cut141_bc_25p.json",
 ]
