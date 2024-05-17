@@ -371,7 +371,8 @@ def measure_bc_impact_cumulative(
 ) -> list[dict[str, float]]:
     """
     Takes output from preprocess_robust_import and measures the impacts
-    In a cumulative way (aggregates the pertubated edges)
+    in a cumulative way (aggregates the pertubated edges)
+    except for sumdiffsnoC and dmax
     impact_treshold: float, determines the threshold for a eBC difference to be considered as a pertubation
     Warning they must have the same keys except from the r_edge
 
@@ -386,29 +387,36 @@ def measure_bc_impact_cumulative(
         "dmax": 0,
         "nimpacts": 0,
         "sumdiffs": 0,
-        "sumbydist": 0
+        "sumbydist": 0,
+        "sumdiffsnoC": 0
     }
     xs = nx.get_node_attributes(G_nx, "x")
     ys = nx.get_node_attributes(G_nx, "y")
     r_edges_coord = [((xs[r_edge[0]], ys[r_edge[0]]), (xs[r_edge[1]], ys[r_edge[1]])) for r_edge in r_edges[1:]]
     impacted_edges = []
-    prev_bc = bcs[0]
+    first_bc = bcs[0]
     for i, bc in enumerate(bcs[1:]):
+        print(i)
+        impact_dict["dmax"] = 0
+        impact_dict["sumdiffsnoC"] = 0
         for edge, v in bc.items():
             if edge == r_edges[i]:
                 continue
-            delta = abs(prev_bc[edge] - v)
+            delta = abs(first_bc[edge] - v)
             if delta > impact_treshold:
                 if not edge in impacted_edges:    
                     impacted_edges.append(edge)
-                    edge_coord = ((xs[edge[0]], ys[edge[0]]), (xs[edge[1]], ys[edge[1]]))
-                    impact_dict["sumdiffs"] += delta
                     impact_dict["nimpacts"] += 1
-                    d = dist(r_edges_coord[i], edge_coord)/1000 # in kilometers
-                    impact_dict["dmax"] = max(d, impact_dict["dmax"])
-                    impact_dict["sumbydist"] += delta / (d + 1e-5)
+                edge_coord = ((xs[edge[0]], ys[edge[0]]), (xs[edge[1]], ys[edge[1]]))
+                impact_dict["sumdiffs"] += delta
+                impact_dict["sumdiffsnoC"] += delta
+                d = dist(r_edges_coord[i], edge_coord)/1000 # in kilometers
+                impact_dict["dmax"] = max(d, impact_dict["dmax"])
+                impact_dict["sumbydist"] += delta / (d + 1e-5)
+            elif edge in impacted_edges:
+                impacted_edges.remove(edge)
+                impact_dict["nimpacts"] -= 1
         res.append(impact_dict.copy())
-        prev_bc = bc
     with open(save_path, "w") as wfile:
         json.dump(res, wfile)
 

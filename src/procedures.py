@@ -13,7 +13,7 @@ from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
 from visual import visualize_class, visualize_Delta_bc
 from CutsClassification import CutsClassification
 from cuts_analysis import class_mean_cost
-from robustness import extend_attack, efficiency
+from robustness import extend_attack, efficiency, measure_strong_connectivity
 
 
 def replace_parallel_edges(G):
@@ -669,3 +669,17 @@ def procedure_global_efficiency(G_nx: nx.Graph, robust_path: str, save_path: str
         globeff.append(nx.global_efficiency(G_nx))
         with open(save_path, "w") as file:
             json.dump(globeff, file)
+
+def procedure_compare_scc(G_nx: nx.Graph, robust_paths: list[str], labels: list[str], save_path: list[str]):
+    fig, ax = plt.subplots()
+    for i, path in enumerate(robust_paths):
+        G = G_nx.copy()
+        with open(path, 'r') as rfile:
+            robust_list = json.load(rfile)
+        y = measure_strong_connectivity(robust_list, G)
+        ax.plot(np.arange(len(y)), y, label=labels[i])
+    ax.legend()
+    ax.set_xlabel('number of removed edges')
+    ax.set_ylabel('size of biggest scc')
+    fig.suptitle("Scc evolution")
+    fig.savefig(save_path)

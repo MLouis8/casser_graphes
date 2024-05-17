@@ -152,3 +152,9 @@ robust_paths_notweighted = [
     "./data/robust/notweighted/lanes_cut24_bc_25p.json",
     "./data/robust/notweighted/lanes_cut141_bc_25p.json",
 ]
+
+efficiency_paths_notweighted = [
+    "./data/robust/other/efficiency/globaleff_notweightedbc.json",
+    "./data/robust/other/efficiency/globaleff_notweightedfreq.json",
+    "./data/robust/other/efficiency/globaleff_notweighteddeg.json"
+]

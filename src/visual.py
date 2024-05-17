@@ -805,15 +805,29 @@ def cumulative_impact_comparison(impacts_fp: list[str], crit: str, label: str, a
     fig.suptitle("Cumulative evolution of "+crit)
     fig.savefig(save_fp)
 
+def impact_scatter(impact_fps: list[str], attack_names: list[str], save_fp: str):
+    fig, ax = plt.subplots()
+    for i, fp in enumerate(impact_fps):
+        with open(fp, "r") as rfile:
+            impact = json.load(rfile)
+        x, y = [d["sumdiffsnoC"] for d in impact], [d["dmax"] for d in impact]
+        ax.scatter(x, y, label=attack_names[i])
+    ax.set_ylabel("dmax")
+    ax.set_xlabel("sumdiffs")
+    ax.legend()
+    fig.suptitle("Scatter plot of dmax and sumdiffs at each step")
+    fig.savefig(save_fp)
+
 def compare_avgebc_efficiency(robust_paths: list[str], efficiency_paths: list[str], labels: list[str], save_path: str):
-    colors = cm.get_cmap("hsv", len(labels))
+    colors = [to_hex(elem) for elem in ox.plot.get_colors(10, cmap="tab10")]
     fig, ax1 = plt.subplots()
     for i, path in enumerate(robust_paths):
+
         with open(path, "r") as rfile:
             robust_dict = json.load(rfile)
         if labels[i] == "freq":
-            x, y = np.arange(len(robust_dict))-1, [np.mean(list(attack[1].values())) for attack in robust_dict]
-            ax1.plot(x, y[:len(robust_dict)-1])
+            x, y = np.arange(len(robust_dict)-1), [np.mean(list(attack[1].values())) for attack in robust_dict]
+            ax1.plot(x, y[:len(robust_dict)-1], label=labels[i], color=colors[i])
         else:
             x, y = np.arange(len(robust_dict)), [np.mean(list(attack[1].values())) for attack in robust_dict]
             ax1.plot(x, y, label=labels[i], color=colors[i])
