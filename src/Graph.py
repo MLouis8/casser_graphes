@@ -6,7 +6,6 @@ import kahip  # to comment if ARM, uncomment to cut
 import json
 from typing import Optional, Any
 from typ import EdgeDict
-from math import log, exp
 
 
 class Graph:
@@ -348,11 +347,14 @@ class Graph:
             self._nx = self.to_nx()
         return len(sorted(nx.connected_components(self._nx), key=len, reverse=True)[0])
 
-    def get_edge_bc(self, weighted: bool, new: bool = False) -> EdgeDict:
+    def get_edge_bc(self, weighted: bool, new: bool = False, approx: int | None = None) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()
         if self._old_bc or new:
-            self._bc = nx.edge_betweenness_centrality(self._nx, weight="weight" if weighted else None)
+            if approx:
+                self._bc = nx.edge_betweenness_centrality(self._nx, k=approx, weight="weight" if weighted else None)
+            else:
+                self._bc = nx.edge_betweenness_centrality(self._nx, k=approx, weight="weight" if weighted else None)
             self._old_bc = False
         return self._bc
 
@@ -361,48 +363,7 @@ class Graph:
         return np.mean(list(self.get_edge_bc().values()))
 
     @property
-    def get_edge_cf_bc(self) -> EdgeDict:
-        if not self._nx:
-            self._nx = self.to_nx()
-        return nx.edge_current_flow_betweenness_centrality(self._nx)
-
-    @property
-    def get_avg_edge_cf_bc(self) -> float:
-        return np.mean(list(self.get_edge_cf_bc.values()))
-
-    @property
     def get_avg_dist(self) -> float:
         if not self._nx:
             self._nx = self.to_nx()
         return nx.average_shortest_path_length(self._nx)
-
-    def cpt_adj_spectrum(self) -> None:
-        if not self._nx:
-            self._nx = self.to_nx()
-        self._adj_spectrum = nx.adjacency_spectrum(self._nx)
-
-    @property
-    def get_spectral_radius(self) -> float:
-        if not self._adj_spectrum:
-            self.cpt_adj_spectrum()
-        return np.max(self._adj_spectrum)
-
-    @property
-    def get_spectral_gap(self) -> float:
-        if not self._adj_spectrum:
-            self.cpt_adj_spectrum()
-        max1, max2 = 0, 0
-        for eigen in self._adj_spectrum:
-            if eigen > max2:
-                if eigen > max1:
-                    max2 = max1
-                    max1 = eigen
-                else:
-                    max2 = eigen
-        return max1 - max2
-
-    @property
-    def get_natural_co(self) -> float:
-        if not self._nx:
-            self._nx = self.to_nx()
-        return log(nx.subgraph_centrality(self._nx) / self._sizeV)

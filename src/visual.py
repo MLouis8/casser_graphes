@@ -2,34 +2,13 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
-import random as rd
 import osmnx as ox
 import pandas as pd
 import networkx as nx
 
 from cuts_analysis import get_n_biggest_freq
 from typ import Cuts, Edge, EdgeDict, KCut, RobustList
-
-
-def imbalances_cut(G_kp):
-    imbalances = np.linspace(0, 0.1, 30)
-    used_seed = []
-    mean, minimum, maximum = [], [], []
-    for epsilon in imbalances:
-        res = []
-        print(f"start cuts with imb={epsilon}")
-        for i in range(25):
-            seed = rd.randint(0, 1044642763)
-            while seed in used_seed:
-                seed = rd.randint(0, 1044642763)
-            used_seed.append(seed)
-            G_kp.kaffpa_cut(2, epsilon, 0, seed, 2)
-            res.append(G_kp._edgecut)
-        mean.append(int(np.mean(res)))
-        minimum.append(min(res))
-        maximum.append(max(res))
-    return imbalances, mean, minimum, maximum
-
+from communities import determine_cut_edges
 
 def triple_plot_convergence():
     fig = plt.figure()
@@ -142,6 +121,26 @@ def basic_stats_cuts(cuts: dict[str, KCut], nb_cuts=1000):
     print(f"For {nb_cuts} cuts we have a mean of {mean} cut edges")
     print(f"And a std of {std}")
 
+def visualize_city_parts(G_nx: nx.Graph, parts: list[int], fp: str):
+    colors = [to_hex(elem) for elem in ox.plot.get_colors(10, cmap="tab10")]
+    cut_edges = determine_cut_edges(G_nx, parts)
+    edge_color = ['b' if edge in cut_edges else "#54545460" for edge in G_nx.edges]
+    node_color = []
+    for node in G_nx.nodes:
+        for i, part in enumerate(parts):
+            if node in part:
+                break
+        node_color.append(colors[i])
+    ox.plot_graph(
+        G_nx,
+        bgcolor="white",
+        node_size=1,
+        edge_color=edge_color,
+        edge_linewidth=1,
+        save=True,
+        filepath=fp,
+        node_color=node_color
+    )
 
 def display_freq(
     G_kp,
