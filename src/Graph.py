@@ -345,7 +345,7 @@ class Graph:
     def get_size_biggest_cc(self):
         if not self._nx:
             self._nx = self.to_nx()
-        return len(sorted(nx.connected_components(self._nx), key=len, reverse=True)[0])
+        return sorted(nx.connected_components(self._nx), key=len, reverse=True)[0]
 
     def get_edge_bc(self, weighted: bool, new: bool = False, approx: int | None = None) -> EdgeDict:
         if not self._nx:

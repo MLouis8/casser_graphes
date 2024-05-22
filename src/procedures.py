@@ -13,7 +13,7 @@ from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
 from visual import visualize_class, visualize_Delta_bc
 from CutsClassification import CutsClassification
 from cuts_analysis import class_mean_cost
-from robustness import extend_attack, efficiency, measure_strong_connectivity
+from robustness import extend_attack, efficiency, measure_scc_from_rlist, cpt_effective_resistance
 
 
 def replace_parallel_edges(G):
@@ -343,26 +343,42 @@ def preprocessing(
     G.to_undirected()
 
 
-def init_city_graph(filepath, betweenness: bool = False):
+def init_city_graph(filepath, betweenness: bool = False, city_name: str = 'Paris'):
+    match city_name:
+        case 'Paris':
+            city = "Paris, Paris, France"
+            buffer = 350
+            epsg = "epsg:2154"
+            tol = 4
+        case 'Shanghai':
+            city = "Shanghai, China"
+            epsg = "epsg:2335"
+            tol = 4 # tester plus grand
+            buffer = 500
+        case 'Manhattan':
+            city = 'Manhattan, New York, USA'
+            tol = 4 # tester plus grand
+            epsg = 'epsg:26918'
+            buffer = 500
     # create, project, and consolidate a graph
     G = ox.graph_from_place(
-        "Paris, Paris, France",
+        city,
         network_type="drive",
-        buffer_dist=350,
+        buffer_dist=buffer,
         simplify=False,
         retain_all=True,
         clean_periphery=False,
         truncate_by_edge=False,
     )
-    G_Paris = ox.project_graph(
-        G, to_crs="epsg:2154"
+    G_Projected = ox.project_graph(
+        G, to_crs= epsg
     )  ## pour le mettre dans le même référentiel que les données de Paris
 
     print("Just after importation, we have : ")
     print(str(len(G.edges())) + " edges")
     print(str(len(G.nodes())) + " nodes")
     G2 = ox.consolidate_intersections(
-        G_Paris, rebuild_graph=True, tolerance=4, dead_ends=True
+        G_Projected, rebuild_graph=True, tolerance=tol, dead_ends=True
     )
     print("After consolidation, we have : ")
     print(str(len(G2.edges())) + " edges")
@@ -424,7 +440,7 @@ def flatten(l):
     return res
 
 
-def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[float]):
+def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[float], k: int = 2):
     assert len(kp_paths) == len(costs_names)
     for i, kp in enumerate(kp_paths):
         print(f"cutting for cost {costs_names[i]}...")
@@ -441,7 +457,7 @@ def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[
                 while seed in seen_seeds:
                     seed = rd.randint(0, 1044642763)
                 seen_seeds.append(seed)
-                G_kp.kaffpa_cut(2, imbalance, 0, seed, 2)
+                G_kp.kaffpa_cut(k, imbalance, 0, seed, 2)
                 cut[str(ncut)] = G_kp.get_last_results
             with open(
                 "./data/cuts/" + costs_names[i] + "_1000_" + str(imbalance) + ".json",
@@ -676,10 +692,36 @@ def procedure_compare_scc(G_nx: nx.Graph, robust_paths: list[str], labels: list[
         G = G_nx.copy()
         with open(path, 'r') as rfile:
             robust_list = json.load(rfile)
-        y = measure_strong_connectivity(robust_list, G)
+        y = measure_scc_from_rlist(robust_list, G)
         ax.plot(np.arange(len(y)), y, label=labels[i])
     ax.legend()
     ax.set_xlabel('number of removed edges')
     ax.set_ylabel('size of biggest scc')
     fig.suptitle("Scc evolution")
     fig.savefig(save_path)
+
+def procedure_effective_resistance(G_nx: nx.Graph, redges: list[tuple[int, int]], save_fp: str, weight: bool | None = None) -> None:
+    G = G_nx.to_undirected() if G_nx.is_directed() else G_nx
+    if weight:
+        w = nx.get_edge_attributes(G, 'weight')
+        new_w = {}
+        for k, v in w.items():
+            new_w[k] = eval(v)
+        nx.set_edge_attributes(G, new_w, 'weight')
+    er_list = []
+    with open(save_fp, 'w') as wfile:
+            json.dump(er_list, wfile)
+    # test wether all removed edges are indeed in the Graph at the beginning
+    for edge in redges[1:]:
+        assert G.has_edge(edge[0], edge[1])
+    # computes effective resistance
+    for i, edge in enumerate(redges[1:]):
+        G.remove_edge(edge[0], edge[1])
+        try:
+            er = cpt_effective_resistance(G, True) if weight else cpt_effective_resistance(G, False)
+        except:
+            print(f"an erreor occured while computing effective resistance, for edge {edge}, the {i}th over {len(redges)}")
+            raise Error
+        er_list.append(er)
+        with open(save_fp, 'w') as wfile:
+            json.dump(er_list, wfile)

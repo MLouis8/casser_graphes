@@ -9,7 +9,7 @@ import numpy as np
 from copy import deepcopy
 
 
-def freq_attack(G: Graph, ncuts: int) -> Edge:
+def freq_attack(G: Graph, ncuts: int, imb: float) -> Edge:      
     cut_union = []
     seen_seeds = []
     for _ in range(ncuts):
@@ -17,19 +17,19 @@ def freq_attack(G: Graph, ncuts: int) -> Edge:
         while seed in seen_seeds:
             seed = rd.randint(0, 1044642763)
         seen_seeds.append(seed)
-        G.kaffpa_cut(2, 0.05, 0, seed, 2)
+        G.kaffpa_cut(2, imb, 0, seed, 2)
         cut_union += G.process_cut()
-
+        if len(cut_union) == 0:
+            largest_cc = G.get_size_biggest_cc
+            G_sub = Graph(nx=G._nx.subgraph(largest_cc))
+            return freq_attack(G_sub, ncuts)
     frequencies = {}
     for edge in cut_union:
         if edge in frequencies:
             frequencies[edge] += 1
         else:
             frequencies[edge] = 1
-    try:
-        return max(frequencies, key=frequencies.get)
-    except:
-        return None
+    return max(frequencies, key=frequencies.get)
 
 
 def betweenness_attack(G: Graph, weighted: bool, subset: list[Edge] | None, approx: int | None) -> Edge:
@@ -78,6 +78,7 @@ def attack(
     subset: list[Edge] | None = None,
     weighted: bool = True,
     bc_approx: int | None = None,
+    imb: float = 0.05
 ) -> RobustList | None:
     """
     Simulates an attack on a Graph with the following strategy:
@@ -107,7 +108,7 @@ def attack(
 
     def metric_procedure(metrics, chosen_edge):
         bc = G.get_edge_bc(weighted=weighted, new=True, approx=bc_approx) if metric_bc else None
-        cc = G.get_size_biggest_cc if metric_cc else None
+        cc = len(G.get_size_biggest_cc) if metric_cc else None
         scc = len(max(nx.strongly_connected_components(G), key=len)) if metric_scc else None
         metrics.append((chosen_edge, bc, cc, scc))
 
@@ -125,7 +126,7 @@ def attack(
                 G.remove_edge(chosen_edge)
             case "freq":
                 metric_procedure(metrics, chosen_edge)
-                chosen_edge = freq_attack(G, ncuts)
+                chosen_edge = freq_attack(G, ncuts, imb)
                 if not chosen_edge:
                     direct_save = True
                     break
@@ -179,6 +180,7 @@ def extend_attack(
     order: str,
     metric_bc: bool,
     metric_cc: bool,
+    metric_scc: bool,
     ncuts: int,
     save: bool,
     subset: list[Edge] | None = None,
@@ -205,11 +207,11 @@ def extend_attack(
         order,
         metric_bc,
         metric_cc,
+        metric_scc,
         ncuts=ncuts,
         save=False,
         subset=subset,
         weighted=weighted,
-        #  extended=True, see attack for more details
     )
     # return the concat of the two metrics
     temp = tail.copy()
@@ -421,21 +423,10 @@ def cascading_failure(G_nx: nx.Graph, redges: list[Edge], rtreshold: float, ltre
         res.append((fails, last_bc))
     return res
 
-def cpt_effective_resistance(G_nx: nx.Graph, fp: str, weight: bool | None = None) -> None:
-    G = G_nx.to_undirected() if G_nx.is_directed() else G_nx
-    if not nx.is_connected(G):
-        largest_cc = max(nx.connected_components(G), key=len)
-        print(f"the graph isn't connected, effective resistance will be computed on a component of size {len(largest_cc)} (real graph size = {len(G.nodes)})")
-        G = G.subgraph(largest_cc)
-    if weight:
-        w = nx.get_edge_attributes(G, 'weight')
-        new_w = {}
-        for k, v in w.items():
-            new_w[k] = eval(v)
-        nx.set_edge_attributes(G, new_w, 'weight')
-        effective_resistance = nx.effective_graph_resistance(G, "weight")
-    else:
-        effective_resistance = nx.effective_graph_resistance(G)
-    with open(fp, "w") as wfile:
-        json.dump(effective_resistance, wfile)
+def cpt_effective_resistance(G_nx: nx.Graph, weight: bool) -> float:
+    if not nx.is_connected(G_nx):
+        largest_cc = max(nx.connected_components(G_nx), key=len)
+        print(f"the graph isn't connected, effective resistance will be computed on a component of size {len(largest_cc)} (real graph size is {len(G_nx.nodes)})")
+        G_nx = G_nx.subgraph(largest_cc)
+    return nx.effective_graph_resistance(G_nx, 'weight') if weight else nx.effective_graph_resistance(G_nx)
     

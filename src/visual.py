@@ -121,7 +121,7 @@ def basic_stats_cuts(cuts: dict[str, KCut], nb_cuts=1000):
     print(f"For {nb_cuts} cuts we have a mean of {mean} cut edges")
     print(f"And a std of {std}")
 
-def visualize_city_parts(G_nx: nx.Graph, parts: list[int], fp: str):
+def visualize_city_parts(G_nx: nx.Graph, parts: list[list[int]], fp: str):
     colors = [to_hex(elem) for elem in ox.plot.get_colors(10, cmap="tab10")]
     cut_edges = determine_cut_edges(G_nx, parts)
     edge_color = ['b' if edge in cut_edges else "#54545460" for edge in G_nx.edges]
@@ -129,8 +129,10 @@ def visualize_city_parts(G_nx: nx.Graph, parts: list[int], fp: str):
     for node in G_nx.nodes:
         for i, part in enumerate(parts):
             if node in part:
+                if len(part) < 100:
+                    i = -1
                 break
-        node_color.append(colors[i])
+        node_color.append(colors[i+1])
     ox.plot_graph(
         G_nx,
         bgcolor="white",
@@ -444,39 +446,44 @@ def to_hex(c):
 def visualize_bc(
     removed_edges: list[Edge], bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10, ax = None
 ) -> None:
-    def colorize(u, v):        
-        if (u, v) in bc:
-            return color_list[int((bc[(u, v)] / vmax) * (color_levels-1))]
-        elif (v, u) in bc:
-            return color_list[int((bc[(v, u)] / vmax) * (color_levels-1))]
-        # if (u, v, w) in bc:
-        #     return color_list[int((bc[(u, v, w)] / vmax) * (color_levels-1))]
-        # elif (v, u, w) in bc:
-        #     return color_list[int((bc[(v, u, w)] / vmax) * (color_levels-1))]
+    redge = []
+    def colorize(u, v, w):        
+        # if (u, v) in bc:
+        #     return color_list[int((bc[(u, v)] / vmax) * (color_levels-1))]
+        # elif (v, u) in bc:
+        #     return color_list[int((bc[(v, u)] / vmax) * (color_levels-1))]
+        if (u, v, w) in bc:
+            return color_list[int((bc[(u, v, w)] / vmax) * (color_levels-1))]
+        elif (v, u, w) in bc:
+            return color_list[int((bc[(v, u, w)] / vmax) * (color_levels-1))]
         elif (u, v) in removed_edges or (v, u) in removed_edges:
             return "green"
         else:
-            raise ValueError(f"edge ({u}, {v}) not in the graph")
+            redge.append((u, v, w))
+            return "green"
+            # raise ValueError(f"edge ({u}, {v}) not in the graph")
 
-    def thicken(u, v):
-        if (u, v) in bc:
-            return (2 * bc[(u, v)] / vmax) ** 2
-        elif (v, u) in bc:
-            return (2 * bc[(v, u)] / vmax) ** 2
-        # if (u, v, w) in bc:
-        #     return (2 * bc[(u, v, w)] / vmax) ** 2
-        # elif (v, u, w) in bc:
-        #     return (2 * bc[(v, u, w)] / vmax) ** 2
+    def thicken(u, v, w):
+        # if (u, v) in bc:
+        #     return (2 * bc[(u, v)] / vmax) ** 2
+        # elif (v, u) in bc:
+        #     return (2 * bc[(v, u)] / vmax) ** 2
+        if (u, v, w) in bc:
+            return (2 * bc[(u, v, w)] / vmax) ** 2
+        elif (v, u, w) in bc:
+            return (2 * bc[(v, u, w)] / vmax) ** 2
         elif (u, v) in removed_edges or (v, u) in removed_edges:
             return 5
         else:
-            raise ValueError(f"edge ({u}, {v}) not in the graph")
+            redge.append((u, v, w))
+            return 5
+            # raise ValueError(f"edge ({u}, {v}) not in the graph")
 
     vmax, vmin = max(bc.values()), min(bc.values())
     # vmax, vmin = 0.1, 0
     color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="jet")] # RdPu for bicolor
-    edge_color = [colorize(u, v) for u, v, _ in G.edges]
-    edge_width = [thicken(u, v) for u, v, _ in G.edges]
+    edge_color = [colorize(u, v, w) for u, v, w in G.edges]
+    edge_width = [thicken(u, v, w) for u, v, w in G.edges]
     print("edges colorized, starting display...")
     cmap = plt.cm.get_cmap("jet") # RdPu for bicolor
     norm = plt.Normalize(vmin=0, vmax=0.1) #(vmin=vmin, vmax=vmax)
@@ -499,7 +506,7 @@ def visualize_bc(
     cb.set_label(title, fontsize=12)
     fig.tight_layout()
     fig.savefig(fp)
-
+    return redge
 
 def visualize_Delta_bc(
     removed_edges: list[Edge],

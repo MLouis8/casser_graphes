@@ -153,6 +153,21 @@ robust_paths_notweighted = [
     "./data/robust/notweighted/lanes_cut141_bc_25p.json",
 ]
 
+robust_paths_directed = [
+    "./data/robust/directed/lanes_graphdir_bc_50p.json",
+    "./data/robust/directed/lanes_graphdir_freq_50.json",
+    "./data/robust/directed/lanes_graphdir_rd_50.json",
+    "./data/robust/directed/bcdir_redges.json",
+    "./data/robust/directed/freqdir_redges.json",
+    "./data/robust/directed/rddir_redges.json",
+]
+
+effective_res_paths = [
+    "./data/robust/other/effective_resistance/eff_res_bcdir.json",
+    "./data/robust/other/effective_resistance/eff_res_freqdir.json",
+    "./data/robust/other/effective_resistance/eff_res_rddir.json",
+]
+
 efficiency_paths_notweighted = [
     "./data/robust/other/efficiency/globaleff_notweightedbc.json",
     "./data/robust/other/efficiency/globaleff_notweightedfreq.json",
