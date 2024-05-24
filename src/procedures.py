@@ -721,7 +721,7 @@ def procedure_effective_resistance(G_nx: nx.Graph, redges: list[tuple[int, int]]
             er = cpt_effective_resistance(G, True) if weight else cpt_effective_resistance(G, False)
         except:
             print(f"an erreor occured while computing effective resistance, for edge {edge}, the {i}th over {len(redges)}")
-            raise Error
+            raise ValueError('wrong')
         er_list.append(er)
         with open(save_fp, 'w') as wfile:
             json.dump(er_list, wfile)

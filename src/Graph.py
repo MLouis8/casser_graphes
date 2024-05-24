@@ -68,7 +68,13 @@ class Graph:
         self._edgecut, self._blocks = edgecut, blocks
 
     def get_neighbors(self, x: int) -> list[int]:
-        return [self["adjncy"][n] for n in range(self["xadj"][x + 1] - self["xadj"][x])]
+        return [self["adjncy"][n] for n in range(self["xadj"][x], self["xadj"][x+1])]
+    
+    def get_edge_weight(self, u: int, v: int) -> int:
+        for j in range(self["xadj"][u], self["xadj"][u+1]):
+            if v == self["adjncy"][j]:
+                return self["adjcwgt"][j]
+        raise ValueError(f'No weight found for edge {u, v}')
 
     def set_from_nx(self, G: nx.Graph) -> None:
         """Conversion du type networkx.graph au type KaHIP (METIS)"""

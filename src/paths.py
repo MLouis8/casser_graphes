@@ -166,6 +166,11 @@ effective_res_paths = [
     "./data/robust/other/effective_resistance/eff_res_bcdir.json",
     "./data/robust/other/effective_resistance/eff_res_freqdir.json",
     "./data/robust/other/effective_resistance/eff_res_rddir.json",
+    "./data/robust/other/effective_resistance/eff_res_cut24bcdir.json",
+    "./data/robust/other/effective_resistance/eff_res_cut24rddir.json",
+    "./data/robust/other/effective_resistance/eff_res_cut141bcdir.json",
+    "./data/robust/other/effective_resistance/eff_res_cut141rddir.json"
+    
 ]
 
 efficiency_paths_notweighted = [
