@@ -1,0 +1,144 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+
+\usepackage{roboto}
+\usepackage{mathtools}
+\usepackage{fixmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{svg}
+\usepackage{pdfpages}
+\usepackage{algpseudocode}
+\usepackage{algorithm2e}
+\usepackage{multicol}
+
+\graphicspath{ {../images/} }
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=}
+
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
+
+\title{Autres villes, Communautés, Approx, Effective resistance et quelques clustering}
+\subtitle{Casser des Graphes}
+\author{Louis Milhaud}
+\institute{Complex Networks - LIP6}
+\date{\today}
+
+\begin{document}
+
+    \AtBeginSection[]{
+    \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+        \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+    \end{frame}
+    }
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Outline}
+        \tableofcontents
+    \end{frame}
+
+    \section{Autres Villes}
+    \begin{frame}
+        \frametitle{Shanghai}
+    
+        
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Manhattan}
+    
+        
+    
+    \end{frame}
+    \section{Communities}
+    \begin{frame}
+        \frametitle{Communautés: un autre moyen de trouver des arêtes importantes}
+        \centering
+        \includegraphics[scale=0.8]{other/pres9/coupe_louvain.pdf}
+        cost: ?
+    \end{frame}
+
+    \section{Effective Resistance}
+    \begin{frame}
+        \frametitle{Definition}
+            The \textbf{effective resistance} between two vertices is the electrical resistance measured with the Kirchoff's circuit laws. The \textbf{effective graph resistance} is the sum of all effective resistance (for all pairs of vertices).
+            \vspace{10pt}\\
+            \emph{Kirchoff laws:}
+            \begin{itemize}
+                \item[-] $current\ in = current\ out$
+                \item[-] $voltages\ of\ loop = 0 $
+            \end{itemize}
+            (computed from Laplacian eigenvalues: O($n^3$))
+    \end{frame}
+    
+    \begin{frame}
+        \frametitle{Premiers résultats de effective resistance}
+    
+    \end{frame}
+    
+    \section{Grandes attaques}
+    \subsection{Choix}
+    \begin{frame}
+        \frametitle{Choix de l'approximation eBC}
+        \includegraphics[scale=0.33]{approx/visubcapprox_500.pdf}
+        \includegraphics[scale=0.33]{approx/visubcapprox_1000.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Choix du nombre de coupes}
+        \textbf{Temps sur ma machine pour $n$ coupes:}\\
+        \vspace{5pt}
+        \begin{tabular}{|c|l|c|r|} 
+            \hline
+                $n$ & 1 & 200 & 1000 \\
+            \hline
+                2 blocs & & &\\
+            \hline
+                3 blocs & & &\\
+            \hline
+                imb = 0.05 & & &\\
+            \hline
+                imb = 0.1 & & &\\
+            \hline
+                imb = 0.2 & & &\\
+            \hline
+                imb = 0.3 & & &\\
+            \hline
+                temps (sec) & D1 & D2 & D3 \\ 
+            \hline
+            \end{tabular}
+    \end{frame}
+
+    \subsection{Nouvelles coupes}
+    \begin{frame}
+        \frametitle{déséquilibre grand: imb = 0.1}
+    
+    \end{frame}
+    
+    \begin{frame}
+        \frametitle{déséquilibre grand: imb = 0.3}
+    
+    \end{frame}
+    
+    \begin{frame}
+        \frametitle{déséquilibre grand: imb = 0.3}
+    
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{nblocks = 3}
+    
+    \end{frame}
+    
+    \end{document}
