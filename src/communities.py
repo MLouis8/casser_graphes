@@ -1,4 +1,4 @@
-from cdlib.algorithms import walktrap
+# from cdlib.algorithms import walktrap
 import networkx as nx
 import numpy as np
 import json
@@ -20,7 +20,7 @@ def walktrap_communities_wrapper(G_nx: nx.Graph, fp: str, k: int = 1) -> None:
     G = G_nx.copy()
     for i in range(k):
         print(f"{i}th level")
-        comms = walktrap(G)
+        comms = None #walktrap(G)
         for node in G_nx.nodes:
             for j, com in enumerate(comms.communities):
                 if node in com:
@@ -59,6 +59,6 @@ def determine_cut_edges(G_nx: nx.Graph, parts: list[int]) -> list[Edge]:
                 n2 = i
             if n1 and n2:
                 break
-        if n1 != n2:
+        if n1 and n2 and (n1 != n2):
             cut_edges.append(e)
     return cut_edges

@@ -2,7 +2,7 @@ from multiprocessing import Pool
 import itertools
 import json
 from Graph import Graph
-from paths import graphml_path, kp_paths, robust_paths_directed, effective_res_paths
+from paths import graphml_path, kp_paths, effective_res_paths
 import random as rd
 
 import matplotlib.pyplot as plt
@@ -48,7 +48,9 @@ def edge_betweenness_centrality_parallel(G, processes=None):
 def main():
     with open("data/cuts/lanes_1000_005.json", "r") as read_file:
         data = json.load(read_file)
-    cut = data['190'] # 141
+    with open('data/robust/directed/cut141dirrd_redges.json', 'r') as rfile:
+        processed_edges = json.load(rfile)
+    cut = data['141'] # 141 190
     G = Graph(json=kp_paths[9])
     G.set_last_results(cut[0], cut[1])
     edges = G.process_cut()
@@ -60,11 +62,17 @@ def main():
     for k, v in weigths.items():
         new_weights[k] = int(v)
     nx.set_edge_attributes(G_nx, new_weights, "weight")
-    for i in range(0, 51):
-        print(f"computing {i}th cut190")
+    print(len(edges), len(G_nx.edges))
+    for e in processed_edges[1:]:
+        edge = eval(e)
+        edges.remove(edge)
+        G_nx.remove_edge(edge[0], edge[1])
+        G.remove_edge(edge)
+    print(len(edges), len(G_nx.edges))
+    for i in range(5):
+        print(f"computing {i}th cut141 rd")
         bc = edge_betweenness_centrality_parallel(G_nx)
-        print(list(bc.keys())[:10])
-        if i > 0:
+        if i >= 0:
             # cut_union = []
             # seen_seeds = []
             # for _ in range(1000):
@@ -82,6 +90,7 @@ def main():
             #         frequencies[edge] = 1
             # chosen_edge = max(frequencies, key=frequencies.get)
             # G.remove_edge(chosen_edge)
+
             chosen_edge, biggest_bc = None, 0
             for edge in edges:
                 try:
@@ -92,17 +101,26 @@ def main():
                     if bc[(edge[1], edge[0])] > biggest_bc:
                         chosen_edge = edge
                         biggest_bc = bc[(edge[1], edge[0])]
+
+            # chosen_edge, max_degree = None, 0
+            # for edge in G_nx.edges:
+            #     degree = G_nx.degree[edge[0]] * G_nx.degree[edge[1]]
+            #     if degree > max_degree:
+            #         max_degree = degree
+            #         chosen_edge = edge
+
+            # chosen_edge = rd.choice(edges)
             G_nx.remove_edge(chosen_edge[0], chosen_edge[1])
-            edges.remove(chosen_edge)
+            # edges.remove(chosen_edge)
         else:
             chosen_edge = None
-        with open("data/robust/directed/lanes_cut190_bc_50.json", "r") as rfile:
+        with open("data/robust/directed/lanes_cut141dir_rd_50p.json", "r") as rfile:
             data = json.load(rfile)
         bcsave = {}
         for k, v in bc.items():
             bcsave[str(k)] = v
         data.append((str(chosen_edge), bcsave))
-        with open("data/robust/directed/lanes_cut190_bc_50.json", "w") as wfile:
+        with open("data/robust/directed/lanes_cut141dir_rd_50p.json", "w") as wfile:
             json.dump(data, wfile)
 
 main()

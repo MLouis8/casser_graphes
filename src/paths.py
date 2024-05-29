@@ -153,13 +153,30 @@ robust_paths_notweighted = [
     "./data/robust/notweighted/lanes_cut141_bc_25p.json",
 ]
 
-robust_paths_directed = [
-    "./data/robust/directed/lanes_graphdir_bc_50p.json",
-    "./data/robust/directed/lanes_graphdir_freq_50.json",
-    "./data/robust/directed/lanes_graphdir_rd_50.json",
+dir_paths = [
+    "./data/robust/directed/lanes_graphdir_bc_50end.json",
+    "./data/robust/directed/lanes_graphdir_freq_40.json",
+    "./data/robust/directed/lanes_graphdir_rd_50end.json",
+    "./data/robust/directed/lanes_graphdir_deg_50p.json",
+    "./data/robust/directed/lanes_cut24dir_bc_50p.json",
+    "./data/robust/directed/lanes_cut24dir_rd_50p.json",
+    "./data/robust/directed/lanes_cut141dir_bc_50p.json",
+    "./data/robust/directed/lanes_cut141dir_rd_50p.json",
+    "./data/robust/directed/lanes_cut190dir_bc_43p.json",
+    "./data/robust/directed/lanes_cut190dir_rd_43p.json",
+]
+
+redges_paths = [
     "./data/robust/directed/bcdir_redges.json",
     "./data/robust/directed/freqdir_redges.json",
     "./data/robust/directed/rddir_redges.json",
+    "./data/robust/directed/degdir_redges.json",
+    "./data/robust/directed/cut24dirbc_redges.json",
+    "./data/robust/directed/cut24dirrd_redges.json",
+    "./data/robust/directed/cut141dirbc_redges.json",
+    "./data/robust/directed/cut141dirrd_redges.json",
+    "./data/robust/directed/cut190dirbc_redges.json",
+    "./data/robust/directed/cut190dirrd_redges.json",
 ]
 
 effective_res_paths = [
@@ -169,8 +186,10 @@ effective_res_paths = [
     "./data/robust/other/effective_resistance/eff_res_cut24bcdir.json",
     "./data/robust/other/effective_resistance/eff_res_cut24rddir.json",
     "./data/robust/other/effective_resistance/eff_res_cut141bcdir.json",
-    "./data/robust/other/effective_resistance/eff_res_cut141rddir.json"
-    
+    "./data/robust/other/effective_resistance/eff_res_cut141rddir.json",
+    "./data/robust/other/effective_resistance/eff_res_cut190bcdir.json",
+    "./data/robust/other/effective_resistance/eff_res_cut190rddir.json",
+    "./data/robust/other/effective_resistance/eff_res_degdir.json",
 ]
 
 efficiency_paths_notweighted = [

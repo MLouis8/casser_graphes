@@ -8,21 +8,59 @@ import networkx as nx
 import numpy as np
 from copy import deepcopy
 
+def is_cutable(G: Graph, nblocks: int, imb: float):
+    if G._nx and G._nx.is_directed():
+        ccs = G.get_sccs
+    else:
+        ccs = G.get_ccs
+    if len(ccs) < nblocks:
+        return True
+    for cc1 in ccs[:nblocks]:
+        for cc2 in ccs[:nblocks]:
+            if len(cc1) + G._sizeV * imb < len(cc2) or len(cc1) - G._sizeV * imb > len(cc2):
+                return True
+    return False
 
-def freq_attack(G: Graph, ncuts: int, imb: float) -> Edge:      
+def freq_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:      
     cut_union = []
     seen_seeds = []
-    for _ in range(ncuts):
-        seed = rd.randint(0, 1044642763)
-        while seed in seen_seeds:
+    if is_cutable(G, nblocks, imb):
+        for _ in range(ncuts):
             seed = rd.randint(0, 1044642763)
-        seen_seeds.append(seed)
-        G.kaffpa_cut(2, imb, 0, seed, 2)
-        cut_union += G.process_cut()
-        if len(cut_union) == 0:
-            largest_cc = G.get_size_biggest_cc
-            G_sub = Graph(nx=G._nx.subgraph(largest_cc))
-            return freq_attack(G_sub, ncuts)
+            while seed in seen_seeds:
+                seed = rd.randint(0, 1044642763)
+            seen_seeds.append(seed)
+            G.kaffpa_cut(nblocks, imb, 0, seed, 2)
+            cut_union += G.process_cut()
+    else:
+        print("not cutable")
+        largest_cc = G.get_biggest_cc
+        G_nx = G._nx.subgraph(largest_cc)
+        # code de add node weights and relabel de preprocessing
+        w_nodes = {}
+        for node in list(G_nx.nodes):
+            w_nodes[node] = 1
+        nx.set_node_attributes(G_nx, w_nodes, "weight")
+        sorted_nodes = sorted(G_nx.nodes())
+        mapping = {old_node: new_node for new_node, old_node in enumerate(sorted_nodes)}
+        G_nx = nx.relabel_nodes(G_nx, mapping)
+
+        G_sub = Graph(nx=G_nx)
+        res = freq_attack(G_sub, nblocks, ncuts, imb)
+        n1 = list(mapping.keys())[list(mapping.values()).index(res[0])]
+        n2 = list(mapping.keys())[list(mapping.values()).index(res[1])]
+        if not n1 in G._nx.subgraph(largest_cc).nodes:
+            print("not in subgraph")
+        if not n2 in G._nx.subgraph(largest_cc).nodes:
+            print("not in subgraph")
+        if not (n1, n2) in G._nx.subgraph(largest_cc).edges:
+            print(f"{n1, n2} not in edges (A)")
+        if not (n2, n1) in G._nx.subgraph(largest_cc).edges:
+            print(f"{n2, n1} not in edges (B)")
+        return (n1, n2)
+    
+    if len(cut_union) == 0:
+        print([len(scc) for scc in G.get_ccs])
     frequencies = {}
     for edge in cut_union:
         if edge in frequencies:
@@ -32,8 +70,8 @@ def freq_attack(G: Graph, ncuts: int, imb: float) -> Edge:
     return max(frequencies, key=frequencies.get)
 
 
-def betweenness_attack(G: Graph, weighted: bool, subset: list[Edge] | None, approx: int | None) -> Edge:
-    bc = G.get_edge_bc(weighted=weighted, approx=approx)
+def betweenness_attack(G: Graph, weighted: bool, subset: list[Edge] | None, approx: int | None, new: bool = False) -> Edge:
+    bc = G.get_edge_bc(weighted=weighted, new=new, approx=approx)
     if subset:
         res, max_bc = None, 0
         for edge in subset:
@@ -78,7 +116,8 @@ def attack(
     subset: list[Edge] | None = None,
     weighted: bool = True,
     bc_approx: int | None = None,
-    imb: float = 0.05
+    imb: float = 0.05,
+    nblocks: int = 2
 ) -> RobustList | None:
     """
     Simulates an attack on a Graph with the following strategy:
@@ -108,8 +147,8 @@ def attack(
 
     def metric_procedure(metrics, chosen_edge):
         bc = G.get_edge_bc(weighted=weighted, new=True, approx=bc_approx) if metric_bc else None
-        cc = len(G.get_size_biggest_cc) if metric_cc else None
-        scc = len(max(nx.strongly_connected_components(G), key=len)) if metric_scc else None
+        cc = len(G.get_biggest_cc) if metric_cc else None
+        scc = len(G.get_biggest_scc) if metric_scc else None
         metrics.append((chosen_edge, bc, cc, scc))
 
     if order == "freq" and subset:
@@ -122,11 +161,11 @@ def attack(
         match order:
             case "bc":
                 metric_procedure(metrics, chosen_edge)
-                chosen_edge = betweenness_attack(G, weighted, subset, bc_approx)
-                G.remove_edge(chosen_edge)
+                chosen_edge = betweenness_attack(G, weighted, subset, bc_approx, not metric_bc)
+                G.remove_edge(chosen_edge[:2])
             case "freq":
                 metric_procedure(metrics, chosen_edge)
-                chosen_edge = freq_attack(G, ncuts, imb)
+                chosen_edge = freq_attack(G, nblocks, ncuts, imb)
                 if not chosen_edge:
                     direct_save = True
                     break
@@ -145,11 +184,11 @@ def attack(
         temp = metrics.copy()
         metrics = []
         for step in temp:
-            edges = [str(e) for e in step[0]] if step[0] else None
+            edge = str(step[0]) if step[0] else None
             str_d = {str(k): v for k, v in step[1].items()} if step[1] else None
             cc = step[2] if metric_cc else None
             scc = step[3] if metric_scc else None
-            metrics.append([edges, str_d, cc, scc])
+            metrics.append([edge, str_d, cc, scc])
         with open(fp_save, "w") as save_file:
             json.dump(metrics, save_file)
     else:

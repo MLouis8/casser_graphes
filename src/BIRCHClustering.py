@@ -54,7 +54,7 @@ class CFTree:
         leaf_node, dist_to_node = self._find_leaf_node(self.root, cut, None)
 
         # Insert the cut into the leaf node
-        self._insert_into_node(leaf_node, dist_to_node)
+        self._insert_into_node(leaf_node, dist_to_node, cut)
 
     def _find_leaf_node(self, node: Node, cut, prev_dist):
         # If the node is a leaf, return it
@@ -76,9 +76,10 @@ class CFTree:
         # Recursively find the leaf node
         return self._find_leaf_node(closest_child, cut, min_distance)
 
-    def _insert_into_node(self, node, distance):
+    def _insert_into_node(self, node: Node, distance, cut: Cut):
         # Update the node attributes
         node.n += 1
+        node.centroid = list(set(node.centroid + cut))
 
         # If the node's radius exceeds the threshold, split the node
         node.radius = max(node.radius, distance)
@@ -91,7 +92,6 @@ class CFTree:
         new_node2 = Node(parent=node.parent, is_leaf=node.is_leaf)
 
         # Redistribute the data cuts between the two new nodes
-        cuts = [child.cf_vector.LS / child.cf_vector.n for child in node.children]
         centroids = [sum(cut) / len(cut) for cut in cuts]
         cuts_partition = [cuts[i] for i in range(len(cuts)) if centroids[i] < np.median(centroids)]
         for cut in cuts_partition:

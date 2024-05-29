@@ -76,11 +76,9 @@ class Graph:
                 return self["adjcwgt"][j]
         raise ValueError(f'No weight found for edge {u, v}')
 
-    def set_from_nx(self, G: nx.Graph) -> None:
+    def set_from_nx(self, G: nx.Graph):
         """Conversion du type networkx.graph au type KaHIP (METIS)"""
-
         G_ = G.to_undirected()
-
         self._adjacency = []
         self._xadjacency = [0]
         node_weights = nx.get_node_attributes(G_, "weight")
@@ -97,13 +95,23 @@ class Graph:
         for i in range(1, len(self._xadjacency)):
             for j in range(self._xadjacency[i - 1], self._xadjacency[i]):
                 try:
-                    self._adjacency_weight.append(
-                        dict_edges_attributes[(i - 1, self._adjacency[j], 0)]
-                    )
+                    try:
+                        self._adjacency_weight.append(
+                            dict_edges_attributes[(i - 1, self._adjacency[j], 0)]
+                        )
+                    except:
+                        self._adjacency_weight.append(
+                            dict_edges_attributes[(self._adjacency[j], i - 1, 0)]
+                        )
                 except:
-                    self._adjacency_weight.append(
-                        dict_edges_attributes[(self._adjacency[j], i - 1, 0)]
-                    )
+                    try:
+                        self._adjacency_weight.append(
+                            dict_edges_attributes[(i - 1, self._adjacency[j])]
+                        )
+                    except:
+                        self._adjacency_weight.append(
+                            dict_edges_attributes[(self._adjacency[j], i - 1)]
+                        )
 
     def to_nx(self, directed: bool = False):
         """Conversion du type KaHIP (adjacency) au type networkx.graph"""
@@ -122,7 +130,10 @@ class Graph:
 
     def remove_edge(self, edge: tuple[int, int]) -> None:
         if self._nx:
-            self._nx.remove_edge(edge[0], edge[1])
+            try:
+                self._nx.remove_edge(edge[0], edge[1])
+            except:
+                self._nx.remove_edge(edge[1], edge[0])
         if not self._old_bc:
             self._old_bc = True
         n1, n2 = edge if edge[0] < edge[1] else (edge[1], edge[0])
@@ -348,11 +359,29 @@ class Graph:
         self.set_last_results(size, blocks)
 
     @property
-    def get_size_biggest_cc(self):
+    def get_biggest_cc(self):
         if not self._nx:
             self._nx = self.to_nx()
         return sorted(nx.connected_components(self._nx), key=len, reverse=True)[0]
 
+    @property
+    def get_ccs(self):
+        if not self._nx:
+            self._nx = self.to_nx()
+        return sorted(nx.connected_components(self._nx), key=len, reverse=True)
+    
+    @property
+    def get_biggest_scc(self):
+        if not self._nx:
+            self._nx = self.to_nx(directed=True)
+        return sorted(nx.strongly_connected_components(self._nx), key=len, reverse=True)[0]
+    
+    @property
+    def get_sccs(self):
+        if not self._nx:
+            self._nx = self.to_nx(directed=True)
+        return sorted(nx.strongly_connected_components(self._nx), key=len, reverse=True)
+    
     def get_edge_bc(self, weighted: bool, new: bool = False, approx: int | None = None) -> EdgeDict:
         if not self._nx:
             self._nx = self.to_nx()

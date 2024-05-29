@@ -9,7 +9,7 @@ from scipy.stats import pearsonr
 
 from Graph import Graph
 from typ import EdgeDict3, Edge, EdgeDict
-from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2
+from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2, dir_paths, redges_paths
 from visual import visualize_class, visualize_Delta_bc
 from CutsClassification import CutsClassification
 from cuts_analysis import class_mean_cost
@@ -725,3 +725,40 @@ def procedure_effective_resistance(G_nx: nx.Graph, redges: list[tuple[int, int]]
         er_list.append(er)
         with open(save_fp, 'w') as wfile:
             json.dump(er_list, wfile)
+
+def verify_robust_list_integrity(path_index: int):
+    def equal_dict(d1, d2) -> bool:
+        if len(list(d1.keys())) != len(list(d2.keys())):
+            return False
+        for k, v in d1.items():
+            if v != d2[k]:
+                return False
+        return True
+
+    def assert_all_different_bcdicts(robust_list):
+        for i, a1 in enumerate(robust_list):
+            for j, a2 in enumerate(robust_list):
+                if i == j:
+                    continue
+                if equal_dict(a1[1], a2[1]):
+                    raise ValueError(f"Dicts number {i} and {j} are the same ! (for the edges {a1[0]} and {a2[0]})")
+        return True
+    G = Graph(json=kp_paths[9])
+    with open("data/cuts/lanes_1000_005.json", "r") as read_file:
+        data = json.load(read_file)
+    cut = data['141'] # 190 or 24
+    G.set_last_results(cut[0], cut[1])
+    edges = G.process_cut()
+
+    with open(dir_paths[path_index], 'r') as rfile:
+        data = json.load(rfile)
+    with open(redges_paths[path_index], 'r') as rfile:
+        redges = json.load(rfile)
+    for edge in redges:
+        if not eval(edge) in edges:
+            print("not in edge: ", edge)
+    for edge in edges:
+        if not str(edge) in redges:
+            print("not in redges", edge)
+    print(len(edges), len(redges))
+    assert_all_different_bcdicts(data)
