@@ -341,6 +341,10 @@ def measure_scc_from_rlist(
                 G.remove_edge(edge[0], edge[1])
             except:
                 G.remove_edge(edge[1], edge[0])
+            try:
+                G.remove_edge(edge[1], edge[0])
+            except:
+                pass
         res.append(len(max(nx.strongly_connected_components(G), key=len)))
     return res
 

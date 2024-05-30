@@ -622,7 +622,7 @@ def efficiency_procedure(G_nx: nx.Graph, robust_path: str, efficiency_path: str)
         efficiencies.append(efficiency(G_nx))
         if eval(attack[0]) and attack[0]:
             try:
-                n1, n2 = eval(attack[0])
+                n1, n2 = eval(attack[0])[:2]
             except:
                 n1, n2 = eval(attack[0][0]), eval(attack[0][1])
             try:
@@ -673,8 +673,13 @@ def preprocess_robust_import(fp: str) -> tuple[list[Edge], list[EdgeDict]]:
         bc_dicts.append(d)
     return (redges, bc_dicts)
 
-def procedure_global_efficiency(G_nx: nx.Graph, robust_path: str, save_path: str):
-    redges, _ = preprocess_robust_import(robust_path)
+def procedure_global_efficiency(G_nx: nx.Graph, robust_path: str, save_path: str, redges_import: bool):
+    if redges_import:
+        with open(robust_path, 'r') as rfile:
+            redges_file = json.load(rfile)
+        redges = [eval(edge) for edge in redges_file]
+    else:
+        redges, _ = preprocess_robust_import(robust_path)
     with open(save_path, "w") as file:
         json.dump([], file)
     for edge in redges:
@@ -687,8 +692,10 @@ def procedure_global_efficiency(G_nx: nx.Graph, robust_path: str, save_path: str
             json.dump(globeff, file)
 
 def procedure_compare_scc(G_nx: nx.Graph, robust_paths: list[str], labels: list[str], save_path: list[str]):
+    assert len(robust_paths) == len(labels)
     fig, ax = plt.subplots()
     for i, path in enumerate(robust_paths):
+        print(f"scc of path {i}: {labels[i]}")
         G = G_nx.copy()
         with open(path, 'r') as rfile:
             robust_list = json.load(rfile)
@@ -697,6 +704,7 @@ def procedure_compare_scc(G_nx: nx.Graph, robust_paths: list[str], labels: list[
     ax.legend()
     ax.set_xlabel('number of removed edges')
     ax.set_ylabel('size of biggest scc')
+    plt.ylim(37000, 39000)
     fig.suptitle("Scc evolution")
     fig.savefig(save_path)
 
@@ -712,10 +720,10 @@ def procedure_effective_resistance(G_nx: nx.Graph, redges: list[tuple[int, int]]
     with open(save_fp, 'w') as wfile:
             json.dump(er_list, wfile)
     # test wether all removed edges are indeed in the Graph at the beginning
-    for edge in redges[1:]:
+    for edge in redges:
         assert G.has_edge(edge[0], edge[1])
     # computes effective resistance
-    for i, edge in enumerate(redges[1:]):
+    for i, edge in enumerate(redges):
         G.remove_edge(edge[0], edge[1])
         try:
             er = cpt_effective_resistance(G, True) if weight else cpt_effective_resistance(G, False)

@@ -153,6 +153,19 @@ robust_paths_notweighted = [
     "./data/robust/notweighted/lanes_cut141_bc_25p.json",
 ]
 
+eff_paths_dir = [
+    "./data/robust/other/efficiency/globaleff_bc_dir.json",
+    "./data/robust/other/efficiency/globaleff_freq_dir.json",
+    "./data/robust/other/efficiency/globaleff_rd_dir.json",
+    "./data/robust/other/efficiency/globaleff_deg_dir.json",
+    "./data/robust/other/efficiency/globaleff_24bc_dir.json",
+    "./data/robust/other/efficiency/globaleff_24rd_dir.json",
+    "./data/robust/other/efficiency/globaleff_141bc_dir.json",
+    "./data/robust/other/efficiency/globaleff_141rd_dir.json",
+    "./data/robust/other/efficiency/globaleff_190bc_dir.json",
+    "./data/robust/other/efficiency/globaleff_190rd_dir.json",
+]
+
 dir_paths = [
     "./data/robust/directed/lanes_graphdir_bc_50end.json",
     "./data/robust/directed/lanes_graphdir_freq_40.json",
@@ -190,6 +203,10 @@ effective_res_paths = [
     "./data/robust/other/effective_resistance/eff_res_cut190bcdir.json",
     "./data/robust/other/effective_resistance/eff_res_cut190rddir.json",
     "./data/robust/other/effective_resistance/eff_res_degdir.json",
+     "./data/robust/other/effective_resistance/eff_res_cut24bcdir2.json",
+    "./data/robust/other/effective_resistance/eff_res_cut24rddir2.json",
+    "./data/robust/other/effective_resistance/eff_res_cut141bcdir2.json",
+    "./data/robust/other/effective_resistance/eff_res_cut141rddir2.json",
 ]
 
 efficiency_paths_notweighted = [
