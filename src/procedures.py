@@ -492,12 +492,11 @@ def clustering_procedure(graph_path: str, kp_path: str, cut_path: str, cost_name
 
     print("clustering...")
     C = CutsClassification(cuts, G_nx)
-    n = treshold
-    C.cluster_louvain("sum", n)
-    print(f"for n = {n}")
+    C.cluster_louvain(treshold)
+    print(f"for n = {treshold}")
     for level in C._levels:
         print(len(level))
-    C.save_last_classes("data/clusters/CTS_" + str(n) + "_"+ cost_name + ".json")
+    C.save_last_classes("data/clusters/CTS_" + str(treshold) + "_"+ cost_name + ".json")
 
 
 def clustering_display():
@@ -691,7 +690,7 @@ def procedure_global_efficiency(G_nx: nx.Graph, robust_path: str, save_path: str
         with open(save_path, "w") as file:
             json.dump(globeff, file)
 
-def procedure_compare_scc(G_nx: nx.Graph, robust_paths: list[str], labels: list[str], save_path: list[str]):
+def procedure_compare_scc(G_nx: nx.Graph, robust_paths: list[str], labels: list[str], save_path: str):
     assert len(robust_paths) == len(labels)
     fig, ax = plt.subplots()
     for i, path in enumerate(robust_paths):
@@ -704,7 +703,6 @@ def procedure_compare_scc(G_nx: nx.Graph, robust_paths: list[str], labels: list[
     ax.legend()
     ax.set_xlabel('number of removed edges')
     ax.set_ylabel('size of biggest scc')
-    plt.ylim(37000, 39000)
     fig.suptitle("Scc evolution")
     fig.savefig(save_path)
 

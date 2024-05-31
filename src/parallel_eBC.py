@@ -48,12 +48,12 @@ def edge_betweenness_centrality_parallel(G, processes=None):
 def main():
     with open("data/cuts/lanes_1000_005.json", "r") as read_file:
         data = json.load(read_file)
-    with open('data/robust/directed/cut141dirrd_redges.json', 'r') as rfile:
+    with open('data/robust/directed/freqdir_redges.json', 'r') as rfile:
         processed_edges = json.load(rfile)
-    cut = data['141'] # 141 190
+    # cut = data['190'] # 141 24
     G = Graph(json=kp_paths[9])
-    G.set_last_results(cut[0], cut[1])
-    edges = G.process_cut()
+    # G.set_last_results(cut[0], cut[1])
+    # edges = G.process_cut()
     
     G_nx = G.to_nx(directed=True)
     # G_nx = ox.load_graphml(graphml_path[2])
@@ -62,17 +62,17 @@ def main():
     for k, v in weigths.items():
         new_weights[k] = int(v)
     nx.set_edge_attributes(G_nx, new_weights, "weight")
-    print(len(edges), len(G_nx.edges))
+    # print(len(edges), len(G_nx.edges))
     for e in processed_edges[1:]:
         edge = eval(e)
-        edges.remove(edge)
+        # edges.remove(edge)
         G_nx.remove_edge(edge[0], edge[1])
         G.remove_edge(edge)
-    print(len(edges), len(G_nx.edges))
-    for i in range(5):
-        print(f"computing {i}th cut141 rd")
+    # print(len(edges), len(G_nx.edges))
+    for i in range(1):
+        print(f"computing {i}th freq")
         bc = edge_betweenness_centrality_parallel(G_nx)
-        if i >= 0:
+        if i > 0:
             # cut_union = []
             # seen_seeds = []
             # for _ in range(1000):
@@ -114,13 +114,13 @@ def main():
             # edges.remove(chosen_edge)
         else:
             chosen_edge = None
-        with open("data/robust/directed/lanes_cut141dir_rd_50p.json", "r") as rfile:
+        with open("data/robust/directed/lanes_graphdir_freq_40.json", "r") as rfile:
             data = json.load(rfile)
         bcsave = {}
         for k, v in bc.items():
             bcsave[str(k)] = v
         data.append((str(chosen_edge), bcsave))
-        with open("data/robust/directed/lanes_cut141dir_rd_50p.json", "w") as wfile:
+        with open("data/robust/directed/lanes_graphdir_freq_40.json", "w") as wfile:
             json.dump(data, wfile)
 
 main()

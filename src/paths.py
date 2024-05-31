@@ -154,29 +154,29 @@ robust_paths_notweighted = [
 ]
 
 eff_paths_dir = [
-    "./data/robust/other/efficiency/globaleff_bc_dir.json",
-    "./data/robust/other/efficiency/globaleff_freq_dir.json",
-    "./data/robust/other/efficiency/globaleff_rd_dir.json",
-    "./data/robust/other/efficiency/globaleff_deg_dir.json",
+    # "./data/robust/other/efficiency/globaleff_bc_dir.json",
+    # "./data/robust/other/efficiency/globaleff_freq_dir.json",
+    # "./data/robust/other/efficiency/globaleff_rd_dir.json",
+    # "./data/robust/other/efficiency/globaleff_deg_dir.json",
     "./data/robust/other/efficiency/globaleff_24bc_dir.json",
     "./data/robust/other/efficiency/globaleff_24rd_dir.json",
     "./data/robust/other/efficiency/globaleff_141bc_dir.json",
     "./data/robust/other/efficiency/globaleff_141rd_dir.json",
-    "./data/robust/other/efficiency/globaleff_190bc_dir.json",
-    "./data/robust/other/efficiency/globaleff_190rd_dir.json",
+    # "./data/robust/other/efficiency/globaleff_190bc_dir.json",
+    # "./data/robust/other/efficiency/globaleff_190rd_dir.json",
 ]
 
 dir_paths = [
-    "./data/robust/directed/lanes_graphdir_bc_50end.json",
-    "./data/robust/directed/lanes_graphdir_freq_40.json",
-    "./data/robust/directed/lanes_graphdir_rd_50end.json",
-    "./data/robust/directed/lanes_graphdir_deg_50p.json",
+    # "./data/robust/directed/lanes_graphdir_bc_50end.json",
+    # "./data/robust/directed/lanes_graphdir_freq_40.json",
+    # "./data/robust/directed/lanes_graphdir_rd_50end.json",
+    # "./data/robust/directed/lanes_graphdir_deg_50p.json",
     "./data/robust/directed/lanes_cut24dir_bc_50p.json",
     "./data/robust/directed/lanes_cut24dir_rd_50p.json",
     "./data/robust/directed/lanes_cut141dir_bc_50p.json",
     "./data/robust/directed/lanes_cut141dir_rd_50p.json",
-    "./data/robust/directed/lanes_cut190dir_bc_43p.json",
-    "./data/robust/directed/lanes_cut190dir_rd_43p.json",
+    # "./data/robust/directed/lanes_cut190dir_bc_43end.json",
+    # "./data/robust/directed/lanes_cut190dir_rd_43end.json",
 ]
 
 redges_paths = [
@@ -214,3 +214,11 @@ efficiency_paths_notweighted = [
     "./data/robust/other/efficiency/globaleff_notweightedfreq.json",
     "./data/robust/other/efficiency/globaleff_notweighteddeg.json"
 ]
+
+bigattacks_paths = [
+        'data/robust/bigattacks/bcapprox_100.json',
+        'data/robust/bigattacks/freqrec_02_200.json',
+        'data/robust/bigattacks/freqrec_02_1000.json',
+        'data/robust/bigattacks/freqrec_03_200.json',
+        'data/robust/bigattacks/freqrec_03_1000.json',
+    ]

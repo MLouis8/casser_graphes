@@ -28,6 +28,24 @@ class CutsClassification:
         v = [[(self._latitudes[edge[0]]+self._latitudes[edge[1]])/2, (self._longitudes[edge[0]]+self._longitudes[edge[1]])/2] for edge in c2]
         return stats.wasserstein_distance_nd(u, v)
     
+    def chamfer_routine(self, c1: Cut, c2: Cut) -> float:
+        l = []
+        for e1 in c1:
+            best_distance = inf
+            e1n1 = (self._latitudes[e1[0]], self._longitudes[e1[0]])
+            e1n2 = (self._latitudes[e1[1]], self._longitudes[e1[1]])
+            for e2 in c2:
+                e2n1 = (self._latitudes[e2[0]], self._longitudes[e2[0]])
+                e2n2 = (self._latitudes[e2[1]], self._longitudes[e2[1]])
+                d_edge = dist((e1n1, e1n2), (e2n1, e2n2))
+                if d_edge < best_distance:
+                    best_distance = d_edge
+        return sum(l)
+        
+    def chamfer_distance(self, c1: Cut, c2: Cut) -> float:
+        """Chamfer Distance between two cuts based on geographical distance."""
+        return self.chamfer_routine(c1, c2) + self.chamfer_routine(c2, c1)
+    
     def cluster_louvain(self, treshold: int | None=None) -> None:
         G = nx.Graph()
         weights = []

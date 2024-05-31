@@ -447,43 +447,43 @@ def visualize_bc(
     removed_edges: list[Edge], bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10, ax = None
 ) -> None:
     redge = []
-    def colorize(u, v, w):        
-        # if (u, v) in bc:
-        #     return color_list[int((bc[(u, v)] / vmax) * (color_levels-1))]
-        # elif (v, u) in bc:
-        #     return color_list[int((bc[(v, u)] / vmax) * (color_levels-1))]
-        if (u, v, w) in bc:
-            return color_list[int((bc[(u, v, w)] / vmax) * (color_levels-1))]
-        elif (v, u, w) in bc:
-            return color_list[int((bc[(v, u, w)] / vmax) * (color_levels-1))]
+    def colorize(u, v):        
+        if (u, v) in bc:
+            return color_list[int((bc[(u, v)] / vmax) * (color_levels-1))]
+        elif (v, u) in bc:
+            return color_list[int((bc[(v, u)] / vmax) * (color_levels-1))]
+        # if (u, v, w) in bc:
+        #     return color_list[int((bc[(u, v, w)] / vmax) * (color_levels-1))]
+        # elif (v, u, w) in bc:
+        #     return color_list[int((bc[(v, u, w)] / vmax) * (color_levels-1))]
         elif (u, v) in removed_edges or (v, u) in removed_edges:
             return "green"
-        else:
-            redge.append((u, v, w))
-            return "green"
+        # else:
+        #     redge.append((u, v, w))
+        #     return "green"
             # raise ValueError(f"edge ({u}, {v}) not in the graph")
 
-    def thicken(u, v, w):
-        # if (u, v) in bc:
-        #     return (2 * bc[(u, v)] / vmax) ** 2
-        # elif (v, u) in bc:
-        #     return (2 * bc[(v, u)] / vmax) ** 2
-        if (u, v, w) in bc:
-            return (2 * bc[(u, v, w)] / vmax) ** 2
-        elif (v, u, w) in bc:
-            return (2 * bc[(v, u, w)] / vmax) ** 2
+    def thicken(u, v):
+        if (u, v) in bc:
+            return (2 * bc[(u, v)] / vmax) ** 2
+        elif (v, u) in bc:
+            return (2 * bc[(v, u)] / vmax) ** 2
+        # if (u, v, w) in bc:
+        #     return (2 * bc[(u, v, w)] / vmax) ** 2
+        # elif (v, u, w) in bc:
+        #     return (2 * bc[(v, u, w)] / vmax) ** 2
         elif (u, v) in removed_edges or (v, u) in removed_edges:
             return 5
-        else:
-            redge.append((u, v, w))
-            return 5
+        # else:
+        #     redge.append((u, v, w))
+        #     return 5
             # raise ValueError(f"edge ({u}, {v}) not in the graph")
 
     vmax, vmin = max(bc.values()), min(bc.values())
     # vmax, vmin = 0.1, 0
     color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="jet")] # RdPu for bicolor
-    edge_color = [colorize(u, v, w) for u, v, w in G.edges]
-    edge_width = [thicken(u, v, w) for u, v, w in G.edges]
+    edge_color = [colorize(u, v) for u, v in G.edges]
+    edge_width = [thicken(u, v) for u, v in G.edges]
     print("edges colorized, starting display...")
     cmap = plt.cm.get_cmap("jet") # RdPu for bicolor
     norm = plt.Normalize(vmin=0, vmax=0.1) #(vmin=vmin, vmax=vmax)
@@ -547,13 +547,17 @@ def visualize_Delta_bc(
     for n1, n2, _ in G.edges:
         if (n1, n2) in bc1:
             if (n1, n2) in bc2:
+                # print('here1', f(bc1[(n1, n2)], bc2[(n1, n2)]))     
                 delta[(n1, n2)] = f(bc1[(n1, n2)], bc2[(n1, n2)])
             elif (n2, n1) in bc2:
+                # print('here2', f(bc1[(n1, n2)], bc2[(n2, n1)]))
                 delta[(n1, n2)] = f(bc1[(n1, n2)], bc2[(n2, n1)])
         elif (n2, n1) in bc1:
             if (n1, n2) in bc2:
+                # print('here3', f(bc1[(n2, n1)], bc2[(n1, n2)]))
                 delta[(n2, n1)] = f(bc1[(n2, n1)], bc2[(n1, n2)])
             elif (n2, n1) in bc2:
+                # print('here4', f(bc1[(n2, n1)], bc2[(n2, n1)]))
                 delta[(n2, n1)] = f(bc1[(n2, n1)], bc2[(n2, n1)])
     if abslt:
         vmax, vmin = max(delta.values()), min(delta.values())
