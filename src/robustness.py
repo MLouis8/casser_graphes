@@ -9,10 +9,10 @@ import numpy as np
 from copy import deepcopy
 
 def is_cutable(G: Graph, nblocks: int, imb: float):
-    if G._nx and G._nx.is_directed():
-        ccs = G.get_sccs
-    else:
-        ccs = G.get_ccs
+    # if G._nx and G._nx.is_directed():
+    #     ccs = G.get_sccs
+    # else:
+    ccs = G.get_ccs
     if len(ccs) < nblocks:
         return True
     for cc1 in ccs[:nblocks]:
@@ -60,7 +60,7 @@ def freq_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:
         return (n1, n2)
     
     if len(cut_union) == 0:
-        print([len(scc) for scc in G.get_ccs])
+        print([len(scc) for scc in G.get_sccs])
     frequencies = {}
     for edge in cut_union:
         if edge in frequencies:

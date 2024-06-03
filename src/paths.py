@@ -216,9 +216,20 @@ efficiency_paths_notweighted = [
 ]
 
 bigattacks_paths = [
-        'data/robust/bigattacks/bcapprox_100.json',
-        'data/robust/bigattacks/freqrec_02_200.json',
-        'data/robust/bigattacks/freqrec_02_1000.json',
-        'data/robust/bigattacks/freqrec_03_200.json',
-        'data/robust/bigattacks/freqrec_03_1000.json',
-    ]
+    'data/robust/bigattacks/bcapprox_100.json',
+    'data/robust/bigattacks/freqrec_005_10.json',
+    'data/robust/bigattacks/freqrec_01_10.json',
+    # 'data/robust/bigattacks/freqrec_02_200.json',
+    'data/robust/bigattacks/freqrec_02_1000.json',
+    # 'data/robust/bigattacks/freqrec_03_200.json',
+    'data/robust/bigattacks/freqrec_03_1000.json',
+   
+    'data/robust/bigattacks/freqrec_03_1000.json'    
+]
+
+bigattacks_paths2 = [
+    'data/robust/bigattacks/freqrec_03_1000.json',
+    'data/robust/bigattacks/freqrec_03_200.json',
+    'data/robust/bigattacks/freqrec_03_100.json',
+    'data/robust/bigattacks/freqrec_03_10.json',
+]
