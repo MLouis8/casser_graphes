@@ -3,444 +3,46 @@ import osmnx as ox
 import random as rd
 import numpy as np
 import json
-import math
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
 from Graph import Graph
-from typ import EdgeDict3, Edge, EdgeDict
-from paths import graphml_path, kp_paths, clusters_paths_3, cut_paths_2, dir_paths, redges_paths
+from typ import Edge, EdgeDict
+from paths import (
+    graphml_path,
+    kp_paths,
+    clusters_paths_3,
+    cut_paths_2,
+    dir_paths,
+    redges_paths,
+)
 from visual import visualize_class, visualize_Delta_bc
 from CutsClassification import CutsClassification
 from cuts_analysis import class_mean_cost
-from robustness import extend_attack, efficiency, measure_scc_from_rlist, cpt_effective_resistance
+from robustness import (
+    extend_attack,
+    efficiency,
+    measure_scc_from_rlist,
+    cpt_effective_resistance,
+)
 
 
-def replace_parallel_edges(G):
+def thousand_cuts_procedure(
+    kp_paths: list[str], costs_names: list[str], imbalances: list[float], k: int = 2
+) -> None:
     """
-    KaHIP ne suppporte pas les aretes paralleles, on les remplace donc
-    par un noeud qui sert d'intermediaire pour une nouvelle arete.
-    """
-    parallel_edges = [(u, v, k) for u, v, k in G.edges if k != 0]
-
-    edges_weight = nx.get_edge_attributes(G, "weight")
-
-    for edge in parallel_edges:
-        u, v, k = edge[0], edge[1], edge[2]
-        x_mid = (G.nodes[u]["x"] + G.nodes[v]["x"]) / 2
-        y_mid = (G.nodes[u]["y"] + G.nodes[v]["y"]) / 2
-
-        new_node = max(G.nodes) + 1
-        G.add_node(new_node, x=x_mid, y=y_mid)
-        G.add_edge(u, new_node, 0)
-        G.add_edge(new_node, v, 0)
-
-        # Si les aretes sont valuees alors les nouvelles en heritent
-        if edges_weight:
-            edges_weight[(u, new_node, 0)] = int(edges_weight[(u, v, k)])
-            edges_weight[(new_node, v, 0)] = int(edges_weight[(u, v, k)])
-
-        # Pareil pour les attributs
-        G.edges[(u, v, 0)].update(G.edges[(u, v, k)])
-        G.edges[(u, new_node, 0)].update(G.edges[(u, v, 0)])
-        G.edges[(new_node, v, 0)].update(G.edges[(u, v, 0)])
-
-        # Sauf pour la longueur qui est divisee par deux
-        G.edges[(u, new_node, 0)]["length"] = G.edges[(u, v, 0)]["length"] / 2
-        G.edges[(new_node, v, 0)]["length"] = G.edges[(u, v, 0)]["length"] / 2
-
-        G.remove_edge(u, v, k)
-
-    node_weights = {}
-    for node in G.nodes:
-        node_weights[node] = 1
-
-    nx.set_node_attributes(G, node_weights, "weight")
-    nx.set_edge_attributes(G, edges_weight, "weight")
-
-
-def add_node_weights_and_relabel(G):
-    w_nodes = {}
-    for node in list(G.nodes):
-        w_nodes[node] = 1
-    nx.set_node_attributes(G, w_nodes, "weight")
-    sorted_nodes = sorted(G.nodes())
-    mapping = {old_node: new_node for new_node, old_node in enumerate(sorted_nodes)}
-    G = nx.relabel_nodes(G, mapping)
-
-
-# Resultats observes lors de l'execution
-# Just after importation, we have :
-# 94783 edges
-# 70263 nodes
-# After consolidation, we have :
-# 59060 edges
-# 40547 nodes
-# After projection, we have :
-# 59060 edges
-# 40547 nodes
-
-
-def infer_width(G: nx.graph) -> EdgeDict3:
-    distr = {
-        "primary": {
-            True: [872, 2757, 934, 382, 95, 47, 1, 4, 0, 22],
-            False: [0, 926, 296, 1894, 220, 280, 58, 64, 2, 0],
-        },
-        "residential": {
-            True: [2227, 405, 19, 4, 0, 0, 0, 0, 0, 0],
-            False: [220, 1338, 74, 30, 0, 0, 0, 0, 0, 0],
-        },
-        "living_street": {
-            True: [152, 4, 2, 0, 0, 0, 0, 0, 0, 0],
-            False: [20, 24, 2, 0, 0, 0, 0, 0, 0, 0],
-        },
-        "motorway": {
-            True: [6, 135, 64, 80, 8, 0, 0, 0, 0, 0],
-            False: [6, 135, 64, 80, 8, 0, 0, 0, 0, 0],
-        },
-        "tertiary": {
-            True: [768, 794, 140, 15, 3, 1, 0, 0, 0, 0],
-            False: [14, 3200, 382, 168, 6, 12, 0, 0, 0, 0],
-        },
-        "trunk_link": {
-            True: [326, 481, 48, 0, 0, 0, 0, 0, 0, 0],
-            False: [326, 481, 48, 0, 0, 0, 0, 0, 0, 0],
-        },
-        "motorway_link": {
-            True: [63, 355, 15, 2, 0, 0, 0, 0, 0, 0],
-            False: [63, 355, 15, 2, 0, 0, 0, 0, 0, 0],
-        },
-        "secondary": {
-            True: [629, 1432, 452, 128, 29, 26, 0, 2, 0, 0],
-            False: [32, 2706, 880, 606, 40, 46, 0, 0, 0, 0],
-        },
-        "primary_link": {
-            True: [162, 125, 22, 4, 2, 0, 0, 0, 0, 0],
-            False: [0, 4, 4, 0, 0, 0, 0, 0, 0, 0],
-        },
-        "tertiary_link": {
-            True: [17, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            False: [2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        },
-        "unclassified": {
-            True: [296, 72, 19, 5, 4, 0, 3, 0, 0, 0],
-            False: [12, 288, 28, 16, 0, 0, 0, 0, 0, 0],
-        },
-        "secondary_link": {
-            True: [34, 39, 7, 1, 0, 0, 0, 0, 0, 0],
-            False: [34, 39, 7, 1, 0, 0, 0, 0, 0, 0],
-        },
-        "trunk": {
-            True: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
-            False: [0, 94, 185, 968, 30, 2, 0, 0, 0, 0],
-        },
-        "crossing": {
-            True: None,
-            False: None,
-        },
-        "emergency_access_point": {
-            True: None,
-            False: None,
-        },
-        "disused": {
-            True: None,
-            False: None,
-        },
-    }
-    widths, lanes = {}, [1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
-    existing_widths = nx.get_edge_attributes(G, "width")
-    existing_lanes = nx.get_edge_attributes(G, "lanes")
-    highways = nx.get_edge_attributes(G, "highway")
-    oneways = nx.get_edge_attributes(G, "oneway")
-    for u, v, w in G.edges:
-        try:
-            widths[(u, v, w)] = int(existing_widths[(u, v, w)])
-        except:
-            try:
-                widths[(u, v, w)] = int(existing_lanes[(u, v, w)]) * 4
-                # 4 étant la largeur moyenne d'une rue parisienne
-            except:
-                widths[(u, v, w)] = (
-                    rd.choices(
-                        lanes, weights=distr[highways[(u, v, w)]][oneways[(u, v, w)]]
-                    )[0]
-                    * 4
-                )
-    return widths
-
-
-def infer_lanes(G: nx.graph) -> EdgeDict3:
-    widths = {}
-    existing_widths = nx.get_edge_attributes(G, "width")
-    existing_lanes = nx.get_edge_attributes(G, "lanes")
-    highways = nx.get_edge_attributes(G, "highway")
-    for u, v, w in G.edges:
-        try:  # 4 étant la largeur moyenne d'une rue parisienne
-            widths[(u, v, w)] = math.ceil(existing_widths[(u, v, w)] / 4)
-        except:
-            if highways[(u, v, w)] == "primary" or highways[(u, v, w)] == "secondary":
-                try:
-                    val = int(existing_lanes[(u, v, w)])
-                    if val < 3:
-                        widths[(u, v, w)] = 3
-                    else:
-                        widths[(u, v, w)] = val
-                except:
-                    widths[(u, v, w)] = 3
-            else:
-                try:
-                    widths[(u, v, w)] = int(existing_lanes[(u, v, w)])
-                except:
-                    widths[(u, v, w)] = 2
-    return widths
-
-def propagate_bridges(G: nx.Graph, bridge_dict: dict, neighborhood_fp: str) -> dict:
-    """Returns a new bridge_dict with bridges propagated to its geographical neighbors and removes the periph as a bridge"""
-    with open(neighborhood_fp, "r") as neighbors_file:
-        data = json.load(neighbors_file)
-    neighborhood = {}
-    for k, v in data.items():
-        neighborhood[eval(k)] = [eval(e) for e in v]
-    res_dict = {}
-    highways = nx.get_edge_attributes(G, "highway") # pour enlever le périph
-    for (u, v, w), is_bridge in bridge_dict.items():
-        not_periph = not highways[(u, v, w)] in ["trunk", "motorway", "motorway_link", "trunk_link"]
-        if is_bridge == "yes" and not_periph:
-            try:
-                for (a, b) in neighborhood[(u, v)]:
-                    res_dict[(a, b, 0)] = "yes"
-            except:
-                for (a, b) in neighborhood[(v, u)]:
-                    res_dict[(a, b, 0)] = "yes"
-        else:
-            res_dict[(u, v, 0)] = "no"
-    return res_dict
-
-def preprocessing(
-    G: nx.Graph,
-    cost_name: str,
-    minmax: tuple[int, int] | None,
-    distrib: dict[int, float] | None,
-    neighbor_fp: str | None
-):
-    """
-    Does all the required preprocessing in place
+    Does 1000 cuts of each combination of parameters
 
     @params:
-        Required: G the networkx graph
-        Required: cost_name the name of the cost function, available names are
-            - width
-            - squared width
-            - width with maxspeed
-            - width without tunnel
-            - width without bridge
-            - random(min, max)
-            - random distribution
-            - lanes
-            - squared lanes"
-            - lanes with maxspeed
-            - lanes wihtout bridge 
-            - betweenness /!\ the graph must have betweenness as attribute for each edges /!\ 
-            - _ will be considered as weight 1 everywhere
-        Optional: minmax a tuple of min and max values for cost random(min, max)
-        Optional: distribution a distribution of frequencies to respect for cost random distribution
+        Required: kp_paths, list of paths to KaHIP Graph save (json)
+        Required: costs_names, list of costs names used for the produced files names
+        Required: imbalances, list of imbalances values
+
+        Optionnal: k, number of blocks to partition, by default set to 2
 
     @returns:
-        None
+        None, saves the results in a new json file
     """
-    inf: int = 95099713  # big number for removing cut access to an edge
-    if cost_name in [
-        "width",
-        "squared width",
-        "width without tunnel",
-        "width without bridge",
-        "width with maxspeed",
-    ]:
-        edge_width = infer_width(G)
-    elif cost_name in [
-        "lanes",
-        "squared lanes",
-        "lanes with maxspeed",
-        "lanes without bridge",
-    ]:
-        edge_lanes = infer_lanes(G)
-    match cost_name:
-        case "width":
-            edge_weight = edge_width
-        case "squared width":
-            edge_weight = {k: v**2 for k, v in edge_width.items()}
-        case "width with maxspeed":
-            maxspeed_dict = nx.get_edge_attributes(G, "maxspeed", default=50)
-            edge_weight = {
-                k: (
-                    v
-                    if maxspeed_dict[k] == "walk" or int(maxspeed_dict[k]) <= 50
-                    else inf
-                )
-                for k, v in edge_width.items()
-            }
-        case "width without bridge":
-            if not neighbor_fp:
-                raise ValueError("The neighborhood file must be given for 'without bridge' computations")
-            bridge_dict = nx.get_edge_attributes(G, "bridge", default="no")
-            new_bridge_dict = propagate_bridges(G, bridge_dict, neighbor_fp)
-            nx.set_edge_attributes(G, new_bridge_dict, "bridge")
-            edge_weight = {
-                k: inf if new_bridge_dict[k] == "yes" else v for k, v in edge_width.items()
-            }
-        case "width without tunnel":
-            tunnel_dict = nx.get_edge_attributes(G, "tunnel", default=False)
-            edge_weight = {
-                k: v if not tunnel_dict[k] else inf for k, v in edge_width.items()
-            }
-        case "random(min, max)":
-            if type(minmax) is None:
-                raise TypeError(
-                    "argument minmax should be given if minmax cost is selected"
-                )
-            edge_weight = {k: rd.randint(minmax[0], minmax[1]) for k in G.edges}
-        case "random distribution":
-            if type(distrib) is None:
-                raise TypeError(
-                    "argument distrib should be given if distrib cost is selected"
-                )
-            edge_weight = {
-                k: rd.choices(list(distrib.keys()), weights=list(distrib.values()))[0]
-                for k in G.edges
-            }
-        case "lanes":
-            edge_weight = edge_lanes
-        case "squared lanes":
-            edge_weight = {k: v**2 for k, v in edge_lanes.items()}
-        case "lanes with maxspeed":
-            maxspeed_dict = nx.get_edge_attributes(G, "maxspeed", default=50)
-            edge_weight = {
-                k: (
-                    v
-                    if maxspeed_dict[k] == "walk" or int(maxspeed_dict[k]) <= 50
-                    else inf
-                )
-                for k, v in edge_lanes.items()
-            }
-        case "lanes without bridge":
-            if not neighbor_fp:
-                raise ValueError("The neighborhood file must be given for 'without bridge' computations")
-            bridge_dict = nx.get_edge_attributes(G, "bridge", default="no")
-            new_bridge_dict = propagate_bridges(G, bridge_dict, neighbor_fp)
-            nx.set_edge_attributes(G, new_bridge_dict, "bridge")
-            edge_weight = {
-                k: inf if new_bridge_dict[k] == "yes" else v for k, v in edge_lanes.items()
-            }
-        case "betweenness":
-            edge_weight = nx.get_edge_attributes(G, "betweenness")
-        case _:
-            edge_weight = {k: 1 for k in G.edges}
-    nx.set_edge_attributes(G, edge_weight, "weight")
-    G.remove_edges_from(nx.selfloop_edges(G))
-    add_node_weights_and_relabel(G)
-    replace_parallel_edges(G)
-    G.to_undirected()
-
-
-def init_city_graph(filepath, betweenness: bool = False, city_name: str = 'Paris'):
-    match city_name:
-        case 'Paris':
-            city = "Paris, Paris, France"
-            buffer = 350
-            epsg = "epsg:2154"
-            tol = 4
-        case 'Shanghai':
-            city = "Shanghai, China"
-            epsg = "epsg:2335"
-            tol = 4 # tester plus grand
-            buffer = 500
-        case 'Manhattan':
-            city = 'Manhattan, New York, USA'
-            tol = 4 # tester plus grand
-            epsg = 'epsg:26918'
-            buffer = 500
-    # create, project, and consolidate a graph
-    G = ox.graph_from_place(
-        city,
-        network_type="drive",
-        buffer_dist=buffer,
-        simplify=False,
-        retain_all=True,
-        clean_periphery=False,
-        truncate_by_edge=False,
-    )
-    G_Projected = ox.project_graph(
-        G, to_crs= epsg
-    )  ## pour le mettre dans le même référentiel que les données de Paris
-
-    print("Just after importation, we have : ")
-    print(str(len(G.edges())) + " edges")
-    print(str(len(G.nodes())) + " nodes")
-    G2 = ox.consolidate_intersections(
-        G_Projected, rebuild_graph=True, tolerance=tol, dead_ends=True
-    )
-    print("After consolidation, we have : ")
-    print(str(len(G2.edges())) + " edges")
-    print(str(len(G2.nodes())) + " nodes")
-    G_out = ox.project_graph(G2, to_crs="epsg:4326")
-    print("After projection, we have : ")
-    print(str(len(G_out.edges())) + " edges")
-    print(str(len(G_out.nodes())) + " nodes")
-
-    if betweenness:
-        bc = nx.edge_betweenness_centrality(G_out)
-        nx.set_edge_attributes(G_out, bc, "betweenness")
-    ox.save_graphml(G_out, filepath=filepath)
-
-
-# init_city_graph("./data/Paris.graphml")
-
-
-def prepare_instance(
-    read_filename: str,
-    write_filename: str,
-    val_name: str,
-    minmax: tuple[int, int] | None = None,
-    distr: dict[int, float] | None = None,
-    fp_neighbors: str | None = None
-):
-    """ "
-    Prepare a json KaHIP Graph instance according to the required cost function.
-
-    Cost options:
-        - "no val"
-        - "width"
-        - "squared width"
-        - "width with maxspeed"
-        - "width without bridge"
-        - "width without tunnel"
-        - "random(min, max)"
-        - "random distribution"
-        - "lanes"
-        - "squared lanes"
-        - "lanes with maxspeed"
-        - "lanes without bridge"
-    """
-    print("Loading instance")
-    G_nx = ox.load_graphml(read_filename)
-    print(f"preprocessing the graph...")
-    preprocessing(G_nx, val_name, minmax, distr, fp_neighbors)
-    print("Conversion into KaHIP format...")
-    G_kp = Graph(nx=G_nx)
-    G_kp.save_graph(write_filename)
-
-
-def flatten(l):
-    if isinstance(l, str):
-        return [l]
-    res = []
-    for x in l:
-        res += flatten(x)
-    return res
-
-
-def thousand_cuts(kp_paths: list[str], costs_names: list[str], imbalances: list[float], k: int = 2):
     assert len(kp_paths) == len(costs_names)
     for i, kp in enumerate(kp_paths):
         print(f"cutting for cost {costs_names[i]}...")
@@ -479,7 +81,17 @@ def cpt_freq(freq, kcuts, G_kp):
         cuts[k] = G_kp.process_cut()
 
 
-def clustering_procedure(graph_path: str, kp_path: str, cut_path: str, cost_name: str, treshold: int):
+def clustering_procedure(
+    graph_path: str, kp_path: str, cut_path: str, cost_name: str, treshold: int
+):
+    """ "
+    @params:
+        Required: graph_path, path to the OSMnx Graph
+        Required: kp_path, path to the KaHIP Graph
+        Required: cut_path, path to the cuts, it's a dictionnary of (cut id ex: "1", (edgecut, blocks))
+        Required: cost_name, used only for saving file name
+        Required: treshold, clustering treshold, if the distance between two cuts is smaller than the treshold, they are connected in the proximity graph.
+    """
     print("import stuff...")
     G_nx = ox.load_graphml(graph_path)
     G_kp = Graph(json=kp_path)
@@ -496,10 +108,13 @@ def clustering_procedure(graph_path: str, kp_path: str, cut_path: str, cost_name
     print(f"for n = {treshold}")
     for level in C._levels:
         print(len(level))
-    C.save_last_classes("data/clusters/CTS_" + str(treshold) + "_"+ cost_name + ".json")
+    C.save_last_classes(
+        "data/clusters/CTS_" + str(treshold) + "_" + cost_name + ".json"
+    )
 
 
-def clustering_display():
+def clustering_display_procedure():
+    """Displays clusters"""
     print("loading graphs...")
     j = 3
     G_nx = ox.load_graphml(graphml_path[2])
@@ -563,7 +178,17 @@ def extend_attack_procedure(prev_attack: str, saving_fp: str, **kwargs):
         save=kwargs["save"],
     )
 
-def bc_difference_map_procedure(i1: int, i2: int, read_fp: str, write_fp, graph_fp: str, order_name: str, abslt: bool):
+
+def bc_difference_map_procedure(
+    i1: int,
+    i2: int,
+    read_fp: str,
+    write_fp,
+    graph_fp: str,
+    order_name: str,
+    abslt: bool,
+):
+    """Procedure for importing eBC values and displaying a city map colored following the absolute or relatives differences from one step to the other"""
     with open(read_fp, "r") as read_file:
         impt = json.load(read_file)
     G_nx = ox.load_graphml(graph_fp)
@@ -571,15 +196,39 @@ def bc_difference_map_procedure(i1: int, i2: int, read_fp: str, write_fp, graph_
     for k, v in impt[i1][1].items():
         bc1[eval(k)] = v
     for k, v in impt[i2][1].items():
-        bc2[eval(k)] = v    
+        bc2[eval(k)] = v
     try:
-        r_edges  = [eval(impt[j][0]) for j in range(i2+1)]
+        r_edges = [eval(impt[j][0]) for j in range(i2 + 1)]
     except:
-        r_edges = [(eval(impt[j][0][0]), eval(impt[j][0][1])) if impt[j][0] else impt[j][0] for j in range(i2+1)]
+        r_edges = [
+            (eval(impt[j][0][0]), eval(impt[j][0][1])) if impt[j][0] else impt[j][0]
+            for j in range(i2 + 1)
+        ]
     print(r_edges)
-    visualize_Delta_bc(r_edges, bc1, bc2, G_nx, write_fp, abslt, "eBC diff map from " + str(i1) + "to "+ str(i2) +" edges removed in " + order_name)
+    visualize_Delta_bc(
+        r_edges,
+        bc1,
+        bc2,
+        G_nx,
+        write_fp,
+        abslt,
+        "eBC diff map from "
+        + str(i1)
+        + "to "
+        + str(i2)
+        + " edges removed in "
+        + order_name,
+    )
 
-def analyse_bcimpacts_procedure(robust_fps: list[str], eval_criterions: list[str], save_fp: str, names: list[str], titles: list[str]):
+
+def analyse_bcimpacts_procedure(
+    robust_fps: list[str],
+    eval_criterions: list[str],
+    save_fp: str,
+    names: list[str],
+    titles: list[str],
+):
+    """Display dynamic impacts on a multiplot plot"""
     match len(eval_criterions):
         case 1:
             nlines, ncols = 1, 1
@@ -608,11 +257,12 @@ def analyse_bcimpacts_procedure(robust_fps: list[str], eval_criterions: list[str
     else:
         for i in range(len(eval_criterions)):
             for j in range(len(fp)):
-                axes[i//2, i%2].plot(x, data[i][j], label=names[j])
-                axes[i//2, i%2].legend()
-            axes[i//2, i%2].set_title(titles[i])
+                axes[i // 2, i % 2].plot(x, data[i][j], label=names[j])
+                axes[i // 2, i % 2].legend()
+            axes[i // 2, i % 2].set_title(titles[i])
     fig.savefig(save_fp)
-        
+
+
 def efficiency_procedure(G_nx: nx.Graph, robust_path: str, efficiency_path: str):
     with open(robust_path, "r") as read_file:
         robustlist = json.load(read_file)
@@ -631,22 +281,10 @@ def efficiency_procedure(G_nx: nx.Graph, robust_path: str, efficiency_path: str)
     with open(efficiency_path, "w") as save_file:
         json.dump(efficiencies, save_file)
 
-def hundred_samples_eBC(G_nx: nx.Graph, save_path: str, part: float):
-    d = []
-    print(f"sample of size {int(len(G_nx.nodes)*part)}")
-    for _ in range(100):
-        nodes = rd.choices(list(G_nx.nodes), k=int(len(G_nx.nodes)*part))
-        d.append(nx.edge_betweenness_centrality_subset(G_nx, nodes, nodes))
-    data = []
-    for bc_dict in d:
-        save = {}
-        for k, v in bc_dict.items():
-            save[str(k)] = v
-        data.append(save)
-    with open(save_path, "w") as wfile:
-        json.dump(data, wfile)
 
-def quality_bc_eval(real_bc: dict[str, float], bc_approxs: list[dict[str, float]]) -> list[float]:
+def quality_bc_eval(
+    real_bc: dict[str, float], bc_approxs: list[dict[str, float]]
+) -> list[float]:
     corr = []
     for bc in bc_approxs:
         x, y = [], []
@@ -656,12 +294,14 @@ def quality_bc_eval(real_bc: dict[str, float], bc_approxs: list[dict[str, float]
         corr.append(pearsonr(x, y))
     return corr
 
+
 def preprocess_robust_import(fp: str) -> tuple[list[Edge], list[EdgeDict]]:
+    """Retrieves for a robust file save, removed edges and the different eBC dicts computed"""
     with open(fp, "r") as rfile:
         data = json.load(rfile)
     redges, bc_dicts = [None], []
     for attack in data:
-        if attack[0] and attack[0] != 'None':
+        if attack[0] and attack[0] != "None":
             try:
                 redges.append(eval(attack[0]))
             except:
@@ -672,9 +312,13 @@ def preprocess_robust_import(fp: str) -> tuple[list[Edge], list[EdgeDict]]:
         bc_dicts.append(d)
     return (redges, bc_dicts)
 
-def procedure_global_efficiency(G_nx: nx.Graph, robust_path: str, save_path: str, redges_import: bool):
+
+def global_efficiency_procedure(
+    G_nx: nx.Graph, robust_path: str, save_path: str, redges_import: bool
+):
+    """Computes the global efficiency for each Graph step, after each edge removal"""
     if redges_import:
-        with open(robust_path, 'r') as rfile:
+        with open(robust_path, "r") as rfile:
             redges_file = json.load(rfile)
         redges = [eval(edge) for edge in redges_file]
     else:
@@ -690,33 +334,65 @@ def procedure_global_efficiency(G_nx: nx.Graph, robust_path: str, save_path: str
         with open(save_path, "w") as file:
             json.dump(globeff, file)
 
-def procedure_compare_scc(G_nx: nx.Graph, robust_paths: list[str], labels: list[str], save_path: str):
+
+def compare_scc_procedure(
+    G_nx: nx.Graph, robust_paths: list[str], labels: list[str], save_path: str
+):
+    """
+    Measures every strongly connected components and plots the comparison of the biggest one size
+
+    @params:
+        Required: G_nx, the networkx graph
+        Required: robust_paths, paths to the robust lists
+        Required: labels, used only for the plots
+        Required: save_plot, pdf or png path to save the produced plot
+    """
     assert len(robust_paths) == len(labels)
     fig, ax = plt.subplots()
     for i, path in enumerate(robust_paths):
         print(f"scc of path {i}: {labels[i]}")
         G = G_nx.copy()
-        with open(path, 'r') as rfile:
+        with open(path, "r") as rfile:
             robust_list = json.load(rfile)
         y = measure_scc_from_rlist(robust_list, G)
         ax.plot(np.arange(len(y)), y, label=labels[i])
     ax.legend()
-    ax.set_xlabel('number of removed edges')
-    ax.set_ylabel('size of biggest scc')
+    ax.set_xlabel("number of removed edges")
+    ax.set_ylabel("size of biggest scc")
     fig.suptitle("Scc evolution")
     fig.savefig(save_path)
 
-def procedure_effective_resistance(G_nx: nx.Graph, redges: list[tuple[int, int]], save_fp: str, weight: bool | None = None) -> None:
+
+def effective_resistance_procedure(
+    G_nx: nx.Graph,
+    redges: list[tuple[int, int]],
+    save_fp: str,
+    weight: bool | None = None,
+) -> None:
+    """
+    Launch the computation for effective resistance.
+    It's a big computation, taking a lot of time.
+
+    @params:
+        Required: G_nx, the networkx graph on which the effective resistance will be computed
+        Required: redges, the list of edges to remove before computing the effective resistance, leave empty if no edges have to be removed
+        Required: save_fp, the path in which the computations are supposed to be stored.
+
+        Optionnal: weight, boolean value on the use of the weights
+
+    @returns:
+        None
+    """
     G = G_nx.to_undirected() if G_nx.is_directed() else G_nx
     if weight:
-        w = nx.get_edge_attributes(G, 'weight')
+        w = nx.get_edge_attributes(G, "weight")
         new_w = {}
         for k, v in w.items():
             new_w[k] = eval(v)
-        nx.set_edge_attributes(G, new_w, 'weight')
+        nx.set_edge_attributes(G, new_w, "weight")
     er_list = []
-    with open(save_fp, 'w') as wfile:
-            json.dump(er_list, wfile)
+    with open(save_fp, "w") as wfile:
+        json.dump(er_list, wfile)
     # test wether all removed edges are indeed in the Graph at the beginning
     for edge in redges:
         assert G.has_edge(edge[0], edge[1])
@@ -724,15 +400,27 @@ def procedure_effective_resistance(G_nx: nx.Graph, redges: list[tuple[int, int]]
     for i, edge in enumerate(redges):
         G.remove_edge(edge[0], edge[1])
         try:
-            er = cpt_effective_resistance(G, True) if weight else cpt_effective_resistance(G, False)
+            er = (
+                cpt_effective_resistance(G, True)
+                if weight
+                else cpt_effective_resistance(G, False)
+            )
         except:
-            print(f"an erreor occured while computing effective resistance, for edge {edge}, the {i}th over {len(redges)}")
-            raise ValueError('wrong')
+            print(
+                f"an erreor occured while computing effective resistance, for edge {edge}, the {i}th over {len(redges)}"
+            )
+            raise ValueError("wrong")
         er_list.append(er)
-        with open(save_fp, 'w') as wfile:
+        with open(save_fp, "w") as wfile:
             json.dump(er_list, wfile)
 
-def verify_robust_list_integrity(path_index: int):
+
+def verify_robust_list_integrity(path_index: int) -> None:
+    """
+    Does few checks to verify the integrity of the robust list created only for directed graphs.
+    It's a code sample that can be easily adapted if needed.
+    """
+
     def equal_dict(d1, d2) -> bool:
         if len(list(d1.keys())) != len(list(d2.keys())):
             return False
@@ -747,18 +435,21 @@ def verify_robust_list_integrity(path_index: int):
                 if i == j:
                     continue
                 if equal_dict(a1[1], a2[1]):
-                    raise ValueError(f"Dicts number {i} and {j} are the same ! (for the edges {a1[0]} and {a2[0]})")
+                    raise ValueError(
+                        f"Dicts number {i} and {j} are the same ! (for the edges {a1[0]} and {a2[0]})"
+                    )
         return True
+
     G = Graph(json=kp_paths[9])
     with open("data/cuts/lanes_1000_005.json", "r") as read_file:
         data = json.load(read_file)
-    cut = data['141'] # 190 or 24
+    cut = data["141"]  # 190 or 24
     G.set_last_results(cut[0], cut[1])
     edges = G.process_cut()
 
-    with open(dir_paths[path_index], 'r') as rfile:
+    with open(dir_paths[path_index], "r") as rfile:
         data = json.load(rfile)
-    with open(redges_paths[path_index], 'r') as rfile:
+    with open(redges_paths[path_index], "r") as rfile:
         redges = json.load(rfile)
     for edge in redges:
         if not eval(edge) in edges:
