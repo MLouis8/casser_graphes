@@ -7,6 +7,7 @@ import random as rd
 import networkx as nx
 import numpy as np
 from copy import deepcopy
+from math import ceil
 
 def is_cutable(G: Graph, nblocks: int, imb: float):
     # if G._nx and G._nx.is_directed():
@@ -16,10 +17,21 @@ def is_cutable(G: Graph, nblocks: int, imb: float):
     if len(ccs) < nblocks:
         return True
     for cc1 in ccs[:nblocks]:
-        for cc2 in ccs[:nblocks]:
-            if len(cc1) + G._sizeV * imb < len(cc2) or len(cc1) - G._sizeV * imb > len(cc2):
-                return True
+        if len(cc1) > (1+imb) * ceil(G._sizeV/nblocks):
+            return True
     return False
+
+def best_cut_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:
+    if is_cutable(G, nblocks, imb):
+        seen_seeds = []
+        cuts = []
+        for _ in range(ncuts):
+            seed = rd.randint(0, 1044642763)
+            while seed in seen_seeds:
+                seed = rd.randint(0, 1044642763)
+            seen_seeds.append(seed)
+            G.kaffpa_cut(nblocks, imb, 0, seed, 2)
+            cuts.append(G.process_cut())
 
 def freq_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:      
     cut_union = []
@@ -60,7 +72,7 @@ def freq_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:
         return (n1, n2)
     
     if len(cut_union) == 0:
-        print([len(scc) for scc in G.get_sccs])
+        print([len(cc) for cc in G.get_ccs])
     frequencies = {}
     for edge in cut_union:
         if edge in frequencies:
@@ -146,10 +158,10 @@ def attack(
     """
 
     def metric_procedure(metrics, chosen_edge):
-        bc = G.get_edge_bc(weighted=weighted, new=True, approx=bc_approx) if metric_bc else None
-        cc = len(G.get_biggest_cc) if metric_cc else None
-        scc = len(G.get_biggest_scc) if metric_scc else None
-        metrics.append((chosen_edge, bc, cc, scc))
+        # bc = G.get_edge_bc(weighted=weighted, new=True, approx=bc_approx) if metric_bc else None
+        cc = len(G.get_biggest_cc)# if metric_cc else None
+        # scc = len(G.get_biggest_scc) if metric_scc else None
+        metrics.append((chosen_edge, cc)) #(chosen_edge, bc, cc, scc))
 
     if order == "freq" and subset:
         raise ValueError(
@@ -185,10 +197,11 @@ def attack(
         metrics = []
         for step in temp:
             edge = str(step[0]) if step[0] else None
-            str_d = {str(k): v for k, v in step[1].items()} if step[1] else None
-            cc = step[2] if metric_cc else None
-            scc = step[3] if metric_scc else None
-            metrics.append([edge, str_d, cc, scc])
+            # str_d = {str(k): v for k, v in step[1].items()} if step[1] else None
+            # cc = step[2] if metric_cc else None
+            # scc = step[3] if metric_scc else None
+            # metrics.append([edge, str_d, cc, scc])
+            metrics.append([edge, step[1]])
         with open(fp_save, "w") as save_file:
             json.dump(metrics, save_file)
     else:
