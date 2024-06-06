@@ -1,10 +1,10 @@
 from Graph import Graph
-from paths import graphml_path, kp_paths, dir_paths, effective_res_paths, redges_paths, eff_paths_dir, bigattacks_paths, bigattacks_paths2
+from paths import graphml_path, kp_paths
 from robustness import attack, cpt_effective_resistance
-from visual import cumulative_impact_comparison, visualize_bc, visualize_Delta_bc, visualize_city_parts, visualize_edgeList, compare_avgebc_efficiency
-from procedures import compare_scc_procedure
+from visual import cumulative_impact_comparison
+from procedures import compare_scc_procedure, effective_resistance_procedure
 from geo import neighborhood_procedure
-from communities import louvain_communities_wrapper, walktrap_communities_wrapper, determine_cut_edges
+from communities import louvain_communities_wrapper
 
 from time import time
 import random as rd
@@ -22,7 +22,7 @@ def to_hex(c):
     return "#{0:02x}{1:02x}{2:02x}".format(f(c[0]), f(c[1]), f(c[2]))
 
 def main():
-    # G_nx: nx.Graph = ox.load_graphml(graphml_path[2])
+    G_nx: nx.Graph = ox.load_graphml(graphml_path[2])
     # G_nx = G_nx.to_undirected()
     G = Graph(json=kp_paths[9])#, nx=G_nx)
     # w = nx.get_edge_attributes(G.to_nx(), 'weight')
@@ -31,6 +31,7 @@ def main():
     #     new_w[k] = eval(v)
     # nx.set_edge_attributes(G_nx, new_w, 'weight')
     
-    attack(G, 200, 'data/robust/bigattacks10-1000/rd200.json', 'rd', False, True, False)#, ncuts=10, imb=0.05, nblocks=4)
+    # attack(G, 200, 'data/robust/bigattacks10-1000/deg200.json', 'deg', False, True, False)#, ncuts=10, imb=0.05, nblocks=4)
 
+    effective_resistance_procedure(G_nx, [], 'data/freq_gnx_er_base.json', True)
 main()

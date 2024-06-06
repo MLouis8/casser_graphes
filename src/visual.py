@@ -10,7 +10,9 @@ from cuts_analysis import get_n_biggest_freq
 from typ import Cuts, Edge, EdgeDict, KCut, RobustList
 from communities import determine_cut_edges
 
+
 def triple_plot_convergence():
+    """mean max and min costs comparison for different cuts"""
     fig = plt.figure()
     axes = fig.subplots(2, 2)
     data = []
@@ -45,6 +47,7 @@ def triple_plot_convergence():
 
 
 def exempleBastien(G_nx: nx.Graph):
+    """plot city with a colorbar"""
     edges = ox.graph_to_gdfs(G_nx, nodes=False)
     edge_types = edges["length"].value_counts()
     color_list = ox.plot.get_colors(n=len(edge_types), cmap="viridis")
@@ -72,6 +75,7 @@ def exempleBastien(G_nx: nx.Graph):
 
 
 def freq_distributions(freq, total_edges=46761):
+    """basic hstogram with edge frequency"""
     n_bins = 25
     dist1 = freq.values()
 
@@ -88,6 +92,7 @@ def freq_distributions(freq, total_edges=46761):
 
 
 def basic_stats_edges(freq_dict: EdgeDict, g_size=46761, nb_cuts=1000):
+    """Print basic statistics about edges in cuts"""
     most_cut = max(freq_dict, key=freq_dict.get)
     less_cut = min(freq_dict, key=freq_dict.get)
     values = list(freq_dict.values())
@@ -105,6 +110,7 @@ def basic_stats_edges(freq_dict: EdgeDict, g_size=46761, nb_cuts=1000):
 
 
 def basic_stats_cuts(cuts: dict[str, KCut], nb_cuts=1000):
+    """prints basic statistics about cuts"""
     nb_edges_cut = [edgecut for edgecut, _ in cuts.values()]
     best_cut = min(nb_edges_cut)
     worst_cut = max(nb_edges_cut)
@@ -121,10 +127,16 @@ def basic_stats_cuts(cuts: dict[str, KCut], nb_cuts=1000):
     print(f"For {nb_cuts} cuts we have a mean of {mean} cut edges")
     print(f"And a std of {std}")
 
+
 def visualize_city_parts(G_nx: nx.Graph, parts: list[list[int]], fp: str):
+    """
+    City graph visualization with different blocks.
+    parts parameter is a list of lists of nodes ids.
+    Each sublist consist in a different component (resulting for a community detection algorithm)
+    """
     colors = [to_hex(elem) for elem in ox.plot.get_colors(10, cmap="tab10")]
     cut_edges = determine_cut_edges(G_nx, parts)
-    edge_color = ['b' if edge in cut_edges else "#54545460" for edge in G_nx.edges]
+    edge_color = ["b" if edge in cut_edges else "#54545460" for edge in G_nx.edges]
     node_color = []
     for node in G_nx.nodes:
         for i, part in enumerate(parts):
@@ -132,7 +144,7 @@ def visualize_city_parts(G_nx: nx.Graph, parts: list[list[int]], fp: str):
                 if len(part) < 100:
                     i = -1
                 break
-        node_color.append(colors[i+1])
+        node_color.append(colors[i + 1])
     ox.plot_graph(
         G_nx,
         bgcolor="white",
@@ -141,8 +153,9 @@ def visualize_city_parts(G_nx: nx.Graph, parts: list[list[int]], fp: str):
         edge_linewidth=1,
         save=True,
         filepath=fp,
-        node_color=node_color
+        node_color=node_color,
     )
+
 
 def display_freq(
     G_kp,
@@ -154,6 +167,8 @@ def display_freq(
     ax=None,
     figsize=None,
 ):
+    """Takes as input f, a dict assigning some frequency to some edges and displays the appropriate city graph according to the frequencies."""
+
     def colorize(u, v):
         if (u, v) in f:
             if f[(u, v)] > 400:
@@ -201,6 +216,7 @@ def display_best_n_freq(
     ax=None,
     figsize=None,
 ):
+    """Same as above but displays only the n biggest frequencies"""
     notable_edges = get_n_biggest_freq(f, n)
     print(notable_edges)
 
@@ -253,6 +269,7 @@ def visualize_class(
     show: bool = True,
     ax=None,
 ):
+    """Cut cluster visualization on city graph"""
     edges_to_color = set()
     for cut_id, edges in cuts.items():
         if cut_id in cls:
@@ -296,17 +313,24 @@ def visualize_edgeList(
     filepath: str | None = None,
     ax=None,
 ):
+    """Visualize a list of edges on a city graph"""
+
     def colorize(u, v, w):
-        if (u, v) in edgeList or (u, v, w) in edgeList or (v, u) in edgeList or (v, u, w) in edgeList:
+        if (
+            (u, v) in edgeList
+            or (u, v, w) in edgeList
+            or (v, u) in edgeList
+            or (v, u, w) in edgeList
+        ):
             return "r"
         else:
             return "#54545430"
 
     def thicken(u, v, w):
         if (u, v) or (v, u) in edgeList:
-            return 10 # thickness[(u, v)] if (u, v) in edgeList else thickness[(v, u)]
+            return 10  # thickness[(u, v)] if (u, v) in edgeList else thickness[(v, u)]
         elif (u, v, w) or (v, u, w) in edgeList:
-            return 10 # thickness[(u, v, w)] if (u, v, w) in edgeList else thickness[(v, u, w)]
+            return 10  # thickness[(u, v, w)] if (u, v, w) in edgeList else thickness[(v, u, w)]
         else:
             return 1
 
@@ -444,24 +468,32 @@ def to_hex(c):
 
 
 def visualize_bc(
-    removed_edges: list[Edge], bc: EdgeDict, G: nx.Graph, fp: str, title: str, color_levels: int = 10, ax = None
+    removed_edges: list[Edge],
+    bc: EdgeDict,
+    G: nx.Graph,
+    fp: str,
+    title: str,
+    color_levels: int = 10,
+    ax=None,
 ) -> None:
+    """Visualize the eBC values on a graph"""
     redge = []
-    def colorize(u, v, w):        
+
+    def colorize(u, v, w):
         # if (u, v) in bc:
         #     return color_list[int((bc[(u, v)] / vmax) * (color_levels-1))]
         # elif (v, u) in bc:
         #     return color_list[int((bc[(v, u)] / vmax) * (color_levels-1))]
         if (u, v, w) in bc:
-            return color_list[int((bc[(u, v, w)] / vmax) * (color_levels-1))]
+            return color_list[int((bc[(u, v, w)] / vmax) * (color_levels - 1))]
         elif (v, u, w) in bc:
-            return color_list[int((bc[(v, u, w)] / vmax) * (color_levels-1))]
+            return color_list[int((bc[(v, u, w)] / vmax) * (color_levels - 1))]
         elif (u, v) in removed_edges or (v, u) in removed_edges:
             return "green"
         # else:
         #     redge.append((u, v, w))
         #     return "green"
-            # raise ValueError(f"edge ({u}, {v}) not in the graph")
+        # raise ValueError(f"edge ({u}, {v}) not in the graph")
 
     def thicken(u, v, w):
         # if (u, v) in bc:
@@ -477,15 +509,17 @@ def visualize_bc(
         # else:
         #     redge.append((u, v, w))
         #     return 5
-            # raise ValueError(f"edge ({u}, {v}) not in the graph")
+        # raise ValueError(f"edge ({u}, {v}) not in the graph")
 
     vmax, vmin = max(bc.values()), min(bc.values())
     # vmax, vmin = 0.1, 0
-    color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")] # RdPu for bicolor # jet for more
+    color_list = [
+        to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")
+    ]  # RdPu for bicolor # jet for more
     edge_color = [colorize(u, v, w) for u, v, w in G.edges]
     edge_width = [thicken(u, v, w) for u, v, w in G.edges]
     print("edges colorized, starting display...")
-    cmap = plt.cm.get_cmap("RdPu") # RdPu for bicolor # jet for more
+    cmap = plt.cm.get_cmap("RdPu")  # RdPu for bicolor # jet for more
     norm = plt.Normalize(vmin=vmin, vmax=vmax)
     sm = cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
@@ -498,15 +532,19 @@ def visualize_bc(
         edge_alpha=0.7,
         bgcolor="white",
         show=False,
-        ax=ax
+        ax=ax,
     )
     cb = fig.colorbar(
-        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.01
+        cm.ScalarMappable(norm=norm, cmap=cmap),
+        ax=ax,
+        orientation="horizontal",
+        pad=0.01,
     )
     cb.set_label(title, fontsize=12)
     fig.tight_layout()
     fig.savefig(fp)
     return redge
+
 
 def visualize_Delta_bc(
     removed_edges: list[Edge],
@@ -517,8 +555,10 @@ def visualize_Delta_bc(
     abslt: bool,
     title: str,
     color_levels: int = 10,
-    ax = None
+    ax=None,
 ) -> None:
+    """Visualize eBC absolute or relative differences between two eBC dictionnaries."""
+
     def colorize(u, v):
         d = None
         if (u, v) in delta.keys():
@@ -529,7 +569,7 @@ def visualize_Delta_bc(
             return "green"
         else:
             raise ValueError(f"edge ({u}, {v}) not in the graph")
-        return color_list[int((d / (2*vmax)) * (color_levels-1))]
+        return color_list[int((d / (2 * vmax)) * (color_levels - 1))]
 
     def thicken(u, v):
         if (u, v) in delta.keys():
@@ -542,12 +582,12 @@ def visualize_Delta_bc(
             raise ValueError(f"edge ({u}, {v}) not in the graph")
 
     f = lambda b1, b2: abs(b1 - b2) if abslt else b2 - b1
-    g = lambda v: v if abslt else v+vmax
+    g = lambda v: v if abslt else v + vmax
     delta = {}
     for n1, n2, _ in G.edges:
         if (n1, n2) in bc1:
             if (n1, n2) in bc2:
-                # print('here1', f(bc1[(n1, n2)], bc2[(n1, n2)]))     
+                # print('here1', f(bc1[(n1, n2)], bc2[(n1, n2)]))
                 delta[(n1, n2)] = f(bc1[(n1, n2)], bc2[(n1, n2)])
             elif (n2, n1) in bc2:
                 # print('here2', f(bc1[(n1, n2)], bc2[(n2, n1)]))
@@ -566,11 +606,15 @@ def visualize_Delta_bc(
         if m == 0:
             vmin, vmax = -1e-7, 1e-7
         else:
-            vmin, vmax = -0.1, 0.1 #-m, m
+            vmin, vmax = -0.1, 0.1  # -m, m
     if abslt:
-        color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")]
+        color_list = [
+            to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="RdPu")
+        ]
     else:
-        color_list = [to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="bwr")]
+        color_list = [
+            to_hex(elem) for elem in ox.plot.get_colors(color_levels, cmap="bwr")
+        ]
     edge_color = [colorize(u, v) for u, v, _ in G.edges]
     edge_width = [thicken(u, v) for u, v, _ in G.edges]
     print("edges colorized, starting display...")
@@ -586,7 +630,7 @@ def visualize_Delta_bc(
         edge_linewidth=edge_width,
         show=False,
         bgcolor="white",
-        ax=ax
+        ax=ax,
     )
     cb = fig.colorbar(
         cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0
@@ -596,13 +640,34 @@ def visualize_Delta_bc(
     fig.savefig(fp)
 
 
-def visualize_bc_distrs(bc1: EdgeDict, bc2: EdgeDict, fp: str, names: tuple[str, str], cumulative: bool = False) -> None:
+def visualize_bc_distrs(
+    bc1: EdgeDict,
+    bc2: EdgeDict,
+    fp: str,
+    names: tuple[str, str],
+    cumulative: bool = False,
+) -> None:
+    """Plot appropriate histograms for eBC distribution visualization"""
     dist1 = bc1.values()
     dist2 = bc2.values()
     _, ax = plt.subplots()
     htype = "step" if cumulative else "bar"
-    ax.hist(dist1, bins='scott', label=names[0], color="#ff0000a0", histtype=htype, cumulative=cumulative)
-    ax.hist(dist2, bins='scott', label=names[1], color="#0000ffa0", histtype=htype, cumulative=cumulative)
+    ax.hist(
+        dist1,
+        bins="scott",
+        label=names[0],
+        color="#ff0000a0",
+        histtype=htype,
+        cumulative=cumulative,
+    )
+    ax.hist(
+        dist2,
+        bins="scott",
+        label=names[1],
+        color="#0000ffa0",
+        histtype=htype,
+        cumulative=cumulative,
+    )
     ax.set_yscale("log")
     ax.set_xlabel("bc")
     ax.set_ylabel("number of edges")
@@ -634,7 +699,7 @@ def visualize_attack_scores(
     attacks_names: list[str],
     fp: str,
     is_bc: bool,
-    title: str
+    title: str,
 ) -> None:
     """
     Function to visualize the evolution of metrics over multiple attacks
@@ -684,8 +749,12 @@ def visualize_attack_scores(
     fig.savefig(fp)
 
 
-def visualize_edgeList_ordered(edgeList: list[Edge], G: nx.Graph, fp: str, title: str) -> None:
-    def colorize(u, v):        
+def visualize_edgeList_ordered(
+    edgeList: list[Edge], G: nx.Graph, fp: str, title: str
+) -> None:
+    """Same as visualize edgeList but showing the order of the list with a colormap"""
+
+    def colorize(u, v):
         if (u, v) in edgeList:
             i = edgeList.index((u, v))
             return color_list[i]
@@ -700,7 +769,10 @@ def visualize_edgeList_ordered(edgeList: list[Edge], G: nx.Graph, fp: str, title
             return 5
         else:
             return 1
-    color_list = [to_hex(elem) for elem in ox.plot.get_colors(len(edgeList), cmap="plasma")]
+
+    color_list = [
+        to_hex(elem) for elem in ox.plot.get_colors(len(edgeList), cmap="plasma")
+    ]
     edge_color = [colorize(u, v) for u, v, _ in G.edges]
     edge_width = [thicken(u, v) for u, v, _ in G.edges]
     print("edges colorized, starting display...")
@@ -718,22 +790,30 @@ def visualize_edgeList_ordered(edgeList: list[Edge], G: nx.Graph, fp: str, title
         show=False,
     )
     cb = fig.colorbar(
-        cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal", pad=0.01
+        cm.ScalarMappable(norm=norm, cmap=cmap),
+        ax=ax,
+        orientation="horizontal",
+        pad=0.01,
     )
     cb.set_label(title, fontsize=12)
     fig.savefig(fp)
 
-def visualize_biggest_scc(G_nx: nx.Graph, fp: str, robust_list: RobustList | None) -> None:
+
+def visualize_biggest_scc(
+    G_nx: nx.Graph, fp: str, robust_list: RobustList | None
+) -> None:
     """
     Saves in fp the city graph with biggest connected component highlighted
     If robust_list is set to None, it doesn't remove any edge from G_nx
     If a robust_list is given, it removes all corresponding edges (assumes it's the last attack)
     """
-    def colorize(u, v):        
+
+    def colorize(u, v):
         if (u, v) in biggest_scc or (v, u) in biggest_scc:
             return "r"
         else:
             return "#54545420"
+
     if robust_list:
         for attack in robust_list:
             if eval(attack[0]) is None:
@@ -758,7 +838,11 @@ def visualize_biggest_scc(G_nx: nx.Graph, fp: str, robust_list: RobustList | Non
     )
     fig.savefig(fp)
 
-def visualize_impact_evolution(impact_path: str, impact_crit: str, title: str, save_path: str) -> None:
+
+def visualize_impact_evolution(
+    impact_path: str, impact_crit: str, title: str, save_path: str
+) -> None:
+    """Visualize eBC dynamic impacts evolution (impact criterion taken as a parameter)"""
     with open(impact_path, "r") as rfile:
         data = json.load(rfile)
     x, y = np.arange(len(data)), []
@@ -772,7 +856,16 @@ def visualize_impact_evolution(impact_path: str, impact_crit: str, title: str, s
     fig.suptitle(title)
     fig.savefig(save_path)
 
-def visualize_impacts_comparison(impact_paths: str | list[str], impact_crit: str | list[str], labels: str | list[str], title: str, save_path: str, cumulative: bool = False) -> None:
+
+def visualize_impacts_comparison(
+    impact_paths: str | list[str],
+    impact_crit: str | list[str],
+    labels: str | list[str],
+    title: str,
+    save_path: str,
+    cumulative: bool = False,
+) -> None:
+    """Plots different eBC dynamic impacts criterion"""
     fig, axes = plt.subplots()
     if isinstance(impact_paths, list):
         assert isinstance(impact_crit, str)
@@ -799,7 +892,11 @@ def visualize_impacts_comparison(impact_paths: str | list[str], impact_crit: str
     fig.suptitle(title)
     fig.savefig(save_path)
 
-def cumulative_impact_comparison(impacts_fp: list[str], crit: str, label: str, attack_names: list[str], save_fp: str):
+
+def cumulative_impact_comparison(
+    impacts_fp: list[str], crit: str, label: str, attack_names: list[str], save_fp: str
+):
+
     impacts = []
     for fp in impacts_fp:
         with open(fp, "r") as rfile:
@@ -812,8 +909,9 @@ def cumulative_impact_comparison(impacts_fp: list[str], crit: str, label: str, a
     ax.legend()
     ax.set_ylabel(label)
     ax.set_xlabel("number of removed edges")
-    fig.suptitle("Cumulative evolution of "+crit)
+    fig.suptitle("Cumulative evolution of " + crit)
     fig.savefig(save_fp)
+
 
 def impact_scatter(impact_fps: list[str], attack_names: list[str], save_fp: str):
     fig, ax = plt.subplots()
@@ -828,7 +926,14 @@ def impact_scatter(impact_fps: list[str], attack_names: list[str], save_fp: str)
     fig.suptitle("Scatter plot of dmax and sumdiffs at each step")
     fig.savefig(save_fp)
 
-def compare_avgebc_efficiency(robust_paths: list[str], efficiency_paths: list[str], labels: list[str], save_path: str):
+
+def compare_avgebc_efficiency(
+    robust_paths: list[str],
+    efficiency_paths: list[str],
+    labels: list[str],
+    save_path: str,
+):
+    """plots average eBC scores and efficiency scores on the same plot"""
     colors = [to_hex(elem) for elem in ox.plot.get_colors(10, cmap="tab10")]
     fig, ax1 = plt.subplots()
     for i, path in enumerate(robust_paths):
@@ -836,20 +941,30 @@ def compare_avgebc_efficiency(robust_paths: list[str], efficiency_paths: list[st
         with open(path, "r") as rfile:
             robust_dict = json.load(rfile)
         if labels[i] == "freq":
-            x, y = np.arange(len(robust_dict)-1), [np.mean(list(attack[1].values())) for attack in robust_dict]
-            ax1.plot(x, y[:len(robust_dict)-1], label=labels[i], color=colors[i])
+            x, y = np.arange(len(robust_dict) - 1), [
+                np.mean(list(attack[1].values())) for attack in robust_dict
+            ]
+            ax1.plot(x, y[: len(robust_dict) - 1], label=labels[i], color=colors[i])
         else:
-            x, y = np.arange(len(robust_dict)), [np.mean(list(attack[1].values())) for attack in robust_dict]
+            x, y = np.arange(len(robust_dict)), [
+                np.mean(list(attack[1].values())) for attack in robust_dict
+            ]
             ax1.plot(x, y, label=labels[i], color=colors[i])
     ax2 = ax1.twinx()
     for i, path in enumerate(efficiency_paths):
         with open(path, "r") as rfile:
             efficiency = json.load(rfile)
-        ax2.plot(np.arange(len(efficiency)), efficiency, label=labels[i], color=colors[i], linestyle='dotted')
+        ax2.plot(
+            np.arange(len(efficiency)),
+            efficiency,
+            label=labels[i],
+            color=colors[i],
+            linestyle="dotted",
+        )
 
-    ax1.set_xlabel('number of removed edges')
-    ax1.set_ylabel('(-) avg eBC')
-    ax2.set_ylabel('efficiency (.)')
+    ax1.set_xlabel("number of removed edges")
+    ax1.set_ylabel("(-) avg eBC")
+    ax2.set_ylabel("efficiency (.)")
     ax1.legend()
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     fig.savefig(save_path)

@@ -59,6 +59,6 @@ def determine_cut_edges(G_nx: nx.Graph, parts: list[int]) -> list[Edge]:
                 n2 = i
             if n1 and n2:
                 break
-        if n1 and n2 and (n1 != n2):
+        if (n1 != None) and (n2 != None) and (n1 != n2):
             cut_edges.append(e)
     return cut_edges
