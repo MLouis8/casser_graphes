@@ -20,7 +20,7 @@
 \newcommand{\N}{\mathbb{N}}
 \DeclarePairedDelimiter\Brackets{\llbracket}{\rrbracket}
 
-\title{Autres villes, Communautés, Approx, Effective resistance et quelques clustering}
+\title{Autres villes, Communautés, Approx, Effective resistance, Nouveaux clusters, Analyse de robustesse}
 \subtitle{Casser des Graphes}
 \author{Louis Milhaud}
 \institute{Complex Networks - LIP6}
@@ -49,24 +49,21 @@
 
     \section{Autres Villes}
     \begin{frame}
-        \frametitle{Shanghai}
-    
-        
-    
+        \frametitle{Autres villes}
+        \begin{itemize}
+            \item Shanghai
+            \item Manhattan
+        \end{itemize}
+        Tolérance ?\\
+        Buffer ?    
     \end{frame}
 
-    \begin{frame}
-        \frametitle{Manhattan}
-    
-        
-    
-    \end{frame}
     \section{Communities}
     \begin{frame}
         \frametitle{Communautés: un autre moyen de trouver des arêtes importantes}
         \centering
-        \includegraphics[scale=0.8]{other/pres9/coupe_louvain.pdf}
-        cost: ?
+        \includegraphics[scale=0.8]{other/pres9/coupe_louvain.pdf}\\
+        cost: 86 edges, 196 lanes
     \end{frame}
 
     \section{Effective Resistance}
@@ -84,11 +81,39 @@
     
     \begin{frame}
         \frametitle{Premiers résultats de effective resistance}
+        \centering
+        \includegraphics[scale=0.65]{other/pres9/dir1.pdf}
+    \end{frame}
+
+    \section{Analyse de robustesse sur graphe dirigé valué}
     
+    \begin{frame}
+        \frametitle{Strongly Connected Components}
+        \centering
+        \includegraphics[scale=0.42]{other/pres9/sccs2.pdf}
+        \includegraphics[scale=0.42]{other/pres9/sccs1.pdf}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Ordre à l'intérieur d'une coupe}
+        \centering 
+        \includegraphics[scale=0.65]{other/pres9/avgeBC_efficiencyRDvsBC.pdf}
     \end{frame}
     
+    
     \section{Grandes attaques}
-    \subsection{Choix}
+    \begin{frame}
+        \frametitle{Approx frequence}
+        \centering
+        \includegraphics[scale=0.65]{other/pres9/bigattacks_freq_approx_03.pdf}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Strongly Connected Components}
+        \centering
+        \includegraphics[scale=0.42]{other/pres9/bigattacks_scc.pdf}
+        \includegraphics[scale=0.42]{other/pres9/bigattacks_scc2.pdf}
+    \end{frame}
+    \section{Choix}
     \begin{frame}
         \frametitle{Choix de l'approximation eBC}
         \includegraphics[scale=0.33]{approx/visubcapprox_500.pdf}
@@ -103,42 +128,38 @@
             \hline
                 $n$ & 1 & 200 & 1000 \\
             \hline
-                2 blocs & & &\\
+                imb = 0.05, nblocs = 2 &  0.5" & 1'08"& 7'30"\\
             \hline
-                3 blocs & & &\\
+                imb = 0.05, nblocs = 3 & 0.8" & 2'15" & 14'10"\\
             \hline
-                imb = 0.05 & & &\\
+                imb = 0.1, nblocs = 2 & 0.8" & 2'30" & 13'15"\\
             \hline
-                imb = 0.1 & & &\\
+                imb = 0.2, nblocs = 2 & 0.4" & 1'23" & 6'25"\\
             \hline
-                imb = 0.2 & & &\\
-            \hline
-                imb = 0.3 & & &\\
-            \hline
-                temps (sec) & D1 & D2 & D3 \\ 
+                imb = 0.3, nblocs = 2 & 0.45" & 1'30" & 7'04"\\
             \hline
             \end{tabular}
     \end{frame}
 
-    \subsection{Nouvelles coupes}
+    \section{Clustering}
+    \subsection{Clustering pour les nouvelles coupes}
     \begin{frame}
-        \frametitle{déséquilibre grand: imb = 0.1}
-    
-    \end{frame}
-    
-    \begin{frame}
-        \frametitle{déséquilibre grand: imb = 0.3}
-    
-    \end{frame}
-    
-    \begin{frame}
-        \frametitle{déséquilibre grand: imb = 0.3}
-    
+        \frametitle{Clustering: idées et questions}
+        \emph{Distance:}
+        Utilisation de la distance de Chamfer.\\
+        Pour deux ensembles de coupes $C_1$ et $C_2$:
+        $$\sum_{c_1\in C_1}\min_{c_2\in C_2}\{c_1, c_2\} + \sum_{c_2\in C_2}\min_{c_1\in C_1}\{c_1, c_2\}$$
+        avec d la distance géographique.\\
+        Possibilités de l'approximer, mais l'article est pas facile.
     \end{frame}
 
     \begin{frame}
-        \frametitle{nblocks = 3}
-    
+        \frametitle{Clustering: idées et questions}
+        Ensuite quel algorithme ?\\
+        \begin{itemize}
+            \item BIRCH $\rightarrow$ centroide ?
+            \item BallTree $\rightarrow$ linéaire ?
+        \end{itemize}
     \end{frame}
-    
+
     \end{document}
