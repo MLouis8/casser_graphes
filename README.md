@@ -42,10 +42,18 @@ The robustness part is about setting up attack strategies on networks and measur
 
 ![robust list](data/rlist.svg)
 
+Be careful: the removed edge and every eBC dict key is stored as a string in json, since tuples aren't supported. Consider using `eval` function to cast them to tuple.
+
 2. Both of the functions above need a strategy to apply. Attack strategies are made of an order and a set.
-(list of order, sets, special options)
+Here are the available orders:
+
+* **frequency:** uses the optional parameters `ncuts`, `imb` and `nblocks`. `ncuts` defines the number of cuts to do before establishing the edge appearance frequency and select the max. `imb` and `nblocks` are parameters for the cut, see [KaHIP section](#3-graphs-and-kahip) for more details. Be careful, frequency order doesn't support subsets, and an error will be raise.
+
+* **betweenness:** uses the parameter `bc_approx` and `subset`. `bc_approx` takes an integer as the number of edge from which to compute the eBC approximation, if not set, real eBC will be computed. `subset` defines a subset of edges where the removed edges are taken.
+* **random:** uses the optional parameters `subset` as in betweenness above. Select edges at random.
+* **maxdegree:** uses the optional parameters `subset` as in betweenness above. Removes the biggest degree edge first, edge degree for the edge $(u, v) \in E$ is computed as:
+$$deg(u) \cdot deg(v)$$
 
 3. Some functions measuring robustness metrics can also be found in the same file. But use them through their [procedure](src/procedures.py).
-(list of measures)
 
 ### 6. Visualization
