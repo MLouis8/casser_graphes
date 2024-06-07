@@ -22,7 +22,7 @@ from cuts_analysis import class_mean_cost
 from robustness import (
     extend_attack,
     efficiency,
-    measure_scc_from_rlist,
+    measure_scc_or_cc_from_rlist,
     cpt_effective_resistance,
 )
 
@@ -335,8 +335,8 @@ def global_efficiency_procedure(
             json.dump(globeff, file)
 
 
-def compare_scc_procedure(
-    G_nx: nx.Graph, robust_paths: list[str], labels: list[str], save_path: str
+def compare_scc_or_cc_procedure(
+    G_nx: nx.Graph, robust_paths: list[str], labels: list[str], save_path: str, is_scc: bool
 ):
     """
     Measures every strongly connected components and plots the comparison of the biggest one size
@@ -350,16 +350,20 @@ def compare_scc_procedure(
     assert len(robust_paths) == len(labels)
     fig, ax = plt.subplots()
     for i, path in enumerate(robust_paths):
-        print(f"scc of path {i}: {labels[i]}")
+        print(f"scc of path {i}: {labels[i]}") if is_scc else print(f"cc of path {i}: {labels[i]}")
         G = G_nx.copy()
         with open(path, "r") as rfile:
             robust_list = json.load(rfile)
-        y = measure_scc_from_rlist(robust_list, G)
+        y = measure_scc_or_cc_from_rlist(robust_list, G, is_scc)
         ax.plot(np.arange(len(y)), y, label=labels[i])
     ax.legend()
     ax.set_xlabel("number of removed edges")
-    ax.set_ylabel("size of biggest scc")
-    fig.suptitle("Scc evolution")
+    if is_scc:
+        ax.set_ylabel("size of largest scc")
+        fig.suptitle("largest scc evolution")
+    else:
+        ax.set_ylabel("size of largest cc")
+        fig.suptitle("cc evolution")
     fig.savefig(save_path)
 
 

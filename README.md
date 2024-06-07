@@ -36,4 +36,16 @@ The code is in the `src` module. If we follow the order we can found there:
 
 ### 5. Robustness
 
+The robustness part is about setting up attack strategies on networks and measuring their impact. The code is in the file [robustness.py](src/robustness.py). And contains:
+
+1. `attack` and `extend_attack` functions, they respectively simulate an attack and extend a previous attack they both generate robustness lists, list that are made as follow:
+
+![robust list](data/rlist.svg)
+
+2. Both of the functions above need a strategy to apply. Attack strategies are made of an order and a set.
+(list of order, sets, special options)
+
+3. Some functions measuring robustness metrics can also be found in the same file. But use them through their [procedure](src/procedures.py).
+(list of measures)
+
 ### 6. Visualization

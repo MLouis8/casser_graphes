@@ -10,9 +10,6 @@ from copy import deepcopy
 from math import ceil
 
 def is_cutable(G: Graph, nblocks: int, imb: float):
-    # if G._nx and G._nx.is_directed():
-    #     ccs = G.get_sccs
-    # else:
     ccs = G.get_ccs
     if len(ccs) < nblocks:
         return True
@@ -20,18 +17,6 @@ def is_cutable(G: Graph, nblocks: int, imb: float):
         if len(cc1) > (1+imb) * ceil(G._sizeV/nblocks):
             return True
     return False
-
-def best_cut_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:
-    if is_cutable(G, nblocks, imb):
-        seen_seeds = []
-        cuts = []
-        for _ in range(ncuts):
-            seed = rd.randint(0, 1044642763)
-            while seed in seen_seeds:
-                seed = rd.randint(0, 1044642763)
-            seen_seeds.append(seed)
-            G.kaffpa_cut(nblocks, imb, 0, seed, 2)
-            cuts.append(G.process_cut())
 
 def freq_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:      
     cut_union = []
@@ -122,7 +107,6 @@ def attack(
     order: str,
     metric_bc: bool,
     metric_cc: bool,
-    metric_scc: bool,
     ncuts: int = 1000,
     save: bool = True,
     subset: list[Edge] | None = None,
@@ -158,10 +142,14 @@ def attack(
     """
 
     def metric_procedure(metrics, chosen_edge):
-        # bc = G.get_edge_bc(weighted=weighted, new=True, approx=bc_approx) if metric_bc else None
-        cc = len(G.get_biggest_cc)# if metric_cc else None
-        # scc = len(G.get_biggest_scc) if metric_scc else None
-        metrics.append((chosen_edge, cc)) #(chosen_edge, bc, cc, scc))
+        current = [chosen_edge]
+        if metric_bc:
+            bc = G.get_edge_bc(weighted=weighted, new=True, approx=bc_approx)
+            str_bc = {str(k): v for k, v in bc.items()}
+            current.append(str_bc)
+        if metric_cc:
+            current.append(len(G.get_biggest_cc))
+        metrics.append(current)
 
     if order == "freq" and subset:
         raise ValueError(
@@ -193,15 +181,6 @@ def attack(
     if not direct_save:
         metric_procedure(metrics, chosen_edge)
     if save:
-        temp = metrics.copy()
-        metrics = []
-        for step in temp:
-            edge = str(step[0]) if step[0] else None
-            # str_d = {str(k): v for k, v in step[1].items()} if step[1] else None
-            # cc = step[2] if metric_cc else None
-            # scc = step[3] if metric_scc else None
-            # metrics.append([edge, str_d, cc, scc])
-            metrics.append([edge, step[1]])
         with open(fp_save, "w") as save_file:
             json.dump(metrics, save_file)
     else:
@@ -336,8 +315,8 @@ def verify_integrity(fp: str, order: str, size: int) -> None:
         assert not edge in data[j + 1][1]
 
 
-def measure_scc_from_rlist(
-    robust_list: RobustList, G_nx: nx.Graph
+def measure_scc_or_cc_from_rlist(
+    robust_list: RobustList, G_nx: nx.Graph, is_scc: bool
 ) -> list[list[int]]:
     """Takes a robust dict and a graph and returns for each step the size of every connected component"""
     res = []
@@ -358,7 +337,10 @@ def measure_scc_from_rlist(
                 G.remove_edge(edge[1], edge[0])
             except:
                 pass
-        res.append(len(max(nx.strongly_connected_components(G), key=len)))
+        if is_scc:
+            res.append(len(max(nx.connected_components(G), key=len)))
+        else:
+            res.append(len(max(nx.strongly_connected_components(G), key=len)))
     return res
 
 
@@ -443,41 +425,6 @@ def efficiency(G_nx: nx.Graph):
         efficiency[str(edge)] = nx.efficiency(G, edge[0], edge[1])
         cpt += 1
     return efficiency
-
-def cascading_failure(G_nx: nx.Graph, redges: list[Edge], rtreshold: float, ltreshold: tuple[int, int] = (0, None), bc_dict: EdgeDict | None = None, approx: int | None= None) -> list[tuple[list[Edge], EdgeDict]]:
-    """
-    Simulates cascading failures, removes the edges in the list, computes the corresponding eBC
-    and removes the edges with a eBC above the rthreshold.
-    Repeats untill less than ltreshold edges are concerned.
-    If bc_dict is set, than it's used as the first eBC
-    """
-    def cpt_fails(bc):
-        l = []
-        for k, v in bc.items():
-            if v > rtreshold:
-                l.append(k)
-        return l
-    def remove_edges(G, edgelist):
-        for edge in edgelist:
-            try:
-                e = eval(edge)
-            except:
-                e = (eval(edge[0]), eval(edge[1]))
-            try:
-                G.remove_edge(e[0], e[1])
-            except:
-                G.remove_edge(e[1], e[0])
-    remove_edges(G_nx, redges)
-    last_bc = bc_dict if bc_dict else nx.edge_betweenness_centrality(G_nx, approx, weight="weight")
-    res = [(redges, last_bc)]
-    fails = cpt_fails(last_bc)
-    rounds = ltreshold[1] if ltreshold[1] else 1000
-    while len(fails) > ltreshold[0] or rounds > 0:
-        rounds -= 1
-        remove_edges(G_nx, fails)
-        last_bc = nx.edge_betweenness_centrality(G_nx, approx, weight="weight")
-        res.append((fails, last_bc))
-    return res
 
 def cpt_effective_resistance(G_nx: nx.Graph, weight: bool) -> float:
     if not nx.is_connected(G_nx):
