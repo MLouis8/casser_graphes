@@ -128,15 +128,21 @@ def basic_stats_cuts(cuts: dict[str, KCut], nb_cuts=1000):
     print(f"And a std of {std}")
 
 
-def visualize_city_parts(G_nx: nx.Graph, parts: list[list[int]], fp: str):
+def visualize_city_parts(G_nx: nx.Graph, parts: list[list[int]], fp: str, cut_edges: list[Edge] = None):
     """
     City graph visualization with different blocks.
     parts parameter is a list of lists of nodes ids.
     Each sublist consist in a different component (resulting for a community detection algorithm)
     """
     colors = [to_hex(elem) for elem in ox.plot.get_colors(10, cmap="tab10")]
-    cut_edges = determine_cut_edges(G_nx, parts)
-    edge_color = ["b" if edge in cut_edges else "#54545460" for edge in G_nx.edges]
+    if not cut_edges:
+        cut_edges = determine_cut_edges(G_nx, parts)
+    edge_color = ["b" if (edge[0], edge[1]) in cut_edges or (edge[1], edge[0]) in cut_edges else "#54545460" for edge in G_nx.edges]
+    cpt = 0
+    for edge in edge_color:
+        if edge == "b":
+            cpt += 1
+    print(cpt)
     node_color = []
     for node in G_nx.nodes:
         for i, part in enumerate(parts):

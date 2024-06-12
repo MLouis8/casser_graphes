@@ -5,7 +5,7 @@ import numpy as np
 import kahip  # to comment if ARM, uncomment to cut
 import json
 from typing import Optional, Any
-from typ import EdgeDict
+from typ import EdgeDict, Edge
 
 
 class Graph:
@@ -112,6 +112,26 @@ class Graph:
                         self._adjacency_weight.append(
                             dict_edges_attributes[(self._adjacency[j], i - 1)]
                         )
+
+    def set_weight_from_dict(self, weights: dict[Edge, float]) -> None:
+        new_weights = self['adjcwgt']
+        for i in range(1, len(self["xadj"])):
+            for j in range(self["xadj"][i - 1], self["xadj"][i]):
+                try:
+                    new_weights[j] = weights[(i - 1, self["adjncy"][j])]
+                except:
+                    try:
+                        new_weights[j] = weights[(self["adjncy"][j], i - 1)]
+                    except:
+                        pass
+        # not sure we need this
+        self._adjacency_weight = new_weights
+
+    def get_edge_weight(self, edge: Edge) -> float:
+        for i in range(self["xadj"][edge[0]], self["xadj"][edge[0]+1]):
+            if self['adjncy'][i] == edge[1]:
+                break
+        return self['adjcwgt'][i]
 
     def to_nx(self, directed: bool = False):
         """Conversion du type KaHIP (adjacency) au type networkx.graph"""

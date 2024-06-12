@@ -194,13 +194,14 @@ redges_paths = [
 
 effective_res_paths = [
     "./data/robust/other/effective_resistance/eff_res_bcdir.json",
+    "./data/robust/other/effective_resistance/eff_res_freqdir_nx_T.json",
     "./data/robust/other/effective_resistance/eff_res_freqdir.json",
     "./data/robust/other/effective_resistance/eff_res_rddir.json",
     "./data/robust/other/effective_resistance/eff_res_cut24bcdir.json",
     "./data/robust/other/effective_resistance/eff_res_cut24rddir.json",
     "./data/robust/other/effective_resistance/eff_res_cut141bcdir.json",
     "./data/robust/other/effective_resistance/eff_res_cut141rddir.json",
-    "./data/robust/other/effective_resistance/eff_res_cut190bcdir.json",
+    "./data/robust/eff_res_cut190bcdir.json",
     "./data/robust/other/effective_resistance/eff_res_cut190rddir.json",
     "./data/robust/other/effective_resistance/eff_res_degdir.json",
      "./data/robust/other/effective_resistance/eff_res_cut24bcdir2.json",
@@ -216,20 +217,13 @@ efficiency_paths_notweighted = [
 ]
 
 bigattacks_paths = [
-    'data/robust/bigattacks/bcapprox_100.json',
-    'data/robust/bigattacks/freqrec_005_10.json',
-    'data/robust/bigattacks/freqrec_01_10.json',
-    'data/robust/bigattacks/freqrec_02_200.json',
-    'data/robust/bigattacks/freqrec_02_1000.json',
-    'data/robust/bigattacks/freqrec_03_200.json',
-    'data/robust/bigattacks/freqrec_03_1000.json',
-   
-    'data/robust/bigattacks/freqrec_03_1000.json'    
-]
-
-bigattacks_paths2 = [
-    'data/robust/bigattacks/freqrec_03_1000.json',
-    'data/robust/bigattacks/freqrec_03_200.json',
-    'data/robust/bigattacks/freqrec_03_100.json',
-    'data/robust/bigattacks/freqrec_03_10.json',
+    'data/robust/bigattacks10-1000/bc_approx200.json',
+    'data/robust/bigattacks10-1000/deg200.json',
+    'data/robust/bigattacks10-1000/rd200.json',
+    'data/robust/bigattacks10-1000/freq200_k2_01.json',
+    'data/robust/bigattacks10-1000/freq200_k2_02.json',
+    'data/robust/bigattacks10-1000/freq200_k2_03.json',
+    'data/robust/bigattacks10-1000/freq200_k2_005.json',
+    'data/robust/bigattacks10-1000/freq200_k3_005.json',
+    'data/robust/bigattacks10-1000/freq200_k4_005.json',
 ]

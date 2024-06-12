@@ -5,12 +5,12 @@ from math import inf
 from typ import Cut, Cuts
 
 class Node:
-    def __init__(self, parent=None, is_leaf=False, n=0, cut=None):
+    def __init__(self, parent=None, is_leaf=False, cut=None):
         self.parent = parent
         self.is_leaf = is_leaf
         self.children = []
-        self.n = n
-        self.centroid: Cut | None = cut
+        self.edge_union: Cut | None = cut
+        self.cuts: list[Cut] = cut
         self.radius = 0
 
 class CFTree:
@@ -24,7 +24,7 @@ class CFTree:
         # self._nodes = G_nx.nodes(data=True)
         self._latitudes = nx.get_node_attributes(G_nx, "x")
         self._longitudes = nx.get_node_attributes(G_nx, "y")
-
+    
     def chamfer_routine(self, c1: Cut, c2: Cut) -> float:
         l = []
         for e1 in c1:
@@ -37,11 +37,16 @@ class CFTree:
                 d_edge = dist((e1n1, e1n2), (e2n1, e2n2))
                 if d_edge < best_distance:
                     best_distance = d_edge
-        return sum(l)
-        
+        return l
+    
     def chamfer_distance(self, c1: Cut, c2: Cut) -> float:
         """Chamfer Distance between two cuts based on geographical distance."""
-        return self.chamfer_routine(c1, c2) + self.chamfer_routine(c2, c1)        
+        return sum(self.chamfer_routine(c1, c2)) + sum(self.chamfer_routine(c2, c1))
+    
+    def adapted_chamfer_distance(self, union: Cut, c: Cut) -> float:
+        """Chamfer Distance adapted to modified BIRCH algorithm, so returns a lookalike chamfer distance to the  / union"""
+        return sum(self.chamfer_routine(union, c)) / len(union)
+    # return max(self.chamfer_routine(union, c))
 
     def insert(self, cut):
         # If the tree is empty, create a new leaf node
@@ -62,13 +67,13 @@ class CFTree:
             if prev_dist:
                 return node, prev_dist
             else:
-                return node, self.chamfer_distance(node.centroid, cut)
+                return node, self.adapted_chamfer_distance(node.edge_union, cut)
 
         # If the node is not a leaf, find the closest child
-        min_distance = float('inf')
+        min_distance = inf
         closest_child = None
         for child in node.children:
-            distance = self.chamfer_distance(child.centroid, cut)
+            distance = self.chamfer_distance(child.edge_union, cut)
             if distance < min_distance:
                 min_distance = distance
                 closest_child = child
@@ -79,7 +84,7 @@ class CFTree:
     def _insert_into_node(self, node: Node, distance, cut: Cut):
         # Update the node attributes
         node.n += 1
-        node.centroid = list(set(node.centroid + cut))
+        node.edge_union = list(set(node.edge_union + cut))
 
         # If the node's radius exceeds the threshold, split the node
         node.radius = max(node.radius, distance)
@@ -92,8 +97,8 @@ class CFTree:
         new_node2 = Node(parent=node.parent, is_leaf=node.is_leaf)
 
         # Redistribute the data cuts between the two new nodes
-        centroids = [sum(cut) / len(cut) for cut in cuts]
-        cuts_partition = [cuts[i] for i in range(len(cuts)) if centroids[i] < np.median(centroids)]
+
+        cuts_partition = []
         for cut in cuts_partition:
             self._insert_into_node(new_node1, cut)
         for cut in cuts:
@@ -148,7 +153,7 @@ class CFTree:
         return leaf_nodes
 
     def _compute_cluster_distance(self, cluster1, cluster2):
-        # Compute the distance between two clusters as the average distance between their centroids
-        centroids1 = [node.cf_vector.LS / node.cf_vector.n for node in cluster1]
-        centroids2 = [node.cf_vector.LS / node.cf_vector.n for node in cluster2]
-        return sum(self._distance(centroid1, centroid2) for centroid1 in centroids1 for centroid2 in centroids2) / (len(centroids1) * len(centroids2))
+        # Compute the distance between two clusters as the average distance between their unions
+        unions1 = [node.cf_vector.LS / node.cf_vector.n for node in cluster1]
+        unions2 = [node.cf_vector.LS / node.cf_vector.n for node in cluster2]
+        return sum(self._distance(union1, union2) for union1 in unions1 for union2 in unions2) / (len(unions1) * len(unions2))

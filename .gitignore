@@ -180,6 +180,7 @@ osmnx-examples/
 etc/
 cache/
 src/storage.py
+src/figure.py
 package-lock.json
 
 # latex

@@ -62,3 +62,14 @@ def determine_cut_edges(G_nx: nx.Graph, parts: list[int]) -> list[Edge]:
         if (n1 != None) and (n2 != None) and (n1 != n2):
             cut_edges.append(e)
     return cut_edges
+
+def determine_city_parts_from_redges(G_nx: nx.Graph, edges: list[Edge], k: int = 2):
+    for edge in edges:
+        try:
+            G_nx.remove_edge(edge[0], edge[1])
+        except:
+            G_nx.remove_edge(edge[1], edge[0])
+    if G_nx.is_directed():
+        return [c for c in sorted(nx.strongly_connected_components(G_nx), key=len, reverse=True)][:k]
+    else:
+        return [c for c in sorted(nx.connected_components(G_nx), key=len, reverse=True)][:k]

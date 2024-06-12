@@ -100,6 +100,14 @@ def maxdegree_attack(G: Graph, subset: list[Edge] | None) -> Edge:
             chosen_edge = edge
     return chosen_edge
 
+def weighted_attack(G: Graph) -> Edge:
+    t = G["adjcwgt"].index(max(G["adjcwgt"]))
+    for i, adj in enumerate(G["xadj"]):
+        if adj >= t:
+            u = i-1
+            break
+    return u, G["adjncy"][t]
+
 def attack(
     G: Graph,
     k: int,
