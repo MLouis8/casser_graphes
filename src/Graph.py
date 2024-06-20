@@ -201,40 +201,6 @@ class Graph:
                 return True
         return False
 
-    def recalibrate_nodes_weight(self, nodes: list[int]) -> None:
-        """
-        This function recalibrates nodes weights to make the nodes in the list weight as much as the rest of the nodes
-
-        Warning: nodes ids must be in KaHIP format
-        """
-        sum_w = 0
-        for i, w in enumerate(self["vwgt"]):
-            if not i in nodes:
-                sum_w += w
-        new_weight = sum_w // len(nodes)
-        for i in range(self._sizeV):
-            if i in nodes:
-                self["vwgt"][i] = new_weight
-
-    def create_unbreakable_links_btw_nodes(self, nodes: list[int]) -> None:
-        """
-        This function modifies edges weights to create unbreakable links between the nodes of the list
-
-        Warning: nodes ids must be in KaHIP format
-        """
-        inf: int = 95099713  # big number for removing cut access to an edge
-        for n1 in nodes:
-            for j, n2 in enumerate(sorted(self.get_neighbors(n2))):
-                if n2 in nodes:
-                    i = self["xadj"][n1] + j
-                    self["adjcwgt"][i] = inf
-
-    def zone_cut(self, zone: list[int], imb: float, seed: int):
-        """"Graph procedure to cut only the input zone."""
-        self.recalibrate_nodes_weight(zone)
-        self.create_unbreakable_links_btw_nodes(zone)
-        self.kaffpa_cut(2, imb, 0, seed, 2)
-
     def kaffpa_cut(
         self,
         nblocks: int,

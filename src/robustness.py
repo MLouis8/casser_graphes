@@ -1,6 +1,7 @@
 from Graph import Graph
 from typ import RobustList, Edge, EdgeDict
 from geo import dist
+from BIRCHClustering import CFTree, remove_duplicates
 
 import json
 import random as rd
@@ -66,6 +67,59 @@ def freq_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:
             frequencies[edge] = 1
     return max(frequencies, key=frequencies.get)
 
+def freq_attack_cluster(G: Graph, nblocks: int, ncuts: int, imb: float, clustering_param: int) -> Edge:      
+    cuts = []
+    seen_seeds = []
+    if is_cutable(G, nblocks, imb):
+        for _ in range(ncuts):
+            seed = rd.randint(0, 1044642763)
+            while seed in seen_seeds:
+                seed = rd.randint(0, 1044642763)
+            seen_seeds.append(seed)
+            G.kaffpa_cut(nblocks, imb, 0, seed, 2)
+            cuts.append(G.process_cut())
+    else:
+        print("not cutable")
+        largest_cc = G.get_biggest_cc
+        G_nx = G._nx.subgraph(largest_cc)
+        # code de add node weights and relabel de preprocessing
+        w_nodes = {}
+        for node in list(G_nx.nodes):
+            w_nodes[node] = 1
+        nx.set_node_attributes(G_nx, w_nodes, "weight")
+        sorted_nodes = sorted(G_nx.nodes())
+        mapping = {old_node: new_node for new_node, old_node in enumerate(sorted_nodes)}
+        G_nx = nx.relabel_nodes(G_nx, mapping)
+
+        G_sub = Graph(nx=G_nx)
+        res = freq_attack(G_sub, nblocks, ncuts, imb)
+        n1 = list(mapping.keys())[list(mapping.values()).index(res[0])]
+        n2 = list(mapping.keys())[list(mapping.values()).index(res[1])]
+        if not n1 in G._nx.subgraph(largest_cc).nodes:
+            print("not in subgraph")
+        if not n2 in G._nx.subgraph(largest_cc).nodes:
+            print("not in subgraph")
+        if not (n1, n2) in G._nx.subgraph(largest_cc).edges:
+            print(f"{n1, n2} not in edges (A)")
+        if not (n2, n1) in G._nx.subgraph(largest_cc).edges:
+            print(f"{n2, n1} not in edges (B)")
+        return (n1, n2)
+    
+    if len(cuts) == 0:
+        print([len(cc) for cc in G.get_ccs])
+    birch_tree = CFTree(cuts, G_nx, threshold=clustering_param)
+    birch_tree.activate_clustering()
+    clusters = birch_tree.retrieve_cluster()
+    cluster = sorted(clusters, key=len)[1]
+    cut_union = sum(cluster, [])
+    remove_duplicates(cut_union)
+    frequencies = {}
+    for edge in cut_union:
+        if edge in frequencies:
+            frequencies[edge] += 1
+        else:
+            frequencies[edge] = 1
+    return max(frequencies, key=frequencies.get)
 
 def betweenness_attack(G: Graph, weighted: bool, subset: list[Edge] | None, approx: int | None, new: bool = False) -> Edge:
     bc = G.get_edge_bc(weighted=weighted, new=new, approx=approx)
@@ -100,13 +154,14 @@ def maxdegree_attack(G: Graph, subset: list[Edge] | None) -> Edge:
             chosen_edge = edge
     return chosen_edge
 
-def weighted_attack(G: Graph) -> Edge:
-    t = G["adjcwgt"].index(max(G["adjcwgt"]))
-    for i, adj in enumerate(G["xadj"]):
-        if adj >= t:
-            u = i-1
-            break
-    return u, G["adjncy"][t]
+def degree_lanes_attack(G: Graph) -> Edge:
+    weight = nx.get_edge_attributes(G._nx, 'weight')
+    max_val, chosen_edge = 0, None
+    for edge in G._nx.edges:
+        degree = G._nx.degree[edge[0]] * G._nx.degree[edge[1]]
+        max_val = max_val if max_val > weight[edge] * degree else weight[edge] * degree
+        chosen_edge = edge
+    return chosen_edge
 
 def attack(
     G: Graph,
@@ -133,7 +188,7 @@ def attack(
         G: Graph
         k: int, the number of edges to remove
         fp_save: str, the saving path
-        order: str, can be "bc", "freq", "deg" or "rd" depending on the strategy to apply for the attack
+        order: str, can be "bc", "freq", "deg", "rd" or "weight" depending on the strategy to apply for the attack
             (ex. bc will remove the highest Betweenness Centrality edge)
         metric_bc: bool, whether the Betweenness Centrality is computed at each step
         metric_cc: bool, whether the max size of the connected components is computed or not
@@ -163,7 +218,7 @@ def attack(
         raise ValueError(
             "Freq attack not available when considering only a subset of edges"
         )
-    metrics, chosen_edge, chosen_edges, direct_save = [], None, [], False
+    metrics, chosen_edge, direct_save = [], None, False
     for i in range(k):
         print(f"processing the {i+1}-th attack over {k}, order: {order}")
         match order:
@@ -183,9 +238,15 @@ def attack(
                 chosen_edge = maxdegree_attack(G, subset)
                 G.remove_edge(chosen_edge)
             case "rd":
-                metric_procedure(metrics, chosen_edges)
+                metric_procedure(metrics, chosen_edge)
                 G._nx = G.to_nx()
-                chosen_edges = random_attack(G, subset)
+                chosen_edge = random_attack(G, subset)
+                G.remove_edge(chosen_edge)
+            case "dla":
+                metric_procedure(metrics, chosen_edge)
+                G._nx = G.to_nx()
+                chosen_edge = degree_lanes_attack(G)
+                G.remove_edge(chosen_edge)
     if not direct_save:
         metric_procedure(metrics, chosen_edge)
     if save:
