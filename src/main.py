@@ -2,7 +2,7 @@ from Graph import Graph
 from paths import graphml_path, kp_paths, eff_paths_dir, bigattacks_paths, effective_res_paths
 from robustness import attack, cpt_effective_resistance
 from visual import cumulative_impact_comparison, visualize_edgeList_ordered, visualize_city_parts, visualize_edgeList, visualize_cluster
-from procedures import compare_scc_or_cc_procedure, effective_resistance_procedure
+from procedures import compare_scc_or_cc_procedure, effective_resistance_procedure, clustering_procedure
 from geo import neighborhood_procedure
 from communities import louvain_communities_wrapper, determine_city_parts_from_redges
 from BIRCHClustering import CFTree
@@ -40,22 +40,15 @@ def main():
     #     res[edge] = new_w[edge] * G_nx.degree[edge[0]] * G_nx.degree[edge[1]]
     # G.set_weight_from_dict(res)
 
-    attack(G, 200, 'data/robust/bigattacks10-1000/dla200.json', 'dla', False, True)
+    # attack(G, 200, 'data/robust/bigattacks10-1000/dla200.json', 'dla', False, True)
 
-    # with open("./data/cuts/lanes_1000_005.json", 'r') as rfile:
-    #     data = json.load(rfile)
-    # cuts = []
-    # for cut in list(data.values()):
-    #     G.set_last_results(cut[0], cut[1])
-    #     cuts.append(G.process_cut())
-    # birch_tree = CFTree(cuts, G_nx, threshold=2600)
-    # birch_tree.activate_clustering()
-    # print(birch_tree)
-    # clusters = birch_tree.retrieve_cluster()
-    # with open('data/testCluster2600.json', 'w') as wfile:
-    #     json.dump(clusters, wfile)
-    # with open('data/testCluster2600.json', 'r') as rfile:
-    #     clusters = json.load(rfile)
-    # visualize_cluster(G_nx, clusters, 'data/testCluster2600.pdf')
+    
+    # with open('data/testCluster2600_03_mean.json', 'r') as rfile:
+        # clusters = json.load(rfile)
+    # for cluster in clusters:
+    #     print(len(cluster))
+    # visualize_cluster(G_nx, clusters, 'data/testCluster2600_03.pdf') # [clusters[2], clusters[3], clusters[5]]
+
+    # clustering_procedure(G, G_nx, 'data/cuts/lanes_1000_03.json', 'data/testCluster2500_03.json', treshold=2500)
 
 main()

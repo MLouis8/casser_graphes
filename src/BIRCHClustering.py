@@ -33,7 +33,7 @@ class Node:
         return "Node " + str(self.id) + ", with " + str(children_size) + " children"
 
 class CFTree:
-    def __init__(self, cuts: Cuts, G_nx: nx.Graph, threshold=5000):
+    def __init__(self, cuts: Cuts, G_nx: nx.Graph, threshold: int, dist: str):
         print('init tree...')
         self.last_id = 0
         self.root = Node(0, None, [], True)
@@ -41,6 +41,13 @@ class CFTree:
         self._cuts = cuts
         self._latitudes = nx.get_node_attributes(G_nx, "x")
         self._longitudes = nx.get_node_attributes(G_nx, "y")
+        match dist:
+            case 'mean':
+                self._mean = True
+            case 'max':
+                self._mean = False
+            case _:
+                raise ValueError('dist can only be max or mean')
         for cut in self._cuts:
             for edge in cut:
                 if not edge[0] in self._latitudes or not edge[0] in self._longitudes:
@@ -90,8 +97,9 @@ class CFTree:
         if len(union) > 10*len(c):
             print('union too big')
             union = rd.sample(union, 10*len(c))
-        return sum(self.chamfer_routine(union, c)) / len(union)
-        # return max(self.chamfer_routine(union, c)) # a tester
+        if self._mean:
+            return sum(self.chamfer_routine(union, c)) / len(union)
+        return max(self.chamfer_routine(union, c)) # a tester
 
     def insert(self, cut):
         # If the tree is empty, add the cut to the root

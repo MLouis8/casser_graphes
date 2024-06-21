@@ -25,6 +25,7 @@ from robustness import (
     measure_scc_or_cc_from_rlist,
     cpt_effective_resistance,
 )
+from BIRCHClustering import CFTree
 
 
 def thousand_cuts_procedure(
@@ -81,36 +82,36 @@ def cpt_freq(freq, kcuts, G_kp):
         cuts[k] = G_kp.process_cut()
 
 
-def clustering_procedure(
-    graph_path: str, kp_path: str, cut_path: str, cost_name: str, treshold: int
-):
-    """ "
-    @params:
-        Required: graph_path, path to the OSMnx Graph
-        Required: kp_path, path to the KaHIP Graph
-        Required: cut_path, path to the cuts, it's a dictionnary of (cut id ex: "1", (edgecut, blocks))
-        Required: cost_name, used only for saving file name
-        Required: treshold, clustering treshold, if the distance between two cuts is smaller than the treshold, they are connected in the proximity graph.
-    """
-    print("import stuff...")
-    G_nx = ox.load_graphml(graph_path)
-    G_kp = Graph(json=kp_path)
-    with open(cut_path, "r") as read_file:
-        kcuts = json.load(read_file)
-    cuts = {}
-    for k, (edgecut, blocks) in kcuts.items():
-        G_kp.set_last_results(edgecut, blocks)
-        cuts[k] = G_kp.process_cut()
+# def clustering_procedure(
+#     graph_path: str, kp_path: str, cut_path: str, cost_name: str, treshold: int
+# ):
+#     """ "
+#     @params:
+#         Required: graph_path, path to the OSMnx Graph
+#         Required: kp_path, path to the KaHIP Graph
+#         Required: cut_path, path to the cuts, it's a dictionnary of (cut id ex: "1", (edgecut, blocks))
+#         Required: cost_name, used only for saving file name
+#         Required: treshold, clustering treshold, if the distance between two cuts is smaller than the treshold, they are connected in the proximity graph.
+#     """
+#     print("import stuff...")
+#     G_nx = ox.load_graphml(graph_path)
+#     G_kp = Graph(json=kp_path)
+#     with open(cut_path, "r") as read_file:
+#         kcuts = json.load(read_file)
+#     cuts = {}
+#     for k, (edgecut, blocks) in kcuts.items():
+#         G_kp.set_last_results(edgecut, blocks)
+#         cuts[k] = G_kp.process_cut()
 
-    print("clustering...")
-    C = CutsClassification(cuts, G_nx)
-    C.cluster_louvain(treshold)
-    print(f"for n = {treshold}")
-    for level in C._levels:
-        print(len(level))
-    C.save_last_classes(
-        "data/clusters/CTS_" + str(treshold) + "_" + cost_name + ".json"
-    )
+#     print("clustering...")
+#     C = CutsClassification(cuts, G_nx)
+#     C.cluster_louvain(treshold)
+#     print(f"for n = {treshold}")
+#     for level in C._levels:
+#         print(len(level))
+#     C.save_last_classes(
+#         "data/clusters/CTS_" + str(treshold) + "_" + cost_name + ".json"
+#     )
 
 
 def clustering_display_procedure():
@@ -463,3 +464,30 @@ def verify_robust_list_integrity(path_index: int) -> None:
             print("not in redges", edge)
     print(len(edges), len(redges))
     assert_all_different_bcdicts(data)
+
+def clustering_procedure(G_kahip: Graph, G_nx: nx.Graph, cut_path: str, save_path: str, dist: str = 'mean', treshold: int = 2600) -> None:
+    """
+    Last clustering procedure using a modified BIRCH algorithm together with K-means++ algorithm.
+    For the cut to cut distance, the Chamfer distance is used. 
+    For the cut to cluster distance a modified Chamfer distance is used (see dist param)
+
+    @params:
+        Required: G_kahip, the graph from the class Graph
+        Required: G_nx, the graph from networkx
+        Required: cut_path, path to the json containing the cuts
+        Required: save_path, path for saving the produced list of clusters, a cluster being represented as a list of cuts and a cut as a list of edges
+        Required: dist, 'mean' or 'max' are supported, for the modified Chamfer distance (distance from a cut to a cluster)
+        Optional: treshold, the maximum authorized radius for a cluster
+    """
+    with open(cut_path, 'r') as rfile:
+        data = json.load(rfile)
+    cuts = []
+    for cut in list(data.values()):
+        G_kahip.set_last_results(cut[0], cut[1])
+        cuts.append(G_kahip.process_cut())
+    birch_tree = CFTree(cuts, G_nx, treshold, dist)
+    birch_tree.activate_clustering()
+    print(birch_tree)
+    clusters = birch_tree.retrieve_cluster()
+    with open(save_path, 'w') as wfile:
+        json.dump(clusters, wfile)
