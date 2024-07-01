@@ -312,24 +312,25 @@ def visualize_class(
     )
 
 def visualize_cluster(G_nx: nx.Graph, clusters: list[list[Cuts]], save_path: str):
-    fig, axes = plt.subplots(1, len(clusters))
-    for i, cluster in enumerate(clusters):
+    display_cls = clusters   
+    fig, axes = plt.subplots(1, len(display_cls))
+    for i, cluster in enumerate(display_cls):
         edge_color, edge_width = [], []
         flattened_cluster = sum(cluster, [])
         for e in G_nx.edges:
             edge = [e[0], e[1]]
-            edge_color.append('r' if edge in flattened_cluster else "#54545420")
-            edge_width.append(5 if edge in flattened_cluster else 0.1)
+            edge_color.append('r' if edge in flattened_cluster else "#54545410")
+            edge_width.append(3 if edge in flattened_cluster else 0.1)
         ox.plot_graph(
             G_nx,
             bgcolor="white",
-            node_size=0.5,
+            node_size=0.2,
             edge_color=edge_color,
             edge_linewidth=edge_width,
             save=False,
             show=False,
-            ax=axes[i],
-            node_color="#54545420",
+            ax=axes[i] if len(display_cls) > 1 else axes,
+            node_color="#54545410",
             edge_alpha=None
         )
     fig.savefig(save_path)

@@ -1,17 +1,15 @@
 import networkx as nx
 import osmnx as ox
 import json
+import haversine as hs
 
 from typ import EdgeCoord
 
 
 def dist(e1: EdgeCoord, e2: EdgeCoord) -> float:
-    return min([
-        ox.distance.great_circle(e1[0][0], e1[0][1], e2[0][0], e2[0][1]),
-        ox.distance.great_circle(e1[0][0], e1[0][1], e2[1][0], e2[1][1]),
-        ox.distance.great_circle(e1[1][0], e1[1][1], e2[0][0], e2[0][1]),
-        ox.distance.great_circle(e1[1][0], e1[1][1], e2[1][0], e2[1][1])
-    ])
+    lat1, long1 = (e1[0][0] + e1[1][0]) / 2, (e1[0][1] + e1[1][1]) / 2
+    lat2, long2 = (e2[0][0] + e2[1][0]) / 2, (e2[0][1] + e2[1][1]) / 2
+    return hs.haversine((lat1, long1), (lat2, long2), unit=hs.Unit.KILOMETERS)
 
 
 def neighborhood_procedure(G_nx: nx.Graph, k: int, fp: str) -> None:

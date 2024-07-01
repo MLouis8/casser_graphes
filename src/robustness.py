@@ -1,14 +1,77 @@
 from Graph import Graph
 from typ import RobustList, Edge, EdgeDict
 from geo import dist
-from BIRCHClustering import CFTree, remove_duplicates
+from BIRCHClustering import CFTree
 
 import json
 import random as rd
 import networkx as nx
-import numpy as np
-from copy import deepcopy
 from math import ceil
+
+def cluster_attack(
+    G: Graph,
+    G_nx: nx.Graph,
+    k: int,
+    fp_save: str,
+    ncuts: int = 1000,
+    imb: float = 0.05,
+    nblocks: int = 2,
+    cluster_id: int = 0,
+    cluster_t: int = 2000
+) -> None:
+    if G_nx.is_directed():
+        G_nx = G_nx.to_undirected()
+    print('start attack...')
+    # first we cut the graph n times
+    cuts = []
+    seen_seeds = []
+    if is_cutable(G, nblocks, imb):
+        for _ in range(ncuts):
+            seed = rd.randint(0, 1044642763)
+            while seed in seen_seeds:
+                seed = rd.randint(0, 1044642763)
+            seen_seeds.append(seed)
+            G.kaffpa_cut(nblocks, imb, 0, seed, 2)
+            cuts.append(G.process_cut())
+    print('cuts done...')
+    # then we cluster the cuts
+    birch_tree = CFTree(cuts, G_nx, cluster_t, 'mean')
+    birch_tree.activate_clustering()
+    clusters = birch_tree.retrieve_cluster()
+    print(f'clustering done, {len(clusters)} clusters')
+    # we select a cluster
+    cluster = sorted(clusters, key=len)[cluster_id]
+
+    # select the most frequent edges in the cluster
+    attack_edges = []
+    edge_occurence = {}
+    for cut in cluster:
+        for edge in cut:
+            if edge in edge_occurence:
+                edge_occurence[edge] += 1
+            else:
+                edge_occurence[edge] = 1
+    for _ in range(k):
+        current_max = max(edge_occurence, key=edge_occurence.get)
+        attack_edges.append(current_max)
+        edge_occurence[current_max] = 0
+
+    # compute the lcc for each state of the attack
+    result = []
+    for edge in attack_edges:
+        try:
+            G_nx.remove_edge(edge[0], edge[1])
+            try:
+                G_nx.remove_edge(edge[1], edge[0])
+            except:
+                pass
+        except:
+            G_nx.remove_edge(edge[1], edge[0])
+        result.append([str(edge), len(max(nx.connected_components(G_nx), key=len))])
+    print('lccs computed')
+    # save the attack
+    with open(fp_save, 'w') as wfile:
+        json.dump(result, wfile)
 
 def is_cutable(G: Graph, nblocks: int, imb: float):
     ccs = G.get_ccs
@@ -57,62 +120,6 @@ def freq_attack(G: Graph, nblocks: int, ncuts: int, imb: float) -> Edge:
             print(f"{n2, n1} not in edges (B)")
         return (n1, n2)
     
-    if len(cut_union) == 0:
-        print([len(cc) for cc in G.get_ccs])
-    frequencies = {}
-    for edge in cut_union:
-        if edge in frequencies:
-            frequencies[edge] += 1
-        else:
-            frequencies[edge] = 1
-    return max(frequencies, key=frequencies.get)
-
-def freq_attack_cluster(G: Graph, nblocks: int, ncuts: int, imb: float, clustering_param: int) -> Edge:      
-    cuts = []
-    seen_seeds = []
-    if is_cutable(G, nblocks, imb):
-        for _ in range(ncuts):
-            seed = rd.randint(0, 1044642763)
-            while seed in seen_seeds:
-                seed = rd.randint(0, 1044642763)
-            seen_seeds.append(seed)
-            G.kaffpa_cut(nblocks, imb, 0, seed, 2)
-            cuts.append(G.process_cut())
-    else:
-        print("not cutable")
-        largest_cc = G.get_biggest_cc
-        G_nx = G._nx.subgraph(largest_cc)
-        # code de add node weights and relabel de preprocessing
-        w_nodes = {}
-        for node in list(G_nx.nodes):
-            w_nodes[node] = 1
-        nx.set_node_attributes(G_nx, w_nodes, "weight")
-        sorted_nodes = sorted(G_nx.nodes())
-        mapping = {old_node: new_node for new_node, old_node in enumerate(sorted_nodes)}
-        G_nx = nx.relabel_nodes(G_nx, mapping)
-
-        G_sub = Graph(nx=G_nx)
-        res = freq_attack(G_sub, nblocks, ncuts, imb)
-        n1 = list(mapping.keys())[list(mapping.values()).index(res[0])]
-        n2 = list(mapping.keys())[list(mapping.values()).index(res[1])]
-        if not n1 in G._nx.subgraph(largest_cc).nodes:
-            print("not in subgraph")
-        if not n2 in G._nx.subgraph(largest_cc).nodes:
-            print("not in subgraph")
-        if not (n1, n2) in G._nx.subgraph(largest_cc).edges:
-            print(f"{n1, n2} not in edges (A)")
-        if not (n2, n1) in G._nx.subgraph(largest_cc).edges:
-            print(f"{n2, n1} not in edges (B)")
-        return (n1, n2)
-    
-    if len(cuts) == 0:
-        print([len(cc) for cc in G.get_ccs])
-    birch_tree = CFTree(cuts, G_nx, threshold=clustering_param)
-    birch_tree.activate_clustering()
-    clusters = birch_tree.retrieve_cluster()
-    cluster = sorted(clusters, key=len)[1]
-    cut_union = sum(cluster, [])
-    remove_duplicates(cut_union)
     frequencies = {}
     for edge in cut_union:
         if edge in frequencies:
@@ -246,7 +253,7 @@ def attack(
                 metric_procedure(metrics, chosen_edge)
                 G._nx = G.to_nx()
                 chosen_edge = degree_lanes_attack(G)
-                G.remove_edge(chosen_edge)
+                G.remove_edge(chosen_edge) 
     if not direct_save:
         metric_procedure(metrics, chosen_edge)
     if save:

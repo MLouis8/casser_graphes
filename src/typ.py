@@ -19,3 +19,5 @@ Cut = list[Edge]
 RobustList = list[tuple[Edge, EdgeDict, int]] | list[tuple[Edge, list[float], list[int]]]
 
 EdgeCoord = tuple[tuple[float, float], tuple[float, float]]
+
+Cluster = list[Cut]

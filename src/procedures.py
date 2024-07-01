@@ -5,9 +5,10 @@ import numpy as np
 import json
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
+from math import inf
 
 from Graph import Graph
-from typ import Edge, EdgeDict
+from typ import Edge, EdgeDict, Cluster
 from paths import (
     graphml_path,
     kp_paths,
@@ -465,7 +466,7 @@ def verify_robust_list_integrity(path_index: int) -> None:
     print(len(edges), len(redges))
     assert_all_different_bcdicts(data)
 
-def clustering_procedure(G_kahip: Graph, G_nx: nx.Graph, cut_path: str, save_path: str, dist: str = 'mean', treshold: int = 2600) -> None:
+def clustering_procedure(G_kahip: Graph, G_nx: nx.Graph, cut_path: str, save_path: str, treshold: float, dist: str = 'mean') -> None:
     """
     Last clustering procedure using a modified BIRCH algorithm together with K-means++ algorithm.
     For the cut to cut distance, the Chamfer distance is used. 
@@ -485,9 +486,26 @@ def clustering_procedure(G_kahip: Graph, G_nx: nx.Graph, cut_path: str, save_pat
     for cut in list(data.values()):
         G_kahip.set_last_results(cut[0], cut[1])
         cuts.append(G_kahip.process_cut())
-    birch_tree = CFTree(cuts, G_nx, treshold, dist)
+    birch_tree = CFTree(cuts, G_nx, treshold)
     birch_tree.activate_clustering()
     print(birch_tree)
     clusters = birch_tree.retrieve_cluster()
     with open(save_path, 'w') as wfile:
         json.dump(clusters, wfile)
+
+
+def cluster_data_procedure(cluster: Cluster, G_nx: nx.Graph):
+    size = len(cluster)
+    weight = nx.get_edge_attributes(G_nx, 'weight')
+    cut_costs, cut_edges = [], []
+    for cut in cluster:
+        cut_cost = 0
+        for e in cut:
+            try:
+                cut_cost += eval(weight[(e[0], e[1], 0)])
+            except:
+                cut_cost += eval(weight[(e[1], e[0], 0)])
+        cut_costs.append(cut_cost)
+        cut_edges.append(len(cut))
+    print(f"for this cluster, we have:\navg cost: {np.mean(cut_costs)}; max cost: {np.max(cut_costs)}; min cost: {np.min(cut_costs)}")
+    print(f"avg nb edges: {np.mean(cut_edges)}; max nb of edges: {np.max(cut_edges)}; min nb of edges: {np.min(cut_edges)}")

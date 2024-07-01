@@ -17,59 +17,53 @@ def remove_duplicates(edges: Cut):
 
 class Node:
     def __init__(self, id, parent, cut, is_leaf):
-        self.id:         int         = id
-        self.parent:     Node | None = parent
-        self.is_leaf:    bool        = is_leaf
-        self.children:   list[Node]  = []
-        self.edge_union: Cut         = cut
-        self.cuts:       list[Cut]   = [cut]
-        self.radius:     float        = 0
+        self._id:         int         = id
+        self._parent:     Node | None = parent
+        self._is_leaf:    bool        = is_leaf
+        self._children:   list[Node]  = []
+        self._edge_union: Cut         = cut
+        self._cuts:       list[Cut]   = [cut]
+        self._diameter:     float        = 0
 
     def display_node(self):
-        children_size = len(self.children) if self.children else 0
-        cuts_size = len(self.cuts) if self.cuts else 0
-        if self.is_leaf:
-            return "Leaf " + str(self.id) + ", with " + str(cuts_size) + " cuts"
-        return "Node " + str(self.id) + ", with " + str(children_size) + " children"
+        children_size = len(self._children) if self._children else 0
+        cuts_size = len(self._cuts) if self._cuts else 0
+        if self._is_leaf:
+            return "Leaf " + str(self._id) + ", with " + str(cuts_size) + " cuts"
+        return "Node " + str(self._id) + ", with " + str(children_size) + " children"
 
 class CFTree:
-    def __init__(self, cuts: Cuts, G_nx: nx.Graph, threshold: int, dist: str):
+    def __init__(self, cuts: Cuts, G_nx: nx.Graph, threshold: float):
         print('init tree...')
-        self.last_id = 0
-        self.root = Node(0, None, [], True)
-        self.threshold = threshold
+        self._last_id = 0
+        self._root = Node(0, None, [], True)
+        self._threshold = threshold
         self._cuts = cuts
         self._latitudes = nx.get_node_attributes(G_nx, "x")
         self._longitudes = nx.get_node_attributes(G_nx, "y")
-        match dist:
-            case 'mean':
-                self._mean = True
-            case 'max':
-                self._mean = False
-            case _:
-                raise ValueError('dist can only be max or mean')
         for cut in self._cuts:
             for edge in cut:
                 if not edge[0] in self._latitudes or not edge[0] in self._longitudes:
                     raise ValueError(f"{edge[0]} has no geo coordinates")
                 if not edge[1] in self._latitudes or not edge[1] in self._longitudes:
                     raise ValueError(f"{edge[0]} has no geo coordinates")
+        self._avg_cut_size = sum([len(cut) for cut in self._cuts]) / len(self._cuts)
         print('...tree initialized')
     
     def __str__(self):
         def parcours_display(node):
             res = node.display_node()
-            if not node.is_leaf:
-                for child in node.children:
+            if not node._is_leaf:
+                for child in node._children:
                     res += "\n   "
                     res += parcours_display(child)
             return res
-        return parcours_display(self.root)
+        return parcours_display(self._root)
 
     @property
-    def get_new_id(self):
-        self.last_id += 1
-        return self.last_id
+    def _get_new_id(self):
+        self._last_id += 1
+        return self._last_id
 
     def chamfer_routine(self, c1: Cut, c2: Cut) -> float:
         l = []
@@ -90,43 +84,42 @@ class CFTree:
         """Chamfer Distance between two cuts based on geographical distance."""
         return sum(self.chamfer_routine(c1, c2)) + sum(self.chamfer_routine(c2, c1))
     
-    def adapted_chamfer_distance(self, union: Cut, c: Cut) -> float:
+    def adapted_chamfer_distance(self, u1: Cut, u2: Cut) -> float:
         """Chamfer Distance adapted to modified BIRCH algorithm, so returns a lookalike chamfer distance to the  / union"""
-        if not union:
+        size = int(10 * self._avg_cut_size)
+        if not u1 or len(u1) == 1:
             return 0
-        if len(union) > 10*len(c):
-            print('union too big')
-            union = rd.sample(union, 10*len(c))
-        if self._mean:
-            return sum(self.chamfer_routine(union, c)) / len(union)
-        return max(self.chamfer_routine(union, c)) # a tester
+        if len(u1) > size:
+            u1 = rd.sample(u1, size)
+        if len(u2) > size:
+            u2 = rd.sample(u2, size)
+        return sum(self.chamfer_routine(u1, u2)) / size
 
     def insert(self, cut):
         # If the tree is empty, add the cut to the root
-        if len(self.root.children) == 0:
-            self.root.is_leaf = False
-            self.root.children.append(Node(self.get_new_id, self.root, cut, True))
+        if len(self._root._children) == 0:
+            self._root._is_leaf = False
+            self._root._children.append(Node(self._get_new_id, self._root, cut, True))
             return
 
         # Find the leaf node to insert the cut
-        leaf_node, dist_to_node = self._find_leaf_node(self.root, cut, None)
+        leaf_node, dist_to_node = self._find_leaf_node(self._root, cut, None)
 
         # Insert the cut into the leaf node
         self._insert_into_node(leaf_node, dist_to_node, cut)
 
     def _find_leaf_node(self, node: Node, cut, prev_dist):
         # If the node is a leaf, return it
-        if node.is_leaf:
+        if node._is_leaf:
             if prev_dist:
                 return node, prev_dist
             else:
-                return node, self.adapted_chamfer_distance(node.edge_union, cut)
-
+                return node, self.adapted_chamfer_distance(node._edge_union, cut)
         # If the node is not a leaf, find the closest child
         min_distance = inf
         closest_child = None
-        for child in node.children:
-            distance = self.adapted_chamfer_distance(child.edge_union, cut)
+        for child in node._children:
+            distance = self.adapted_chamfer_distance(child._edge_union, cut)
             if distance < min_distance:
                 min_distance = distance
                 closest_child = child
@@ -136,31 +129,32 @@ class CFTree:
 
     def _insert_into_node(self, node: Node, distance, cut: Cut):
         # Update the node attributes
-        node.cuts.append(cut)
-        node.edge_union += cut
-        remove_duplicates(node.edge_union)
+        node._cuts.append(cut)
+        node._edge_union += cut
+        remove_duplicates(node._edge_union)
 
-        # If the node's radius exceeds the threshold, split the node
-        node.radius = max(node.radius, distance)
-        if node.radius > self.threshold:
+        # If the node's diameter exceeds the threshold, split the node
+        node._diameter = max(node._diameter, distance)
+        if node._diameter > self._threshold:
             self._split_node(node)
 
     def _split_node(self, node: Node):
         # Create two new nodes
-        new_node1 = Node(self.get_new_id, node.parent, [], True)
-        new_node2 = Node(self.get_new_id, node.parent, [], True)
+        new_node1 = Node(self._get_new_id, node._parent, [], True)
+        new_node2 = Node(self._get_new_id, node._parent, [], True)
         new_node_list = [new_node1, new_node2]
 
         # Redistribute the data cuts between the two new nodes
-        cuts_partition = self.kmeanspp(node.cuts, 2)
+        cuts_partition = self.kmeanspp(node._cuts, 2)
         for cut_id, part_id in enumerate(cuts_partition):
-            self._insert_into_node(new_node_list[part_id], 0, node.cuts[cut_id])
+            self._insert_into_node(new_node_list[part_id], 0, node._cuts[cut_id])
 
         # Add the new nodes in the tree
         for new_node in new_node_list:
-            node.parent.children.append(new_node)
+            node._parent._children.append(new_node)
 
     def kmeanspp(self, cuts: list[Cut], nrepr: int) -> list[int]:
+        l = len(cuts)
         repr = [cuts.pop(rd.randrange(len(cuts)))]
         d = lambda cut, rs: min([self.chamfer_distance(cut, r) for r in rs])
         available_cuts = cuts.copy()
@@ -174,6 +168,7 @@ class CFTree:
         partition = []
         for cut in cuts:
             try:
+                # a tester
                 partition.append(repr.index(cut))
             except:
                 best_dist = inf
@@ -185,14 +180,33 @@ class CFTree:
                         best_repr = repr_id
                 partition.append(best_repr)
         return partition
+    
+    def merge_clusters(self, c1: Node, c2: Node, d: float):
+        c2._id = c1._id
+        c2._edge_union += c1._edge_union
+        c1._edge_union += c2._edge_union
+        remove_duplicates(c1._edge_union)
+        remove_duplicates(c2._edge_union)
+        c1._cuts += c2._cuts
+        c2._cuts += c1._cuts
+        remove_duplicates(c1._cuts)
+        remove_duplicates(c2._cuts)
+        c1._diameter, c2._diameter = d, d
 
     def activate_clustering(self):
         for i, cut in enumerate(self._cuts):
             self.insert(cut)
             print(f"cut {i+1} out of {len(self._cuts)} processed")
+        # print("clustering done, merging close clusters...")
+        # for c1 in self._root._children:
+        #     for c2 in self._root._children:
+        #         if c1._id != c2._id:
+        #             dist = self.adapted_chamfer_distance(c1._edge_union, c2._edge_union)
+        #             if dist < self._threshold / 10:
+        #                 self.merge_clusters(c1, c2, dist)
 
     def retrieve_cluster(self) -> list[list[Cut]]:
-        res = []
-        for cluster in self.root.children:
-            res.append(cluster.cuts)
-        return res
+        clusters = []
+        for cluster in self._root._children:
+            clusters.append(cluster._cuts)
+        return clusters
