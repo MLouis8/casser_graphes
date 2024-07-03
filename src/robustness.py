@@ -441,7 +441,7 @@ def measure_bc_impact_cumulative(
     G_nx: nx.Graph,
     save_path: str,
     impact_treshold: float = 1e-3,
-) -> list[dict[str, float]]:
+) -> None:
     """
     Takes output from preprocess_robust_import and measures the impacts
     in a cumulative way (aggregates the pertubated edges)
@@ -475,7 +475,17 @@ def measure_bc_impact_cumulative(
         for edge, v in bc.items():
             if edge == r_edges[i]:
                 continue
-            delta = abs(first_bc[edge] - v)
+            try:
+                try:
+                    delta = abs(first_bc[edge] - v)
+                except:
+                    delta = abs(first_bc[(edge[1], edge[0])] - v)
+            except:
+                try:
+                    delta = abs(first_bc[(edge[0], edge[1], 0)])
+                except:
+                    delta = abs(first_bc[(edge[1], edge[0], 0)])
+            
             if delta > impact_treshold:
                 if not edge in impacted_edges:    
                     impacted_edges.append(edge)

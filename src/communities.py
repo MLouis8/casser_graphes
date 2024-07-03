@@ -1,4 +1,4 @@
-# from cdlib.algorithms import walktrap
+from cdlib.algorithms import walktrap
 import networkx as nx
 import numpy as np
 import json
@@ -20,7 +20,7 @@ def walktrap_communities_wrapper(G_nx: nx.Graph, fp: str, k: int = 1) -> None:
     G = G_nx.copy()
     for i in range(k):
         print(f"{i}th level")
-        comms = None #walktrap(G)
+        comms = walktrap(G)
         for node in G_nx.nodes:
             for j, com in enumerate(comms.communities):
                 if node in com:
@@ -44,14 +44,13 @@ def louvain_communities_wrapper(G_nx: nx.Graph, fp: str, res: float = 0.004) -> 
         new_weight[k] = eval(v)
     nx.set_edge_attributes(G_nx, new_weight, 'weight')
     comms = nx.community.louvain_communities(G_nx, weight='weight', resolution=res)
-    res = []
     with open(fp, "w") as wfile:
         json.dump([list(com) for com in comms], wfile)
 
 def determine_cut_edges(G_nx: nx.Graph, parts: list[int]) -> list[Edge]:
     cut_edges = []
     for e in G_nx.edges:
-        n1, n2 = None, None
+        n1, n2 = -1, -1
         for i, part in enumerate(parts):
             if e[0] in part:
                 n1 = i
@@ -59,7 +58,7 @@ def determine_cut_edges(G_nx: nx.Graph, parts: list[int]) -> list[Edge]:
                 n2 = i
             if n1 and n2:
                 break
-        if (n1 != None) and (n2 != None) and (n1 != n2):
+        if (n1 != -1) and (n2 != -1) and (n1 != n2):
             cut_edges.append(e)
     return cut_edges
 

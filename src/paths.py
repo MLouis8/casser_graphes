@@ -231,4 +231,5 @@ bigattacks_paths = [
     'data/robust/bigattacks10-1000/val+deg200.json',
     'data/robust/bigattacks10-1000/freq200_k3_03.json',
     'data/robust/bigattacks10-1000/dla200.json',
+    'data/robust/bigattacks10-1000/eBCA200.json',
 ]

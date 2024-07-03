@@ -924,7 +924,7 @@ def visualize_impacts_comparison(
 
 
 def cumulative_impact_comparison(
-    impacts_fp: list[str], crit: str, label: str, attack_names: list[str], save_fp: str
+    impacts_fp: list[str], crit: str, label: str, attack_names: list[str], linestyles: list[str], save_fp: str
 ):
 
     impacts = []
@@ -935,25 +935,25 @@ def cumulative_impact_comparison(
     fig, ax = plt.subplots()
     for i, impact in enumerate(impacts):
         t = np.arange(len(impact))
-        ax.plot(t, impact, label=attack_names[i])
+        ax.plot(t, impact, label=attack_names[i], linestyle=linestyles[i])
     ax.legend()
     ax.set_ylabel(label)
     ax.set_xlabel("number of removed edges")
-    fig.suptitle("Cumulative evolution of " + crit)
+    # fig.suptitle("Cumulative evolution of " + crit)
     fig.savefig(save_fp)
 
 
-def impact_scatter(impact_fps: list[str], attack_names: list[str], save_fp: str):
+def impact_scatter(impact_fps: list[str], attack_names: list[str], markers: list[str], save_fp: str):
     fig, ax = plt.subplots()
     for i, fp in enumerate(impact_fps):
         with open(fp, "r") as rfile:
             impact = json.load(rfile)
         x, y = [d["sumdiffsnoC"] for d in impact], [d["dmax"] for d in impact]
-        ax.scatter(x, y, label=attack_names[i])
-    ax.set_ylabel("dmax")
-    ax.set_xlabel("sumdiffs")
+        ax.scatter(x, y, label=attack_names[i], marker=markers[i])
+    ax.set_ylabel("furthest impacted edge distance (in km)")
+    ax.set_xlabel("sum of eBC changes")
     ax.legend()
-    fig.suptitle("Scatter plot of dmax and sumdiffs at each step")
+    # fig.suptitle("Scatter plot of dmax and sumdiffs at each step")
     fig.savefig(save_fp)
 
 

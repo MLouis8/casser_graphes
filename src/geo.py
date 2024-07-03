@@ -24,7 +24,7 @@ def neighborhood_procedure(G_nx: nx.Graph, k: int, fp: str) -> None:
     Saves:
         It saves a json dict mapping each edge to the list of edges in its neighborhood
     """
-    neighborhoods = {}
+    neighborhoods: dict[str, list] = {}
     xs = nx.get_node_attributes(G_nx, "x")
     ys = nx.get_node_attributes(G_nx, "y")
     within_range = lambda x, y: ox.distance.great_circle(xs[x], ys[x], xs[y], ys[y]) < k

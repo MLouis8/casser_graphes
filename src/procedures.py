@@ -483,7 +483,7 @@ def clustering_procedure(G_kahip: Graph, G_nx: nx.Graph, cut_path: str, save_pat
     with open(cut_path, 'r') as rfile:
         data = json.load(rfile)
     cuts = []
-    for cut in list(data.values()):
+    for cut in list(data.values())[:100]:
         G_kahip.set_last_results(cut[0], cut[1])
         cuts.append(G_kahip.process_cut())
     birch_tree = CFTree(cuts, G_nx, treshold)

@@ -29,7 +29,7 @@ class CutsClassification:
         return stats.wasserstein_distance_nd(u, v)
     
     def chamfer_routine(self, c1: Cut, c2: Cut) -> float:
-        l = []
+        l: list[float] = []
         for e1 in c1:
             best_distance = inf
             e1n1 = (self._latitudes[e1[0]], self._longitudes[e1[0]])
@@ -40,6 +40,7 @@ class CutsClassification:
                 d_edge = dist((e1n1, e1n2), (e2n1, e2n2))
                 if d_edge < best_distance:
                     best_distance = d_edge
+            l.append(best_distance)
         return sum(l)
         
     def chamfer_distance(self, c1: Cut, c2: Cut) -> float:

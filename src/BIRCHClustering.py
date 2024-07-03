@@ -65,7 +65,7 @@ class CFTree:
         self._last_id += 1
         return self._last_id
 
-    def chamfer_routine(self, c1: Cut, c2: Cut) -> float:
+    def chamfer_routine(self, c1: Cut, c2: Cut) -> list[float]:
         l = []
         for e1 in c1:
             best_distance = inf
@@ -108,7 +108,7 @@ class CFTree:
         # Insert the cut into the leaf node
         self._insert_into_node(leaf_node, dist_to_node, cut)
 
-    def _find_leaf_node(self, node: Node, cut, prev_dist):
+    def _find_leaf_node(self, node: Node | None, cut, prev_dist):
         # If the node is a leaf, return it
         if node._is_leaf:
             if prev_dist:
@@ -197,13 +197,13 @@ class CFTree:
         for i, cut in enumerate(self._cuts):
             self.insert(cut)
             print(f"cut {i+1} out of {len(self._cuts)} processed")
-        # print("clustering done, merging close clusters...")
-        # for c1 in self._root._children:
-        #     for c2 in self._root._children:
-        #         if c1._id != c2._id:
-        #             dist = self.adapted_chamfer_distance(c1._edge_union, c2._edge_union)
-        #             if dist < self._threshold / 10:
-        #                 self.merge_clusters(c1, c2, dist)
+        print("clustering done, merging close clusters...")
+        for c1 in self._root._children:
+            for c2 in self._root._children:
+                if c1._id != c2._id:
+                    dist = self.adapted_chamfer_distance(c1._edge_union, c2._edge_union)
+                    if dist < self._threshold:
+                        self.merge_clusters(c1, c2, dist)
 
     def retrieve_cluster(self) -> list[list[Cut]]:
         clusters = []

@@ -181,6 +181,7 @@ etc/
 cache/
 src/storage.py
 src/figure.py
+src/cls.txt
 package-lock.json
 
 # latex
